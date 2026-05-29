@@ -216,7 +216,7 @@ function memorySignature(memory) {
 
 function starMap(albums) {
   const starred = {};
-  const album = albums.find(function (item) { return item.id === "star"; });
+  const album = safeArray(albums).find(function (item) { return item.id === "star"; });
   (album ? album.memoryIds : []).forEach(function (id) { starred[id] = true; });
   return starred;
 }
@@ -230,7 +230,7 @@ function duplicateGroupTitle(group) {
 
 function duplicateGroups(memories) {
   const map = {};
-  memories.forEach(function (memory) {
+  safeArray(memories).forEach(function (memory) {
     const key = memorySignature(memory);
     if (!key || key === "::") return;
     if (!map[key]) map[key] = [];
@@ -582,7 +582,7 @@ function ensureCoreAlbums(albums) {
   albums = safeArray(albums).map(normalizeAlbumRecord);
 
   const byId = {};
-  albums.forEach(function (album) {
+  safeArray(albums).forEach(function (album) {
     byId[album.id] = album;
   });
 
@@ -591,7 +591,7 @@ function ensureCoreAlbums(albums) {
     output.push(byId[album.id] ? { ...byId[album.id] } : { ...album, memoryIds: [] });
   });
 
-  albums.forEach(function (album) {
+  safeArray(albums).forEach(function (album) {
     if (!byId[album.id]) return;
     if (!INITIAL_ALBUMS.some(function (core) { return core.id === album.id; })) {
       output.push({ ...album });
@@ -603,7 +603,7 @@ function ensureCoreAlbums(albums) {
 
 function memoryHasHomeAlbum(memory, albums) {
   if (memory && memory.inMirror) return true;
-  return albums.some(function (album) {
+  return safeArray(albums).some(function (album) {
     if (album.id === "star") return false;
     return (album.memoryIds || []).indexOf(memory.id) !== -1;
   });
@@ -624,7 +624,7 @@ function ensureAlbumCoverage(memories, albums) {
     return album.id === UNASSIGNED_ALBUM_ID;
   });
 
-  memories.forEach(function (memory) {
+  safeArray(memories).forEach(function (memory) {
     if (!memoryHasHomeAlbum(memory, cleanAlbums)) {
       unassigned.memoryIds.push(memory.id);
     }
@@ -635,7 +635,7 @@ function ensureAlbumCoverage(memories, albums) {
 }
 
 function removeMemoryFromAlbum(albums, albumId, memoryId) {
-  return albums.filter(function (album) {
+  return safeArray(albums).filter(function (album) {
     const groupLike = { id: album.id, sourceId: album.id, title: album.title };
     return !isSystemAlbumGroup(groupLike);
   }).map(function (album) {
@@ -645,14 +645,14 @@ function removeMemoryFromAlbum(albums, albumId, memoryId) {
 }
 
 function addMemoryToAlbum(albums, albumId, memoryId) {
-  return albums.map(function (album) {
+  return safeArray(albums).map(function (album) {
     if (album.id !== albumId) return album;
     return { ...album, memoryIds: Array.from(new Set((album.memoryIds || []).concat([memoryId]))) };
   });
 }
 
 function albumHasMemory(albums, albumId, memoryId) {
-  const album = albums.find(function (item) {
+  const album = safeArray(albums).find(function (item) {
     return item.id === albumId;
   });
   return album ? (album.memoryIds || []).indexOf(memoryId) !== -1 : false;
@@ -679,7 +679,7 @@ function albumTitleExists(albums, title, exceptId) {
 
   const clean = String(title || "").trim().toLowerCase();
   if (!clean) return false;
-  return albums.some(function (album) {
+  return safeArray(albums).some(function (album) {
     return album.id !== exceptId && String(album.title || "").trim().toLowerCase() === clean;
   });
 }
@@ -739,26 +739,26 @@ function isRecentMemory(memory) {
 
 function validateIndex(memories, albums) {
   const memoryIds = {};
-  memories.forEach(function (memory) {
+  safeArray(memories).forEach(function (memory) {
     memoryIds[memory.id] = true;
   });
 
   let orphanAlbumRefs = 0;
-  albums.forEach(function (album) {
+  safeArray(albums).forEach(function (album) {
     (album.memoryIds || []).forEach(function (id) {
       if (!memoryIds[id]) orphanAlbumRefs += 1;
     });
   });
 
-  const missingHomes = memories.filter(function (memory) {
+  const missingHomes = safeArray(memories).filter(function (memory) {
     return !memory.trashed && !memoryHasHomeAlbum(memory, albums);
   }).length;
 
-  const duplicateIds = memories.length - Object.keys(memoryIds).length;
+  const duplicateIds = safeArray(memories).length - Object.keys(memoryIds).length;
 
   return {
-    memories: memories.length,
-    albums: albums.length,
+    memories: safeArray(memories).length,
+    albums: safeArray(albums).length,
     orphanAlbumRefs,
     missingHomes,
     duplicateIds,
@@ -780,7 +780,7 @@ function isTakeoutMemory(memory) {
 }
 
 function uploadPlanStats(files, memories) {
-  const signatures = existingSignatureMap(memories);
+  const signatures = existingSignatureMap(safeArray(memories));
   return Array.from(files || []).reduce(function (stats, file) {
     const signature = fileSignature(file);
     stats.total += 1;
@@ -798,15 +798,15 @@ function clampNumber(value, fallback, min, max) {
 }
 
 function activeQueueCount(queue) {
-  return (queue || []).filter(function (item) { return item.status === "uploading"; }).length;
+  return safeArray(queue).filter(function (item) { return item.status === "uploading"; }).length;
 }
 
 function pendingQueueCount(queue) {
-  return (queue || []).filter(function (item) { return item.status === "queued"; }).length;
+  return safeArray(queue).filter(function (item) { return item.status === "queued"; }).length;
 }
 
 function uploadQueueStats(queue) {
-  return (queue || []).reduce(function (stats, item) {
+  return safeArray(queue).reduce(function (stats, item) {
     stats.total += 1;
     stats[item.status] = (stats[item.status] || 0) + 1;
     return stats;
@@ -814,7 +814,7 @@ function uploadQueueStats(queue) {
 }
 
 function uploadStats(memories) {
-  return memories.reduce(function (stats, memory) {
+  return safeArray(memories).reduce(function (stats, memory) {
     const status = memory.uploadStatus || "local";
     stats.total += 1;
     stats[status] = (stats[status] || 0) + 1;
@@ -833,13 +833,13 @@ function selectedMemoryIds(selectedIds) {
 }
 
 function assignableAlbums(albums) {
-  return albums.filter(function (album) {
+  return safeArray(albums).filter(function (album) {
     return album.id !== "star";
   });
 }
 
 function memoryAlbumTitles(memory, albums) {
-  return albums.filter(function (album) {
+  return safeArray(albums).filter(function (album) {
     return (album.memoryIds || []).indexOf(memory.id) !== -1;
   }).map(function (album) {
     return album.title;
@@ -886,7 +886,7 @@ function searchableText(memory, albums) {
   ].join(" ").toLowerCase();
 }
 
-function matchesSearchFilter(memory, filter) {
+function matchesSearchFilter(memory, albums, filter) {
   if (!memory || memory.trashed) return false;
   const mode = filter || "all";
   if (mode === "all") return true;
@@ -903,8 +903,8 @@ function matchesSearchFilter(memory, filter) {
 }
 
 function searchMemories(memories, albums, query, filter, options) {
-  const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  return newest(memories.filter(function (memory) {
+  const terms = String(query || "").trim().toLowerCase().split(/\s+/).filter(Boolean);
+  return newest(safeArray(memories).filter(function (memory) {
     if (!matchesSearchFilter(memory, albums, filter || "all", options)) return false;
     if (!terms.length) return filter && filter !== "all";
     const haystack = searchableText(memory, albums);
@@ -915,7 +915,7 @@ function searchMemories(memories, albums, query, filter, options) {
 }
 
 function removeAlbum(albums, id) {
-  return albums.filter(function (album) {
+  return safeArray(albums).filter(function (album) {
     return album.id !== id;
   });
 }
@@ -923,7 +923,7 @@ function removeAlbum(albums, id) {
 function renameAlbum(albums, id, title) {
   const clean = String(title || "").trim();
   if (!clean) return albums;
-  return albums.map(function (album) {
+  return safeArray(albums).map(function (album) {
     return album.id === id ? { ...album, title: clean } : album;
   });
 }
@@ -931,13 +931,13 @@ function renameAlbum(albums, id, title) {
 function updateAlbumDetails(albums, id, title, description) {
   const clean = String(title || "").trim();
   if (!clean || albumTitleExists(albums, clean, id)) return albums;
-  return albums.map(function (album) {
+  return safeArray(albums).map(function (album) {
     return album.id === id ? { ...album, title: clean, description: String(description || "").trim(), updatedAt: new Date().toISOString() } : album;
   });
 }
 
 function removeMemoryEverywhere(albums, memoryId) {
-  return albums.map(function (album) {
+  return safeArray(albums).map(function (album) {
     return {
       ...album,
       memoryIds: (album.memoryIds || []).filter(function (id) {
@@ -2667,7 +2667,7 @@ const [filterType, setFilterType] = useState("all");
   }
 
   function pzSetAlbumCover(id) {
-    const album = pzFindAlbum(albums, id);
+    const album = albumById(albums, id);
     const first = album && safeArray(album.items)[0];
     if (!first) {
       pzPushToast("NO COVER", "Add files before setting cover.", "warn");
@@ -2722,7 +2722,7 @@ const [screen, setScreen] = useState("home");
   const [activeMemory, setActiveMemory] = useState(null);
   const [memories, setMemories] = useState([]);
   const [albums, setAlbums] = useState(ensureCoreAlbums(INITIAL_ALBUMS));
-  const pzActiveAlbumEditor = pzFindAlbum(albums, pzAlbumEditorId);
+  const pzActiveAlbumEditor = albumById(albums, pzAlbumEditorId);
   const pzActiveDetailMemory = safeArray(memories).map(normalizeMemoryRecord).find(function (memory) { return memory.id === pzDetailEditorId; }) || null;
   const pzActiveVideoMemory = safeArray(memories).map(normalizeMemoryRecord).find(function (memory) { return memory.id === pzVideoPlayerId; }) || null;
 
@@ -2886,7 +2886,7 @@ const [albumSort, setAlbumSort] = useState("recent");
   }
 
   function deleteAlbum(id) {
-    const album = albums.find(function (item) { return item.id === id; });
+    const album = safeArray(albums).find(function (item) { return item.id === id; });
     if (id === UNASSIGNED_ALBUM_ID || (album && album.locked)) return;
     const next = ensureAlbumCoverage(memories, removeAlbum(albums, id));
     setAlbums(next);
@@ -2931,7 +2931,7 @@ const [albumSort, setAlbumSort] = useState("recent");
 
   function repairIndex() {
     const memoryIds = {};
-    memories.forEach(function (memory) { memoryIds[memory.id] = true; });
+    safeArray(memories).forEach(function (memory) { memoryIds[memory.id] = true; });
 
     const cleanedAlbums = albums.map(function (album) {
       return {
@@ -2984,7 +2984,7 @@ const [albumSort, setAlbumSort] = useState("recent");
 
   function exportSelectedJson() {
     const ids = selectedMemoryIds(selectedIds);
-    const selected = memories.filter(function (memory) { return ids.indexOf(memory.id) !== -1; });
+    const selected = safeArray(memories).filter(function (memory) { return ids.indexOf(memory.id) !== -1; });
     downloadJson("photoz-selected-" + new Date().toISOString().slice(0, 10) + ".json", { version: 1, exportedAt: new Date().toISOString(), memories: selected, albums: albums });
   }
 
@@ -3028,7 +3028,7 @@ const [albumSort, setAlbumSort] = useState("recent");
 
   function selectAll() {
     const next = {};
-    memories.forEach(function (memory) {
+    safeArray(memories).forEach(function (memory) {
       next[memory.id] = true;
     });
     setSelectedIds(next);
@@ -3044,7 +3044,7 @@ const [albumSort, setAlbumSort] = useState("recent");
 
   function invertSelection() {
     const next = {};
-    memories.forEach(function (memory) {
+    safeArray(memories).forEach(function (memory) {
       next[memory.id] = !selectedIds[memory.id];
     });
     setSelectedIds(next);
@@ -3075,7 +3075,7 @@ const [albumSort, setAlbumSort] = useState("recent");
 
   function selectedMemories() {
     const ids = selectedMemoryIds(selectedIds);
-    return memories.filter(function (memory) {
+    return safeArray(memories).filter(function (memory) {
       return ids.indexOf(memory.id) !== -1;
     });
   }
@@ -3373,7 +3373,7 @@ const [albumSort, setAlbumSort] = useState("recent");
     const ids = selectedMemoryIds(selectedIds);
     if (!ids.length) return;
 
-    const selected = memories.filter(function (memory) { return ids.indexOf(memory.id) !== -1; });
+    const selected = safeArray(memories).filter(function (memory) { return ids.indexOf(memory.id) !== -1; });
     const allAlreadyTrashed = selected.length && selected.every(function (memory) { return memory.trashed; });
 
     if (!allAlreadyTrashed) {
@@ -3389,7 +3389,7 @@ const [albumSort, setAlbumSort] = useState("recent");
     if (!confirmDelete("Permanently delete " + ids.length + " selected trashed files from PHOTOZ and R2? This cannot be undone.")) return;
 
     const doomed = selected;
-    const nextMemories = memories.filter(function (memory) {
+    const nextMemories = safeArray(memories).filter(function (memory) {
       return ids.indexOf(memory.id) === -1;
     });
     const nextAlbums = ensureAlbumCoverage(nextMemories, ids.reduce(function (currentAlbums, id) {
@@ -3603,11 +3603,11 @@ const [albumSort, setAlbumSort] = useState("recent");
   }
 
   function purgeTrash() {
-    const doomed = memories.filter(function (memory) { return memory.trashed; });
+    const doomed = safeArray(memories).filter(function (memory) { return memory.trashed; });
     if (!doomed.length) return;
     if (!confirmDelete("Permanently delete " + doomed.length + " trashed files from R2? This cannot be undone.")) return;
     const doomedIds = doomed.map(function (memory) { return memory.id; });
-    const nextMemories = memories.filter(function (memory) { return !memory.trashed; });
+    const nextMemories = safeArray(memories).filter(function (memory) { return !memory.trashed; });
     const nextAlbums = ensureAlbumCoverage(nextMemories, doomedIds.reduce(function (currentAlbums, id) {
       return removeMemoryEverywhere(currentAlbums, id);
     }, albums));
@@ -3635,7 +3635,7 @@ const [albumSort, setAlbumSort] = useState("recent");
     }
 
     if (!confirmDelete("Permanently delete this file from PHOTOZ and R2? This cannot be undone.")) return;
-    const nextMemories = memories.filter(function (item) {
+    const nextMemories = safeArray(memories).filter(function (item) {
       return item.id !== memory.id;
     });
     const nextAlbums = ensureAlbumCoverage(nextMemories, removeMemoryEverywhere(albums, memory.id));
@@ -3644,7 +3644,7 @@ const [albumSort, setAlbumSort] = useState("recent");
     if (activeGroup) {
       setActiveGroup({
         ...activeGroup,
-        items: activeGroup.items.filter(function (item) {
+        items: safeArray(activeGroup && activeGroup.items).filter(function (item) {
           return item.id !== memory.id;
         }),
       });
@@ -3838,7 +3838,7 @@ const [albumSort, setAlbumSort] = useState("recent");
     rememberUndo("IMPORT");
     backupIndex();
 
-    const signatures = existingSignatureMap(memories);
+    const signatures = existingSignatureMap(safeArray(memories));
     const plan = uploadPlanStats(files, memories);
     const freshFiles = files.filter(function (file) {
       return !skipDuplicates || !signatures[fileSignature(file)];

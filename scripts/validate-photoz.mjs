@@ -20,6 +20,10 @@ const settingsPanel = app.match(/function SettingsPanel\(props\) \{[\s\S]*?funct
 check("no console.assert", !app.includes("console.assert"));
 check("worker clean", !worker.includes("async async function"));
 check("no stale LashEyeIcon reference in App", !app.includes("LashEyeIcon"));
+
+check("no stale pzFindAlbum helper references", !app.includes("pzFindAlbum"));
+check("file detail album lookup uses defined albumById", app.includes("const pzActiveAlbumEditor = albumById(albums, pzAlbumEditorId);") && app.includes("const album = albumById(albums, id);"));
+check("search query normalizes missing value", app.includes('const terms = String(query || "").trim().toLowerCase().split(/\\s+/).filter(Boolean);'));
 check("no unused legacy dock icon imports in App", !/AnimatedBookDockIcon|SparkSearchDockIcon|DockAlbumGlyph|DockMirrorGlyph|DockSearchGlyph/.test(app));
 check("legacy dock aliases remain safe for old imports", dockIcons.includes("export const LashEyeIcon = PhotozMirrorDockIcon") && dockIcons.includes("export const AnimatedBookDockIcon = PhotozAlbumDockIcon") && dockIcons.includes("export const SparkSearchDockIcon = PhotozSearchDockIcon"));
 check("no visible Select labels", !app.includes(">Select<") && !app.includes(">SELECT<") && !app.includes('"Select"') && !app.includes('"SELECT"'));
@@ -83,7 +87,7 @@ check("worker uploads do not hard-code PHOTOZ_BUCKET only", !worker.includes('en
 check("non-dock tooltips are disabled", css.includes("Only the bottom dock gets visual tooltips") && css.includes("[data-tooltip]:not(.dockButton)::after"));
 check("native title helper functions removed", !app.includes("title: tooltipForText(label)") && !app.includes("title: value"));
 check("group pages use framed shell and X-only empty state", app.includes('className="shell groupShell"') && app.includes('<EmptyState />') && css.includes('.photozProUI .groupShell'));
-check("runtime filter paths use safe arrays", !app.includes("props.memories.filter") && !app.includes(" : archiveGroups;") && app.includes("duplicateGroups(safeArray(props.memories))") && app.includes("safeArray(props.memories).filter(function (memory)"));
+check("runtime filter paths use safe arrays", !app.includes("props.memories.filter") && !app.includes("activeGroup.items.filter") && !app.includes(" : archiveGroups;") && app.includes("duplicateGroups(safeArray(props.memories))") && app.includes("safeArray(props.memories).filter(function (memory)") && app.includes("safeArray(activeGroup && activeGroup.items).filter"));
 
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
