@@ -17,8 +17,8 @@ const PAGES = [
 ];
 
 const ARCHIVE_VIEWS = ["albums", "years", "months", "eras"];
-const SEARCH_FILTERS = ["all", "photos", "videos", "starred", "mirror", "trash", "me", "tagged", "takeout", "archive", "needs-file"];
-const PRIMARY_SEARCH_FILTERS = ["all", "photos", "videos", "starred", "mirror", "trash"];
+const SEARCH_FILTERS = ["all", "photos", "videos", "tagged", "takeout", "archive", "needs-file"];
+const PRIMARY_SEARCH_FILTERS = ["all", "photos", "videos"];
 const ADVANCED_SEARCH_FILTERS = ["me", "tagged", "takeout", "archive", "needs-file"];
 const SORT_OPTIONS = ["newest", "oldest", "title", "status", "largest", "smallest", "rating"];
 const GRID_SIZES = ["compact", "normal", "large"];
@@ -449,9 +449,8 @@ function virtualAlbumGroups(albums, memories) {
   const videos = all.filter(function (memory) { return memory.kind === "video"; });
 
   return [
-    { id: "virtual-all", sourceId: "virtual-all", title: "ALL", items: all, sort: all[0] ? all[0].sort : 0, virtual: true },
     { id: "virtual-starred", sourceId: "star", title: "STARRED", items: starredItems, sort: starredItems[0] ? starredItems[0].sort : 0, virtual: true },
-    { id: "virtual-archived", sourceId: "virtual-archived", title: "ARCHIVED", items: archived, sort: archived[0] ? archived[0].sort : 0, virtual: true },
+    { id: "virtual-archived", sourceId: "virtual-archived", title: "HIDDEN", items: archived, sort: archived[0] ? archived[0].sort : 0, virtual: true },
     { id: "virtual-trash", sourceId: "virtual-trash", title: "TRASH", items: trash, sort: trash[0] ? trash[0].sort : 0, virtual: true },
     { id: "virtual-unassigned", sourceId: UNASSIGNED_ALBUM_ID, title: "UNASSIGNED", items: unassigned, sort: unassigned[0] ? unassigned[0].sort : 0, virtual: true },
     { id: "virtual-videos", sourceId: "virtual-videos", title: "VIDEOS", items: videos, sort: videos[0] ? videos[0].sort : 0, virtual: true },
@@ -806,34 +805,19 @@ function searchableText(memory, albums) {
   ].join(" ").toLowerCase();
 }
 
-function matchesSearchFilter(memory, albums, filter, options) {
-  const opts = options || {};
-  if (opts.fromDate && dateValue(memory.date) && dateValue(memory.date) < dateValue(opts.fromDate)) return false;
-  if (opts.toDate && dateValue(memory.date) && dateValue(memory.date) > dateValue(opts.toDate)) return false;
-  if (opts.minRating && normalizeRating(memory.rating) < normalizeRating(opts.minRating)) return false;
-  if (filter === "photos") return memory.kind === "photo";
-  if (filter === "videos") return memory.kind === "video";
-  if (filter === "me") return Boolean(memory.isMe);
-  if (filter === "mirror") return Boolean(memory.inMirror);
-  if (filter === "starred") return albumHasMemory(albums, "star", memory.id);
-  if (filter === "recent") return isRecentMemory(memory);
-  if (filter === "takeout") return isTakeoutMemory(memory);
-  if (filter === "tagged") return Array.isArray(memory.tags) && memory.tags.length > 0;
-  if (filter === "untagged") return !Array.isArray(memory.tags) || memory.tags.length === 0;
-  if (filter === "noted") return Boolean(String(memory.caption || "").trim());
-  if (filter === "located") return Boolean(String(memory.location || "").trim());
-  if (filter === "rated") return normalizeRating(memory.rating) > 0;
-  if (filter === "unrated") return normalizeRating(memory.rating) === 0;
-  if (filter === "labeled") return Boolean(normalizeLabel(memory.label));
-  if (filter === "unlabeled") return !normalizeLabel(memory.label);
-  if (filter === "review") return Boolean(memory.review);
-  if (filter === "private") return Boolean(memory.private);
-  if (filter === "originals") return memory.uploadStatus === "r2";
-  if (filter === "needs-file") return memory.uploadStatus === "needs-file" || memory.uploadStatus === "local" || memory.uploadStatus === "failed";
-  if (filter === "archive" || filter === "archived") return Boolean(memory.archived) && !memory.trashed;
-  if (filter === "trash") return Boolean(memory.trashed);
-  if (filter === "failed") return memory.uploadStatus === "failed" || memory.uploadStatus === "local" || memory.uploadStatus === "needs-file";
-  if (filter === "unassigned") return albumHasMemory(albums, UNASSIGNED_ALBUM_ID, memory.id);
+function matchesSearchFilter(memory, filter) {
+  if (!memory || memory.trashed) return false;
+  const mode = filter || "all";
+  if (mode === "all") return true;
+  if (mode === "photos") return memory.kind !== "video";
+  if (mode === "videos") return memory.kind === "video";
+  if (mode === "starred") return Boolean(memory.starred);
+  if (mode === "mirror") return Boolean(memory.inMirror);
+  if (mode === "me") return Boolean(memory.isMe);
+  if (mode === "tagged") return safeArray(memory.tags).length > 0;
+  if (mode === "takeout") return Boolean(memory.takeout || memory.isTakeout);
+  if (mode === "archive") return Boolean(memory.archived);
+  if (mode === "needs-file") return !memory.storageUrl && !memory.previewUrl && !memory.url;
   return true;
 }
 
@@ -1683,6 +1667,8 @@ function BulkBar(props) {
 }
 
 function ControlBar(props) {
+  if (props.activePage && props.activePage !== "albums") return null;
+
   return (
     <div className="controlBar">
       <div className="leftControls">
@@ -1955,76 +1941,101 @@ function AlbumsView(props) {
   );
 }
 
+function searchTextForMemory(memory, albums) {
+  const albumTitles = safeArray(albums).filter(function (album) {
+    return albumMemoryIds(album).indexOf(memory.id) !== -1;
+  }).map(function (album) { return album.title; });
+  return [
+    memory.title,
+    memory.filename,
+    memory.name,
+    memory.type,
+    memory.kind,
+    memory.year,
+    memory.month,
+    memory.era,
+    memory.date,
+    memory.createdAt,
+    memory.updatedAt,
+    memory.uploadStatus,
+    memory.storageKey,
+    memory.storageUrl,
+    memory.previewUrl,
+    safeArray(memory.tags).join(" "),
+    safeArray(memory.albumIds).join(" "),
+    albumTitles.join(" "),
+  ].filter(Boolean).join(" ").toLowerCase();
+}
+
+function matchesSearchQuery(memory, query, albums) {
+  const q = String(query || "").trim().toLowerCase();
+  if (!q) return true;
+  return searchTextForMemory(memory, albums).indexOf(q) !== -1;
+}
+
+
 function SearchView(props) {
-  const results = sortMemories(searchMemories(props.memories, props.albums, props.query, props.filter, { fromDate: props.fromDate, toDate: props.toDate, minRating: props.minRating }), props.sortMode);
-  const active = props.query.trim().length > 0 || props.filter !== "all";
+  const query = String(props.query || "").trim();
+  const activeSearchFilter = PRIMARY_SEARCH_FILTERS.indexOf(props.searchFilter) !== -1 ? props.searchFilter : "all";
+  const baseItems = visibleAllMemories(props.memories, props.albums).filter(function (memory) { return !memory.trashed; });
+  const allItems = newest(baseItems.filter(function (memory) {
+    return matchesSearchFilter(memory, activeSearchFilter);
+  }));
+  const items = allItems.filter(function (memory) {
+    return matchesSearchQuery(memory, query, props.albums);
+  });
 
   return (
     <div className="pageScroll searchPage">
-      <VisibleReporter items={results} reportVisibleIds={props.reportVisibleIds} />
-      <div className="searchBar searchBarFull">
-        <Pill>{results.length}</Pill>
-        <Search size={17} />
+      <VisibleReporter items={items} reportVisibleIds={props.reportVisibleIds} />
+
+      <div className="searchBar librarySearchBar">
+        <Search size={15} />
         <input
           value={props.query}
           onChange={function (event) { props.setQuery(event.target.value); }}
-          placeholder="SEARCH PHOTOS, ALBUMS, TAGS, DATES"
+          placeholder="Search files"
         />
-        {active ? <button type="button" onClick={function () { props.setQuery(""); props.setFilter("all"); props.setFromDate(""); props.setToDate(""); props.setMinRating(""); }}>CLEAR</button> : null}
       </div>
 
-      {props.advancedSearchOpen ? (
-        <div className="searchAdvanced">
-          <input value={props.fromDate} onChange={function (event) { props.setFromDate(event.target.value); }} placeholder="FROM DATE" />
-          <input value={props.toDate} onChange={function (event) { props.setToDate(event.target.value); }} placeholder="TO DATE" />
-        </div>
-      ) : null}
-
-      <div className="searchFilters">
+      <div className="searchFilters librarySearchFilters">
         {PRIMARY_SEARCH_FILTERS.map(function (filter) {
           return (
             <button
-              key={filter}
               type="button"
-              className={props.filter === filter ? "active" : ""}
-              onClick={function () { props.setFilter(filter); }}
+              key={filter}
+              className={activeSearchFilter === filter ? "active" : ""}
+              onClick={function () { props.setSearchFilter(filter); }}
             >
-              {filterLabel(filter)}
+              {filter === "all" ? "All" : up(filter)}
             </button>
           );
         })}
-        <button type="button" className={props.advancedSearchOpen ? "active" : ""} onClick={function () { props.setAdvancedSearchOpen(function (value) { return !value; }); }}>
-          MORE
-        </button>
       </div>
 
-      {props.advancedSearchOpen ? (
-        <div className="searchFilters advancedFilterRow">
-          {ADVANCED_SEARCH_FILTERS.map(function (filter) {
+      <div className="archiveLabel">{query ? "Results" : "Chronological"}</div>
+
+      {!items.length ? (
+        <EmptyState title={query ? "NO MATCHES" : "NO FILES"}>{query ? "Nothing matched that search." : "Upload photos or videos to build the library."}</EmptyState>
+      ) : (
+        <div className="photoGrid searchChronologicalGrid">
+          {items.map(function (memory) {
             return (
-              <button
-                key={filter}
-                type="button"
-                className={props.filter === filter ? "active" : ""}
-                onClick={function () { props.setFilter(filter); }}
-              >
-                {filterLabel(filter)}
-              </button>
+              <PhotoCard
+                key={memory.id}
+                memory={memory}
+                showText
+                selectionMode={props.selectionMode}
+                selected={props.selectedIds && props.selectedIds[memory.id]}
+                toggleSelected={props.toggleSelected}
+                isStarred={props.starredIds && props.starredIds[memory.id]}
+                onDelete={props.deleteMemory}
+                onClick={function () { props.openMemory(memory); }}
+              />
             );
           })}
         </div>
-      ) : null}
-
-      <div className="searchMeta">
-        <span>Find photos.</span>
-      </div>
-
-      {!results.length ? <EmptyState title={active ? "NO RESULTS" : "SEARCH"}>{active ? "Nothing matched this search." : "Find photos."}</EmptyState> : null}
-      <div className="photoGrid">
-        {results.map(function (memory) {
-          return <PhotoCard key={memory.id} memory={memory} showText selectionMode={props.selectionMode} selected={props.selectedIds && props.selectedIds[memory.id]} toggleSelected={props.toggleSelected} isStarred={props.starredIds && props.starredIds[memory.id]} onDelete={props.deleteMemory} onClick={function () { props.openMemory(memory); }} />;
-        })}
-      </div>
+      )}
     </div>
   );
 }
@@ -3405,7 +3416,7 @@ const [albumSort, setAlbumSort] = useState("recent");
                   <strong className="actualPageTitle">{activePage === "albums" ? "Albums" : activePage === "mirror" ? "Mirror" : "Search"}</strong>
                   <em>{memories.length} files</em>
                 </div>
-                <ControlBar archive={archive} archiveView={archiveView} setArchiveView={setArchiveView} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} viewControlsOpen={viewControlsOpen} toggleViewControls={function () { setViewControlsOpen(function (value) { return !value; }); }} toolsOpen={toolsOpen} toggleToolsPanel={function () { setToolsOpen(function (value) { return !value; }); }} />
+                <ControlBar activePage={activePage} archive={archive} archiveView={archiveView} setArchiveView={setArchiveView} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} viewControlsOpen={viewControlsOpen} toggleViewControls={function () { setViewControlsOpen(function (value) { return !value; }); }} toolsOpen={toolsOpen} toggleToolsPanel={function () { setToolsOpen(function (value) { return !value; }); }} />
                 <div className="floatingUtilityRail">
                   <button type="button" className={viewControlsOpen ? "utilityRailButton active" : "utilityRailButton"} onClick={function () { setToolsOpen(false); setViewControlsOpen(function (value) { return !value; }); }}>Filter</button>
                   <button type="button" className={selectionMode ? "utilityRailButton selectUtilityButton active" : "utilityRailButton selectUtilityButton"} onClick={function () { setSelectionMode(function (value) { return !value; }); }}>{selectionMode ? "Done" : "Select"}</button>

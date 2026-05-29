@@ -8558,3 +8558,106 @@ body:has(.selectUtilityButton.active) .bulkBar,
 .mirrorGrid {
   margin-top: 4px;
 }
+
+
+/* Albums page should not have a global All shortcut; All belongs in Search */
+.systemRailItem[data-id="virtual-all"],
+.systemRailItem[data-source-id="virtual-all"],
+.systemRailItem[data-source-id="all"],
+.systemRail .systemRailItem.allShortcut {
+  display: none;
+}
+
+
+/* Search page is the full chronological file grid */
+.searchPage {
+  align-content: start;
+}
+
+.librarySearchBar {
+  width: min(560px, 100%);
+  margin-top: 6px;
+}
+
+.librarySearchBar input {
+  height: 34px;
+  min-height: 34px;
+  border-radius: 10px;
+}
+
+.librarySearchFilters {
+  width: fit-content;
+  max-width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 2px;
+}
+
+.librarySearchFilters button {
+  height: 28px;
+  min-height: 28px;
+  border-radius: 999px;
+  padding: 0 10px;
+  font-size: 10px;
+}
+
+.searchChronologicalGrid {
+  margin-top: 0;
+}
+
+/* Search should not look like an empty utility page */
+.searchPage .emptyState {
+  min-height: 118px;
+}
+
+
+/* Control bar belongs only on Albums. No floating glass line on Search/Mirror. */
+.photozProUI.page-search .controlBar,
+.photozProUI.page-mirror .controlBar,
+.searchPage ~ .controlBar,
+.mirrorPage ~ .controlBar {
+  display: none;
+}
+
+/* If React leaves an empty control shell, collapse it instead of showing a floating line. */
+.controlBar:empty,
+.modeBar:empty,
+.leftControls:empty,
+.libraryActionCluster:empty {
+  display: none;
+}
+
+/* Search and Mirror start cleanly under their own page content. */
+.photozProUI.page-search .pageScroll,
+.photozProUI.page-mirror .pageScroll {
+  margin-top: 0;
+}
+
+.photozProUI.page-search .productHeader,
+.photozProUI.page-mirror .productHeader {
+  margin-bottom: 8px;
+}
+
+/* Keep Albums tabs intentional only where they belong. */
+.photozProUI.page-albums .controlBar {
+  display: flex;
+  width: fit-content;
+  max-width: min(620px, calc(100% - 190px));
+}
+
+
+/* Search is not Trash. Trash lives in Albums/system maintenance only. */
+.searchPage .searchFilters button[data-filter="trash"],
+.searchPage .librarySearchFilters button[data-filter="trash"] {
+  display: none;
+}
+
+
+/* Search filters should not duplicate album/system destinations */
+.searchPage .librarySearchFilters button[data-filter="starred"],
+.searchPage .librarySearchFilters button[data-filter="mirror"],
+.searchPage .librarySearchFilters button[data-filter="trash"],
+.searchPage .librarySearchFilters button[data-filter="me"] {
+  display: none;
+}

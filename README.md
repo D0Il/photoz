@@ -1080,3 +1080,54 @@ Fixed:
 - Replaced the bad `groupBy` guard that referenced `memories` inside `groupBy(mode, items)`.
 - `groupBy` now normalizes `items` only.
 - Rebuilt successfully.
+
+
+## Remove Albums All shortcut
+
+Removed the Albums-page global All shortcut.
+Albums now keeps album-specific shortcuts only: star, hidden, trash, unassigned, videos.
+Search still has the All filter, because All belongs in Search.
+
+
+## Search chronological grid
+
+Changed Search:
+- Search now shows every non-trash file by default.
+- Files appear as a chronological grid, newest first.
+- Search bar filters that same grid.
+- Search All filter is preserved here, while Albums no longer has All.
+
+
+## Search respects Hide from All
+
+Changed Search:
+- Search chronological All grid now uses `visibleAllMemories(memories, albums)`.
+- Albums marked Hide from All are excluded from Search All.
+- Nested albums under a hidden album are also excluded through the existing album tree logic.
+- Trash/Hidden still keep their own behavior elsewhere.
+
+
+## Hide Albums control bar on other pages
+
+Fixed:
+- Albums / Years / Months / Eras control bar no longer renders on Search or Mirror.
+- Empty control shells collapse instead of showing as a floating glass line.
+- Added page-specific class support where available.
+
+
+## Search no-trash fix
+
+Fixed:
+- Search no longer includes trashed files in the chronological grid.
+- Trash was removed from Search filters.
+- If an old saved Search filter was `trash`, Search coerces it back to All.
+- Trash remains available through the Albums/system shortcut, not Search.
+
+
+## Search filter dedupe
+
+Changed:
+- Search filters now focus on the chronological file grid only: All, Photos, Videos.
+- Removed ★ / Starred and Mirror from Search because they are already destinations elsewhere.
+- Removed Trash from Search.
+- Old saved duplicate filters are coerced back to All.
