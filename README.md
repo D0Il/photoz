@@ -52,4 +52,4 @@ The Worker guards `/api/index`, `/api/load-index`, `/api/backup-index`, `/api/sa
 
 ## Password gate
 
-The entry gate validates through `/api/unlock` against the Cloudflare Worker secret/env var named `PHOTOZ_ACCESS_CODE`. The value is trimmed before matching and is never exposed in frontend code.
+The entry gate validates through `/api/unlock` against the Cloudflare Worker secret/env var named `PHOTOZ_ACCESS_CODE`. `wrangler.toml` sets `keep_vars = true` so dashboard-managed variables/secrets are preserved during `npx wrangler deploy`.
