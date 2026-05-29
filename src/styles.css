@@ -2585,3 +2585,409 @@ pre {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Product clarity pass */
+.shell {
+  padding: clamp(14px, 2.2vw, 24px);
+  gap: 14px;
+}
+
+.productHeader {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 2px;
+}
+.productHeader div {
+  display: grid;
+  gap: 2px;
+}
+.productHeader strong {
+  color: rgba(0,0,0,.74);
+  font-size: clamp(25px, 3.8vw, 44px);
+  line-height: .92;
+  font-weight: 950;
+  letter-spacing: -.07em;
+}
+.productHeader span,
+.productHeader em {
+  color: rgba(0,0,0,.40);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.productHeader em {
+  white-space: nowrap;
+}
+
+.controlBar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.24);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.025)),
+    rgba(0,0,0,.012);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.24),
+    inset 0 -1px 0 rgba(0,0,0,.055);
+}
+.controlBar .pill {
+  margin-right: auto;
+}
+.controlBar button,
+.controlBar .uploadButton {
+  height: 32px;
+  min-height: 32px;
+  font-size: 9px;
+  letter-spacing: .13em;
+}
+
+.viewPanel,
+.toolsPanel,
+.importPanel,
+.uploadQueuePanel,
+.statusPanel,
+.duplicatePanel,
+.healthPanel {
+  margin: 0 0 10px;
+  padding: 10px;
+  border-radius: 18px;
+}
+.viewPanelGrid,
+.sortControl,
+.gridSizeControl,
+.albumSortControl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.toolSection {
+  grid-template-columns: 118px minmax(0, auto) minmax(0, auto) minmax(0, auto);
+  padding: 8px;
+  gap: 7px;
+}
+.toolSection button,
+.toolSection .importButton {
+  text-transform: none;
+  letter-spacing: .05em;
+  font-size: 11px;
+}
+
+.archiveLabel {
+  margin: 18px 0 9px;
+  color: rgba(0,0,0,.38);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: .18em;
+}
+.archiveLabel:first-of-type {
+  margin-top: 8px;
+}
+
+.systemShortcutCard {
+  min-height: 72px;
+  padding: 11px;
+}
+.systemShortcutCard strong {
+  font-size: 20px;
+}
+.systemShortcutCard span {
+  font-size: 9px;
+}
+
+.groupCard {
+  min-height: 250px;
+  overflow: hidden;
+}
+.albumGrid,
+.photoGrid,
+.memoryGrid {
+  gap: 12px;
+}
+.groupCardTop {
+  align-items: start;
+}
+.groupCardTop strong {
+  max-width: 80%;
+}
+.groupPreviewGrid {
+  opacity: .94;
+}
+
+.photoCard {
+  min-height: 210px;
+}
+.photoMeta {
+  padding: 11px;
+}
+.photoMeta strong {
+  font-size: 12px;
+  letter-spacing: -.01em;
+}
+.photoMeta span {
+  font-size: 9px;
+}
+
+.searchBar {
+  margin-bottom: 10px;
+}
+.searchBar input {
+  height: 42px;
+  font-size: 13px;
+  letter-spacing: .08em;
+}
+.searchFilters {
+  margin-bottom: 10px;
+}
+.searchFilters button {
+  height: 30px;
+  min-height: 30px;
+  padding-inline: 10px;
+  font-size: 9px;
+}
+
+.modalShell,
+.modal {
+  max-width: min(1040px, calc(100vw - 24px));
+}
+.modalContent {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr);
+  gap: 14px;
+  align-items: start;
+}
+.modalPhoto {
+  min-height: min(72vh, 680px);
+}
+.detailsEditPanel,
+.albumAssignPanel,
+.metadataPanel {
+  padding: 10px;
+  border-radius: 16px;
+}
+.detailsEditGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.detailsEditGrid button {
+  grid-column: 1 / -1;
+}
+.modalActions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.modalSectionTitle {
+  color: rgba(0,0,0,.36);
+  font-size: 9px;
+  letter-spacing: .18em;
+}
+
+.bulkBar {
+  padding: 8px;
+  border-radius: 16px;
+}
+.bulkMore {
+  max-height: 180px;
+  overflow: auto;
+}
+.uploadQueueRows,
+.statusIssues,
+.duplicateReviewPanel {
+  max-height: 280px;
+  overflow: auto;
+}
+
+@media (max-width: 860px) {
+  .modalContent {
+    grid-template-columns: 1fr;
+  }
+  .modalPhoto {
+    min-height: 360px;
+  }
+  .toolSection {
+    grid-template-columns: 1fr;
+  }
+  .controlBar {
+    flex-wrap: wrap;
+  }
+  .controlBar .pill {
+    margin-right: 0;
+  }
+}
+@media (max-width: 620px) {
+  .productHeader {
+    align-items: start;
+    flex-direction: column;
+  }
+  .detailsEditGrid,
+  .modalActions {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Ruthless reduction pass */
+.productHeader {
+  margin-bottom: 4px;
+}
+.productHeader strong {
+  font-size: clamp(30px, 4vw, 52px);
+}
+.productHeader em {
+  opacity: .58;
+}
+
+/* Controls become secondary to content */
+.controlBar {
+  width: fit-content;
+  max-width: 100%;
+  align-self: start;
+}
+.controlBar .pill {
+  display: none;
+}
+.controlBar button,
+.controlBar .uploadButton {
+  text-transform: none;
+  letter-spacing: .06em;
+  font-size: 11px;
+}
+
+/* Panels are drawers, not dashboards */
+.viewPanel,
+.toolsPanel,
+.importPanel,
+.uploadQueuePanel,
+.statusPanel,
+.duplicatePanel,
+.healthPanel {
+  max-width: 760px;
+}
+.statusPanelTop strong {
+  text-transform: none;
+  letter-spacing: -.02em;
+  font-size: 15px;
+}
+.statusPanelTop button {
+  text-transform: none;
+  letter-spacing: .04em;
+}
+
+/* Tools become quiet rows */
+.quietTools .toolSection {
+  grid-template-columns: 92px repeat(3, minmax(0, auto));
+  background: rgba(255,255,255,.026);
+}
+.quietTools .toolSection span {
+  text-transform: none;
+  letter-spacing: .02em;
+  font-size: 12px;
+  color: rgba(0,0,0,.48);
+}
+.quietTools .toolSection button,
+.quietTools .toolSection .importButton {
+  text-transform: none;
+  letter-spacing: .02em;
+  font-size: 12px;
+}
+
+/* Albums should dominate the page */
+.albumGrid {
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+}
+.groupCard {
+  min-height: 280px;
+}
+.groupCardTop strong {
+  font-size: clamp(20px, 2.5vw, 30px);
+}
+
+/* System shortcuts are shortcuts, not album competitors */
+.systemFolderStrip {
+  grid-template-columns: repeat(4, minmax(110px, 1fr));
+}
+.systemShortcutCard {
+  min-height: 64px;
+  padding: 10px;
+  box-shadow:
+    0 8px 22px rgba(0,0,0,.075),
+    inset 0 1px 0 rgba(255,255,255,.30),
+    inset 0 -1px 0 rgba(0,0,0,.08);
+}
+.systemShortcutCard strong {
+  font-size: 18px;
+}
+
+/* Search should feel like a search page, not a filter page */
+.searchFilters {
+  max-width: 720px;
+}
+.searchFilters button {
+  text-transform: none;
+  letter-spacing: .04em;
+  font-size: 11px;
+}
+
+/* Modal actions/readouts should not feel like an admin panel */
+.modalActions button,
+.technicalToggle,
+.advancedToggle {
+  text-transform: none;
+  letter-spacing: .03em;
+  font-size: 12px;
+}
+.fileInfoRow span,
+.statusStats span,
+.legacyMetaPanel span {
+  text-transform: none;
+  letter-spacing: .02em;
+  font-size: 11px;
+}
+
+/* Hide all legacy metadata classes for real */
+.ratingBadge,
+.labelBadge,
+.reviewBadge,
+.privateBadge,
+.legacyMetaPanel {
+  display: none !important;
+}
+
+/* Advanced panels stay visually subordinate */
+.technicalDetails,
+.metadataPanel,
+.advancedImportSettings {
+  opacity: .74;
+}
+
+/* Bulk bar: only while selecting, still quiet */
+.bulkBar {
+  max-width: 900px;
+}
+.bulkBar button,
+.bulkBar select,
+.bulkBar input {
+  text-transform: none;
+  letter-spacing: .03em;
+  font-size: 11px;
+}
+
+/* Keep page calmer on tablet */
+@media (max-width: 760px) {
+  .controlBar {
+    width: 100%;
+  }
+  .quietTools .toolSection {
+    grid-template-columns: 1fr;
+  }
+  .systemFolderStrip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

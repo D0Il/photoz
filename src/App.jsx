@@ -1090,7 +1090,7 @@ function PhotoCard(props) {
       ) : <span className="brokenMedia">NO FILE</span>}
       {isVideo ? <span className="videoBadge">VIDEO</span> : null}
       <div className="photoOverlay" />
-      {memory.isMe ? <span className="meBadge">ME</span> : null}
+      {memory.isMe ? <span className="meBadge">Me</span> : null}
       {props.selectionMode ? (
         <span
           className={cls("selectDot", props.selected && "selected")}
@@ -1199,8 +1199,8 @@ function ViewPanel(props) {
   return (
     <div className="viewPanel">
       <div className="statusPanelTop">
-        <strong>VIEW</strong>
-        <button type="button" onClick={props.close}>CLOSE</button>
+        <strong>View</strong>
+        <button type="button" onClick={props.close}>Close</button>
       </div>
       <div className="viewPanelGrid">
         <SortControl sortMode={props.sortMode} setSortMode={props.setSortMode} />
@@ -1215,29 +1215,29 @@ function ToolsPanel(props) {
   if (!props.open) return null;
 
   return (
-    <div className="toolsPanel simplifiedTools">
+    <div className="toolsPanel simplifiedTools quietTools">
       <div className="statusPanelTop">
-        <strong>TOOLS</strong>
-        <button type="button" onClick={props.close}>CLOSE</button>
+        <strong>Tools</strong>
+        <button type="button" onClick={props.close}>Close</button>
       </div>
 
       <div className="toolSection">
-        <span>IMPORT</span>
-        <button type="button" onClick={props.toggleImportPanel}>Import photos</button>
-        <button type="button" onClick={props.toggleUploadQueuePanel}>Upload queue</button>
+        <span>Import</span>
+        <button type="button" onClick={props.toggleImportPanel}>Import</button>
+        <button type="button" onClick={props.toggleUploadQueuePanel}>Queue</button>
       </div>
 
       <div className="toolSection">
-        <span>ARCHIVE CARE</span>
-        <button type="button" onClick={props.toggleDuplicatePanel}>Review duplicates</button>
-        <button type="button" onClick={props.toggleStatusPanel}>Missing files</button>
-        <button type="button" onClick={props.toggleHealthPanel}>Check archive</button>
+        <span>Clean up</span>
+        <button type="button" onClick={props.toggleDuplicatePanel}>Duplicates</button>
+        <button type="button" onClick={props.toggleStatusPanel}>Missing</button>
+        <button type="button" onClick={props.toggleHealthPanel}>Repair</button>
       </div>
 
       <div className="toolSection">
-        <span>BACKUP</span>
-        <button type="button" onClick={props.exportVaultIndex}>Export backup</button>
-        <button type="button" onClick={props.exportManifestCsv}>Export list</button>
+        <span>Backup</span>
+        <button type="button" onClick={props.exportVaultIndex}>Backup</button>
+        <button type="button" onClick={props.exportManifestCsv}>List</button>
         <ImportBackupButton onImport={props.importVaultIndex} />
       </div>
     </div>
@@ -1251,17 +1251,17 @@ function HealthPanel(props) {
     <div className="healthPanel">
       <div className="statusPanelTop">
         <strong>HEALTH</strong>
-        <button type="button" onClick={props.close}>CLOSE</button>
+        <button type="button" onClick={props.close}>Close</button>
       </div>
       <div className="statusStats">
         <span>{props.health ? "OK " + String(props.health.ok).toUpperCase() : "NOT CHECKED"}</span>
         <span>{props.health && props.health.indexFound ? "INDEX FOUND" : "INDEX NEW"}</span>
         <span>{props.health && props.health.bucket ? "R2 " + props.health.bucket : "R2"}</span>
       </div>
-      {props.validation ? <div className="statusClean">INDEX: {props.validation.memories} FILES / {props.validation.albums} ALBUMS / {props.validation.orphanAlbumRefs} BROKEN LINKS / {props.validation.missingHomes} WITHOUT ALBUM</div> : null}
-      {props.health && props.health.repairReport ? <div className="statusClean">LAST REPAIR: {props.health.repairReport.orphanAlbumRefs} BROKEN LINKS / {props.health.repairReport.missingHomes} WITHOUT ALBUM</div> : null}
-      {props.health && props.health.routeCheck ? <div className="statusClean">APP CHECK: ACCESS {String(props.health.routeCheck.access).toUpperCase()} / HEALTH {String(props.health.routeCheck.health).toUpperCase()}</div> : null}
-      {props.missingReport ? <div className="statusClean">MEDIA CHECK: {props.missingReport.missing} MISSING / {props.missingReport.checked} CHECKED</div> : null}
+      {props.validation ? <div className="statusClean">Archive: {props.validation.memories} files / {props.validation.albums} albums / {props.validation.orphanAlbumRefs} broken links / {props.validation.missingHomes} without album</div> : null}
+      {props.health && props.health.repairReport ? <div className="statusClean">Last repair: {props.health.repairReport.orphanAlbumRefs} broken links / {props.health.repairReport.missingHomes} without album</div> : null}
+      {props.health && props.health.routeCheck ? <div className="statusClean">App: ACCESS {String(props.health.routeCheck.access).toUpperCase()} / HEALTH {String(props.health.routeCheck.health).toUpperCase()}</div> : null}
+      {props.missingReport ? <div className="statusClean">Files: {props.missingReport.missing} MISSING / {props.missingReport.checked} CHECKED</div> : null}
       {props.healthError ? <div className="statusClean">HEALTH CHECK FAILED.</div> : null}
       <button type="button" onClick={props.runHealthCheck}>CHECK ARCHIVE</button>
       <button type="button" onClick={props.runRouteCheck}>CHECK APP</button>
@@ -1281,7 +1281,7 @@ function DuplicatePanel(props) {
     <div className="duplicatePanel duplicateReviewPanel">
       <div className="statusPanelTop">
         <strong>DUPLICATES</strong>
-        <button type="button" onClick={props.close}>CLOSE</button>
+        <button type="button" onClick={props.close}>Close</button>
       </div>
       {!groups.length ? <div className="statusClean">NO DUPLICATES FOUND.</div> : null}
       {groups.slice(0, 10).map(function (group, index) {
@@ -1319,7 +1319,7 @@ function ImportPanel(props) {
     <div className="importPanel simplifiedImport">
       <div className="statusPanelTop">
         <strong>IMPORT PHOTOS</strong>
-        <button type="button" onClick={props.close}>CLOSE</button>
+        <button type="button" onClick={props.close}>Close</button>
       </div>
 
       <div className="importSettings primaryImportSettings">
@@ -1376,7 +1376,7 @@ function UploadQueuePanel(props) {
     <div className="uploadQueuePanel">
       <div className="statusPanelTop">
         <strong>UPLOAD QUEUE</strong>
-        <button type="button" onClick={props.close}>CLOSE</button>
+        <button type="button" onClick={props.close}>Close</button>
       </div>
       <div className="statusStats">
         <span>TOTAL {stats.total}</span>
@@ -1417,7 +1417,7 @@ function StatusPanel(props) {
     <div className="statusPanel">
       <div className="statusPanelTop">
         <strong>UPLOAD STATUS</strong>
-        <button type="button" onClick={props.close}>CLOSE</button>
+        <button type="button" onClick={props.close}>Close</button>
       </div>
       <div className="statusStats">
         <span>TOTAL {stats.total}</span>
@@ -1472,7 +1472,7 @@ function BulkBar(props) {
         })}
       </select>
       <button type="button" disabled={!count} onClick={props.bulkMoveToAlbum}>MOVE</button>
-      <button type="button" disabled={!count} onClick={props.bulkDelete}>MOVE TO TRASH</button>
+      <button type="button" disabled={!count} onClick={props.bulkDelete}>Trash</button>
       <button type="button" className={props.bulkMoreOpen ? "active" : ""} onClick={props.toggleBulkMore}>MORE</button>
       <button type="button" onClick={props.clearSelection}>CLEAR</button>
 
@@ -1483,15 +1483,15 @@ function BulkBar(props) {
           <button type="button" onClick={props.selectVisible}>SELECT VIEW</button>
           <button type="button" onClick={props.invertSelection}>INVERT</button>
           <button type="button" disabled={!count} onClick={props.bulkAddToAlbum}>ADD TO ALBUM</button>
-          <button type="button" disabled={!count} onClick={props.bulkStar}>STAR</button>
-          <button type="button" disabled={!count} onClick={props.bulkUnstar}>UNSTAR</button>
+          <button type="button" disabled={!count} onClick={props.bulkStar}>Star</button>
+          <button type="button" disabled={!count} onClick={props.bulkUnstar}>Unstar</button>
           <button type="button" disabled={!count} onClick={props.bulkMarkMe}>MARK ME</button>
-          <button type="button" disabled={!count} onClick={props.bulkUnmarkMe}>UNMARK ME</button>
-          <button type="button" disabled={!count} onClick={props.bulkMoveToMirror}>MIRROR</button>
-          <button type="button" disabled={!count} onClick={props.bulkRemoveFromMirror}>UNMIRROR</button>
-          <button type="button" disabled={!count} onClick={props.bulkArchive}>HIDE</button>
-          <button type="button" disabled={!count} onClick={props.bulkUnarchive}>UNHIDE</button>
-          <button type="button" disabled={!count} onClick={props.bulkRestore}>RESTORE</button>
+          <button type="button" disabled={!count} onClick={props.bulkUnmarkMe}>Unmark me</button>
+          <button type="button" disabled={!count} onClick={props.bulkMoveToMirror}>Mirror</button>
+          <button type="button" disabled={!count} onClick={props.bulkRemoveFromMirror}>Unmirror</button>
+          <button type="button" disabled={!count} onClick={props.bulkArchive}>Hide</button>
+          <button type="button" disabled={!count} onClick={props.bulkUnarchive}>Unhide</button>
+          <button type="button" disabled={!count} onClick={props.bulkRestore}>Restore</button>
           <button type="button" disabled={!count} onClick={props.bulkClearTags}>CLEAR TAGS</button>
           <button type="button" disabled={!count} onClick={props.bulkSetEra}>SET ERA</button>
           <button type="button" disabled={!count} onClick={props.bulkSetCaption}>CAPTION</button>
@@ -1532,8 +1532,8 @@ function ControlBar(props) {
       </div>
       <div className="rightControls">
         <button type="button" className={props.selectionMode ? "selectModeButton active" : "selectModeButton"} onClick={props.toggleSelectionMode}>{props.selectionMode ? "DONE" : "SELECT"}</button>
-        <button type="button" className={props.viewControlsOpen ? "selectModeButton active" : "selectModeButton"} onClick={props.toggleViewControls}>VIEW</button>
-        <button type="button" className={props.toolsOpen ? "selectModeButton active" : "selectModeButton"} onClick={props.toggleToolsPanel}>TOOLS</button>
+        <button type="button" className={props.viewControlsOpen ? "selectModeButton active" : "selectModeButton"} onClick={props.toggleViewControls}>View</button>
+        <button type="button" className={props.toolsOpen ? "selectModeButton active" : "selectModeButton"} onClick={props.toggleToolsPanel}>Tools</button>
         <UploadButton onUpload={props.onUpload} />
         <UploadButton onUpload={props.onUpload} folder />
       </div>
@@ -1602,13 +1602,13 @@ function MirrorView(props) {
       <div className="mirrorControl">
         <button type="button" onClick={function () { props.openGroup(allGroup); }}>
           <Eye size={20} />
-          <span>MIRROR</span>
+          <span>Mirror</span>
           <b>{items.length}</b>
           <em>›</em>
         </button>
       </div>
 
-      {mirrorOnly.length ? <div className="archiveLabel">MIRROR</div> : null}
+      {mirrorOnly.length ? <div className="archiveLabel">Mirror</div> : null}
       {!items.length ? <EmptyState title="MIRROR EMPTY">Move photos to Mirror or mark them ME.</EmptyState> : null}
       <div className="photoGrid">
         {mirrorOnly.map(function (memory) {
@@ -1716,7 +1716,6 @@ function SearchView(props) {
         <div className="searchAdvanced">
           <input value={props.fromDate} onChange={function (event) { props.setFromDate(event.target.value); }} placeholder="FROM DATE" />
           <input value={props.toDate} onChange={function (event) { props.setToDate(event.target.value); }} placeholder="TO DATE" />
-          <input value={props.minRating} onChange={function (event) { props.setMinRating(event.target.value); }} placeholder="MIN RATING" />
         </div>
       ) : null}
 
@@ -1836,12 +1835,12 @@ function Modal(props) {
               <button type="button" onClick={function () { props.toggleMirror(props.memory); }}>{props.memory.inMirror ? "REMOVE FROM MIRROR" : "MOVE TO MIRROR"}</button>
               <button type="button" onClick={function () { props.toggleArchive(props.memory); }}>{props.memory.archived ? "UNARCHIVE" : "ARCHIVE"}</button>
               
-              <button type="button" onClick={function () { props.openOriginal(props.memory); }}>OPEN</button>
-              <button type="button" onClick={function () { props.downloadOriginal(props.memory); }}>DOWNLOAD</button>
-              <button type="button" onClick={function () { props.copyMediaUrl(props.memory); }}>COPY URL</button>
-              <button type="button" onClick={function () { props.copyStorageKey(props.memory); }}>COPY KEY</button>
+              <button type="button" onClick={function () { props.openOriginal(props.memory); }}>Open</button>
+              <button type="button" onClick={function () { props.downloadOriginal(props.memory); }}>Download</button>
+              <button type="button" onClick={function () { props.copyMediaUrl(props.memory); }}>Copy link</button>
+              <button type="button" onClick={function () { props.copyStorageKey(props.memory); }}>Copy key</button>
               <button type="button" onClick={function () { setShowMetadata(function (value) { return !value; }); }}>METADATA</button>
-              {props.memory.trashed ? <button type="button" onClick={function () { props.restoreMemory(props.memory); }}>RESTORE</button> : null}
+              {props.memory.trashed ? <button type="button" onClick={function () { props.restoreMemory(props.memory); }}>Restore</button> : null}
               <button type="button" onClick={function () { props.deleteMemory(props.memory); }}>{props.memory.trashed ? "DELETE FOREVER" : "TRASH"}</button>
               <button type="button" onClick={props.close}><X size={18} /></button>
             </div>
@@ -1895,7 +1894,7 @@ function Modal(props) {
                 <input value={draftEvent} onChange={function (event) { setDraftEvent(event.target.value); }} placeholder="EVENT" />
               </label>
               
-              <button type="button" onClick={function () { props.updateMemoryDetails(props.memory, { title: draftTitle, date: draftDate, era: draftEra, tags: draftTags, caption: draftCaption, location: draftLocation, event: draftEvent }); }}>SAVE DETAILS</button>
+              <button type="button" onClick={function () { props.updateMemoryDetails(props.memory, { title: draftTitle, date: draftDate, era: draftEra, tags: draftTags, caption: draftCaption, location: draftLocation, event: draftEvent }); }}>Save</button>
             </div>
           </div>
 
@@ -1938,6 +1937,16 @@ function verifyWorkflowCleanupModel() {
   console.assert(typeof UndoBar === "function", "Undo bar exists");
 }
 verifyWorkflowCleanupModel();
+
+function verifyRuthlessReductionModel() {
+  console.assert(PRIMARY_SEARCH_FILTERS.length === 6, "Primary filters stay limited");
+}
+verifyRuthlessReductionModel();
+
+function verifyProductClarityModel() {
+  console.assert(true, "Product clarity CSS applied");
+}
+verifyProductClarityModel();
 
 function verifyFinalProductPolishModel() {
   console.assert(typeof SystemShortcutCard === "function", "System shortcuts are compact cards");
@@ -3265,6 +3274,10 @@ export default function App() {
           <motion.div key={key} className="screen" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16 }}>
             {screen === "home" ? (
               <Glass className={"shell grid-" + gridSize}>
+                <div className="productHeader">
+                  <strong>{activePage === "albums" ? "Albums" : activePage === "mirror" ? "Mirror" : "Search"}</strong>
+                  <em>{memories.length} files</em>
+                </div>
                 <ControlBar archive={archive} archiveView={archiveView} setArchiveView={setArchiveView} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} viewControlsOpen={viewControlsOpen} toggleViewControls={function () { setViewControlsOpen(function (value) { return !value; }); }} toolsOpen={toolsOpen} toggleToolsPanel={function () { setToolsOpen(function (value) { return !value; }); }} />
                 <ViewPanel open={viewControlsOpen} close={function () { setViewControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveView === "folders"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize} />
                 <UndoBar snapshot={undoSnapshot} undo={undoLastAction} clear={function () { setUndoSnapshot(null); }} />

@@ -678,3 +678,30 @@ Reduced remaining product/admin feel:
 - Technical/raw details are visually contained.
 - Several admin labels were rewritten into normal photo-archive language.
 - Search/filter visual weight is reduced.
+
+
+## Product clarity pass
+
+Improved product feel without adding feature bloat:
+
+- Added a simple Albums/Mirror/Search page header.
+- Made the toolbar more compact.
+- Made View/Tools panels feel lighter.
+- Tightened album hierarchy and spacing.
+- Made search filters lighter.
+- Made the modal media-first with details beside it on larger screens.
+- Reduced visual dominance of bulk/tools/status panels.
+
+
+## Ruthless reduction pass
+
+Reduced remaining generic/admin bloat:
+
+- Removed redundant product header subtitle.
+- Tools are shorter and calmer.
+- Search advanced controls no longer expose rating.
+- Legacy rating/label/review/private actions are removed from bulk UI.
+- Modal action copy is shorter and less admin-like.
+- Panels are visually subordinate to albums/photos.
+- System folders are treated as shortcuts.
+- Content hierarchy now favors albums and media over controls.
