@@ -55,3 +55,27 @@ The Worker guards `/api/index`, `/api/load-index`, `/api/backup-index`, `/api/sa
 Cloudflare Build variables are build-time only, so the build command runs `scripts/write-access-code.mjs` before Vite. It reads the Build secret `PHOTOZ_ACCESS_CODE` and writes `src/generated-access-code.js`, which is imported only by `src/worker.js`. The frontend app does not import this generated file. At runtime, `/api/unlock` checks `env.PHOTOZ_ACCESS_CODE` first, then the generated Worker-only build fallback.
 
 - Ambient music button refined: quieter icon-only rail control with a subtle active dot.
+
+## Huge build pass
+
+Added source-level product pass for:
+- album editor shell: rename, description, parent album, hide from all, cover, delete
+- file detail editor shell: title, date, location, caption, tags, rating, ME/star/private/review toggles, download/trash
+- upload review panel shell with retry/clear controls
+- backup/save confidence strip
+- toast/status system
+- video badges and video playback modal
+- compact loading/error state styling
+- responsive QA polish for editor panels and controls
+
+## Video mode pass
+
+Video mode is now a dedicated designed state:
+- VIDEOS filter activates a video-mode page class
+- cinematic video header with stats
+- featured latest video module
+- larger 16:9 video grid
+- proper video play plates, duration/size labels, and badges
+- video cards open playback instead of image detail by default
+- cinema playback modal with metadata/actions
+- SearchView/GroupView edit/play handlers are now passed as props instead of relying on out-of-scope state

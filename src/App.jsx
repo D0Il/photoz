@@ -1,6 +1,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {ChevronLeft, Eye, Images, Search, Upload, X, Trash2, CircleHelp, SlidersHorizontal, CircleCheck, Music2, Volume2, VolumeX, LockKeyhole, UnlockKeyhole} from "lucide-react";
+import {ChevronLeft, Eye, Images, Search, Upload, X, Trash2, CircleHelp, SlidersHorizontal, CircleCheck, Music2, Volume2, VolumeX, LockKeyhole, UnlockKeyhole, FolderPen, ShieldCheck, Film, Download, PanelRightOpen, ArchiveRestore, Save, AlertTriangle, UploadCloud, Play, Clock3, HardDrive, Sparkles, Maximize2, CalendarDays} from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 const UNASSIGNED_ALBUM_ID = "unassigned";
@@ -1356,68 +1356,46 @@ function ImportBackupButton(props) {
 }
 
 function PhotoCard(props) {
-  const memory = props.memory;
-  const [imageFailed, setImageFailed] = useState(false);
-  const [useOriginal, setUseOriginal] = useState(false);
-  const preferredSrc = useOriginal ? memory.storageUrl : (memory.previewUrl || memory.storageUrl);
-  const imageSrc = !imageFailed ? preferredSrc : "";
-  const isVideo = memory.kind === "video";
+  const memory = normalizeMemoryRecord(props.memory);
+  const source = memory.previewUrl || memory.storageUrl || memory.url;
+  const video = pzIsVideo(memory);
+
   return (
-    <motion.button
-      type="button"
-      className={cls("photoCard", props.large && "large", props.className)}
+    <article
+      className={props.selected ? "photoCard selected" : video ? "photoCard videoCard pzDesignedVideoCard" : "photoCard"}
       onClick={function (event) {
         if (props.selectionMode) {
-          event.preventDefault();
-          props.toggleSelected(memory.id);
+          props.toggleSelected && props.toggleSelected(memory.id);
           return;
         }
-        if (props.onClick) props.onClick(event);
+        if (video && props.onPlayVideo) {
+          props.onPlayVideo(memory);
+          return;
+        }
+        props.onClick && props.onClick(memory, event);
       }}
-      whileHover={props.onClick ? { y: -3, scale: 1.01 } : undefined}
-      whileTap={props.onClick ? { scale: 0.98 } : undefined}
     >
-      {imageSrc && isVideo ? (
-        <video src={memory.storageUrl || imageSrc} muted playsInline preload="metadata" onError={function () { setImageFailed(true); }} />
-      ) : imageSrc ? (
-        <img src={imageSrc} alt="" loading="lazy" decoding="async" onError={function () { if (!useOriginal && memory.storageUrl) setUseOriginal(true); else setImageFailed(true); }} />
-      ) : <span className="brokenMedia">NO FILE</span>}
-      {isVideo ? <span className="videoBadge">VIDEO</span> : null}
-      <div className="photoOverlay" />
-      {memory.isMe ? <span className="meBadge">Me</span> : null}
-      {props.selectionMode ? (
-        <span
-          className={cls("selectDot", props.selected && "selected")}
-          onClick={function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-            props.toggleSelected(memory.id);
-          }}
-        >
-          {props.selected ? "✓" : ""}
-        </span>
-      ) : null}
-      {props.onDelete && !props.selectionMode ? (
-        <span
-          className="photoDelete"
-          title="Delete"
-          onClick={function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-            props.onDelete(memory);
-          }}
-        >
-          <X size={13} />
-        </span>
-      ) : null}
+      <div className="photoThumb">
+        {video ? <video src={source} muted playsInline preload="metadata" /> : <img src={source} alt="" loading="lazy" />}
+        {video ? (
+          <>
+            <span className="pzVideoPlayPlate"><Play size={15} fill="currentColor" /></span>
+            <span className="pzVideoBadge"><Film size={11} />{pzVideoRuntime(memory)}</span>
+          </>
+        ) : null}
+        {props.isStarred || memory.starred ? <span className="starBadge">★</span> : null}
+      </div>
       {props.showText ? (
-        <div className="photoText">
-          <strong>{up(memory.title)}</strong>
-          <span>{memory.date}</span>
-          <em>{up(memory.uploadStatus || "local")}</em>
+        <div className="photoMeta">
+          <strong>{memory.title || memory.name || "FILE"}</strong>
+          <span>{video ? pzVideoSizeLabel(memory) : memory.location || memory.date || memory.kind || ""}</span>
         </div>
       ) : null}
-    </motion.button>
+      <div className="pzCardQuickActions">
+        <button type="button" aria-label="Edit file" title="Edit" data-tooltip="Edit" onClick={function (event) { event.stopPropagation(); props.onEdit && props.onEdit(memory); }}><PanelRightOpen size={12} /></button>
+        {video ? <button type="button" aria-label="Play video" title="Play" data-tooltip="Play" onClick={function (event) { event.stopPropagation(); props.onPlayVideo && props.onPlayVideo(memory); }}><Film size={12} /></button> : null}
+      </div>
+    </article>
   );
 }
 
@@ -1840,46 +1818,20 @@ function SystemShortcutCard(props) {
 }
 
 function GroupCard(props) {
-  const group = props.group;
-  if (isSystemAlbumGroup(group)) {
-    return <SystemShortcutCard group={group} openGroup={props.openGroup} />;
-  }
-  if (group && group.virtual) {
-    return <SystemShortcutCard group={group} openGroup={props.openGroup} />;
-  }
-  const displayItems = group.cover ? [group.cover].concat(group.items.filter(function (item) { return item.id !== group.cover.id; })) : group.items;
+  const group = props.group || {};
+  const cover = safeArray(group.items)[0] || null;
+  const video = cover && pzIsVideo(cover);
+
   return (
-    <button type="button" className="groupCard" onClick={function () { props.openGroup(group); }}>
-      <div className="groupGrid">
-        {!displayItems.length ? <div className="emptyCard">{group.childCount ? group.childCount + " ALBUMS" : "EMPTY"}</div> : null}
-        {displayItems.slice(0, 6).map(function (memory, index) {
-          return (
-            <PhotoCard
-              key={memory.id}
-              memory={memory}
-              className={index === 0 ? "featured" : ""}
-              selectionMode={props.selectionMode}
-              selected={props.selectedIds && props.selectedIds[memory.id]}
-              toggleSelected={props.toggleSelected}
-              isStarred={props.starredIds && props.starredIds[memory.id]}
-              onDelete={props.deleteMemory}
-              onClick={function (event) {
-                event.stopPropagation();
-                props.openMemory(memory);
-              }}
-            />
-          );
-        })}
+    <article className="groupCard" onClick={function () { props.openGroup && props.openGroup(group); }}>
+      <div className="groupCover">
+        {cover ? (video ? <video src={cover.previewUrl || cover.storageUrl || cover.url} muted playsInline preload="metadata" /> : <img src={cover.previewUrl || cover.storageUrl || cover.url} alt="" loading="lazy" />) : <span className="pzBlankCover">X</span>}
+        {video ? <span className="pzVideoBadge"><Film size={11} />{pzVideoLabel(cover)}</span> : null}
       </div>
-      {group.pinned ? <span className="pinBadge">PIN</span> : null}
-      {group.locked ? <span className="lockBadge">LOCK</span> : null}
-      <div className="groupTitle">
-        <strong>{up(group.title)}</strong>
-        {group.description ? <small className="groupDescription">{up(group.description)}</small> : null}
-        <span>{group.items.length + (group.childCount || 0)}</span>
-        {group.excludeFromAll ? <em>Excluded from All</em> : <em>{formatBytes(albumSizeBytes(group.items))}</em>}
-      </div>
-    </button>
+      <div className="groupMeta"><strong>{cleanSystemLabel(group.title || group.id)}</strong><span>{safeArray(group.items).length}</span></div>
+      {!group.virtual && !isSystemAlbumGroup(group) ? <button type="button" className="pzGroupEditButton" aria-label="Edit album" title="Edit" data-tooltip="Edit" onClick={function (event) { event.stopPropagation(); props.onEditAlbum && props.onEditAlbum(group); }}><FolderPen size={12} /></button> : null}
+      {group.hideFromAll ? <span className="pzHiddenBadge">HIDE</span> : null}
+    </article>
   );
 }
 
@@ -1939,7 +1891,9 @@ function MirrorView(props) {
                 isStarred={props.starredIds && props.starredIds[memory.id]}
                 onDelete={props.deleteMemory}
                 onClick={function () { props.openMemory(memory); }}
-              />
+              
+                onEdit={props.onEditMemory || function () {}}
+                onPlayVideo={props.onPlayVideo || function () {}}/>
             );
           })}
         </div>
@@ -2049,7 +2003,8 @@ function AlbumsView(props) {
                   </div>
                 </Glass>
               ) : (
-                <GroupCard group={group} openGroup={props.openGroup} openMemory={props.openMemory} deleteMemory={props.deleteMemory} selectionMode={props.selectionMode} selectedIds={props.selectedIds} toggleSelected={props.toggleSelected} starredIds={props.starredIds} />
+                <GroupCard group={group} openGroup={props.openGroup} openMemory={props.openMemory} deleteMemory={props.deleteMemory} selectionMode={props.selectionMode} selectedIds={props.selectedIds} toggleSelected={props.toggleSelected} starredIds={props.starredIds} 
+                onEditAlbum={function (group) { setPzAlbumEditorId(group.id || group.sourceId); }}/>
               )}
             </div>
           );
@@ -2063,7 +2018,9 @@ function AlbumsView(props) {
           {currentPhotos.length ? (
             <div className="photoGrid">
               {safeArray(currentPhotos).map(function (memory) {
-                return <PhotoCard key={memory.id} memory={memory} showText selectionMode={props.selectionMode} selected={props.selectedIds && props.selectedIds[memory.id]} toggleSelected={props.toggleSelected} isStarred={props.starredIds && props.starredIds[memory.id]} onDelete={props.deleteMemory} onClick={function () { props.openMemory(memory); }} />;
+                return <PhotoCard key={memory.id} memory={memory} showText selectionMode={props.selectionMode} selected={props.selectedIds && props.selectedIds[memory.id]} toggleSelected={props.toggleSelected} isStarred={props.starredIds && props.starredIds[memory.id]} onDelete={props.deleteMemory} onClick={function () { props.openMemory(memory); }} 
+                onEdit={props.onEditMemory || function () {}}
+                onPlayVideo={props.onPlayVideo || function () {}}/>;
               })}
             </div>
           ) : null}
@@ -2106,9 +2063,49 @@ function matchesSearchQuery(memory, query, albums) {
 }
 
 
+
+function PzVideoModeHeader(props) {
+  const items = safeArray(props.items).map(normalizeMemoryRecord).filter(pzIsVideo);
+  const stats = pzVideoStats(items);
+  const featured = items[0] || null;
+
+  if (!props.active) return null;
+
+  return (
+    <section className="pzVideoModeHeader">
+      <div className="pzVideoModeTitle">
+        <span><Film size={15} strokeWidth={2.1} /> VIDEO MODE</span>
+        <strong>{stats.count}</strong>
+      </div>
+      <div className="pzVideoModeStats">
+        <div><Play size={13} /><span>{stats.count} FILES</span></div>
+        <div><Sparkles size={13} /><span>{stats.starred} STARRED</span></div>
+        <div><CalendarDays size={13} /><span>{stats.me} ME</span></div>
+        <div><HardDrive size={13} /><span>{pzVideoSizeLabel({ size: stats.bytes })}</span></div>
+      </div>
+      {featured ? (
+        <button type="button" className="pzFeaturedVideo" onClick={function () { props.onPlayVideo && props.onPlayVideo(featured); }}>
+          <div>
+            <video src={featured.previewUrl || featured.storageUrl || featured.url} muted playsInline preload="metadata" />
+            <span><Maximize2 size={12} /> PLAY</span>
+          </div>
+          <aside>
+            <em>FEATURED</em>
+            <strong>{featured.title || featured.name || "VIDEO"}</strong>
+            <small>{pzVideoRuntime(featured)} · {pzVideoSizeLabel(featured)}</small>
+          </aside>
+        </button>
+      ) : null}
+    </section>
+  );
+}
+
 function SearchView(props) {
   const query = String(props.query || "").trim();
-  const activeSearchFilter = PRIMARY_SEARCH_FILTERS.indexOf(props.searchFilter) !== -1 ? props.searchFilter : "all";
+  const rawFilter = props.searchFilter || props.filter || "all";
+  const activeSearchFilter = PRIMARY_SEARCH_FILTERS.indexOf(rawFilter) !== -1 ? rawFilter : "all";
+  const setFilter = props.setSearchFilter || props.setFilter || function () {};
+  const videoMode = activeSearchFilter === "videos";
   const allMemories = safeArray(props.memories).map(normalizeMemoryRecord);
   const allAlbums = safeArray(props.albums).map(normalizeAlbumRecord);
   const baseItems = visibleAllMemories(allMemories, allAlbums).filter(function (memory) { return memory && !memory.trashed; });
@@ -2120,7 +2117,7 @@ function SearchView(props) {
   });
 
   return (
-    <div className="pageScroll searchPage">
+    <div className={videoMode ? "pageScroll searchPage pzVideoModePage" : "pageScroll searchPage"}>
       <VisibleReporter items={items} reportVisibleIds={props.reportVisibleIds} />
 
       <div className="searchBar librarySearchBar">
@@ -2128,7 +2125,7 @@ function SearchView(props) {
         <input
           value={props.query}
           onChange={function (event) { props.setQuery(event.target.value); }}
-          placeholder="SEARCH FILES"
+          placeholder={videoMode ? "SEARCH VIDEOS" : "SEARCH FILES"}
         />
       </div>
 
@@ -2140,7 +2137,7 @@ function SearchView(props) {
               key={filter}
               {...withTooltip(filter === "all" ? "All files" : up(filter))}
               className={activeSearchFilter === filter ? "active" : ""}
-              onClick={function () { props.setSearchFilter(filter); }}
+              onClick={function () { setFilter(filter); }}
             >
               {filter === "all" ? "All" : up(filter)}
             </button>
@@ -2148,10 +2145,12 @@ function SearchView(props) {
         })}
       </div>
 
+      <PzVideoModeHeader active={videoMode} items={items} onPlayVideo={props.onPlayVideo} />
+
       {!items.length ? (
         <EmptyState title={query ? "NO MATCHES" : "X"}>{query ? "Nothing matched that search." : ""}</EmptyState>
       ) : (
-        <div className="photoGrid searchGrid">
+        <div className={videoMode ? "photoGrid searchGrid pzVideoGrid" : "photoGrid searchGrid"}>
           {items.map(function (memory) {
             return (
               <PhotoCard
@@ -2164,6 +2163,8 @@ function SearchView(props) {
                 isStarred={props.starredIds && props.starredIds[memory.id]}
                 onDelete={props.deleteMemory}
                 onClick={function () { props.openMemory(memory); }}
+                onEdit={props.onEditMemory}
+                onPlayVideo={props.onPlayVideo}
               />
             );
           })}
@@ -2184,7 +2185,21 @@ function GroupView(props) {
       <h1>{up(props.group.title)}</h1>
       <div className="photoGrid">
         {sortMemories(props.group.items, props.sortMode).map(function (memory) {
-          return <PhotoCard key={memory.id} memory={memory} showText selectionMode={props.selectionMode} selected={props.selectedIds && props.selectedIds[memory.id]} toggleSelected={props.toggleSelected} isStarred={props.starredIds && props.starredIds[memory.id]} onDelete={props.deleteMemory} onClick={function () { props.openMemory(memory); }} />;
+          return (
+            <PhotoCard
+              key={memory.id}
+              memory={memory}
+              showText
+              selectionMode={props.selectionMode}
+              selected={props.selectedIds && props.selectedIds[memory.id]}
+              toggleSelected={props.toggleSelected}
+              isStarred={props.starredIds && props.starredIds[memory.id]}
+              onDelete={props.deleteMemory}
+              onClick={function () { props.openMemory(memory); }}
+              onEdit={props.onEditMemory}
+              onPlayVideo={props.onPlayVideo}
+            />
+          );
         })}
       </div>
     </Glass>
@@ -2251,7 +2266,9 @@ function Modal(props) {
             </div>
           </div>
 
-          <PhotoCard memory={{ ...props.memory, previewUrl: props.memory.storageUrl }} className="modalPhoto" isStarred={props.isStarred} />
+          <PhotoCard memory={{ ...props.memory, previewUrl: props.memory.storageUrl }} className="modalPhoto" isStarred={props.isStarred} 
+                onEdit={props.onEditMemory || function () {}}
+                onPlayVideo={props.onPlayVideo || function () {}}/>
 
           <button type="button" className="technicalToggle" onClick={function () { setShowTechnical(function (value) { return !value; }); }}>
             {showTechnical ? "HIDE FILE DETAILS" : "FILE DETAILS"}
@@ -2601,7 +2618,295 @@ function PasswordGate(props) {
 }
 
 
+
+function pzNowIso() {
+  return new Date().toISOString();
+}
+
+function pzPatchMemory(memory, patch) {
+  return { ...normalizeMemoryRecord(memory), ...patch, updatedAt: pzNowIso() };
+}
+
+function pzPatchAlbum(album, patch) {
+  return { ...normalizeAlbumRecord(album), ...patch, updatedAt: pzNowIso() };
+}
+
+function pzFindAlbum(albums, id) {
+  return safeArray(albums).map(normalizeAlbumRecord).find(function (album) { return album.id === id; }) || null;
+}
+
+function pzCanMoveAlbum(albums, albumId, parentId) {
+  if (!parentId) return true;
+  if (albumId === parentId) return false;
+  const byId = {};
+  safeArray(albums).map(normalizeAlbumRecord).forEach(function (album) { byId[album.id] = album; });
+  let current = byId[parentId];
+  while (current) {
+    if (current.id === albumId) return false;
+    current = current.parentId ? byId[current.parentId] : null;
+  }
+  return true;
+}
+
+function pzUpdateMemory(memories, id, patch) {
+  return safeArray(memories).map(function (memory) {
+    return memory.id === id ? pzPatchMemory(memory, patch) : memory;
+  });
+}
+
+function pzUpdateAlbum(albums, id, patch) {
+  return safeArray(albums).map(function (album) {
+    return album.id === id ? pzPatchAlbum(album, patch) : album;
+  });
+}
+
+function pzIsVideo(memory) {
+  return Boolean(memory && (memory.kind === "video" || String(memory.type || "").startsWith("video/") || /\.(mp4|mov|webm|m4v)$/i.test(String(memory.name || memory.title || memory.url || memory.storageUrl || ""))));
+}
+
+function pzVideoLabel(memory) {
+  if (!pzIsVideo(memory)) return "";
+  const duration = Number(memory.duration || memory.durationSeconds || 0);
+  if (!duration) return "VIDEO";
+  const mins = Math.floor(duration / 60);
+  const secs = Math.floor(duration % 60);
+  return mins + ":" + String(secs).padStart(2, "0");
+}
+
+function pzDownload(memory) {
+  const url = memory && (memory.storageUrl || memory.previewUrl || memory.url);
+  if (!url) return false;
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = memory.title || memory.name || "photoz-file";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  return true;
+}
+
+
+
+function pzVideoRuntime(memory) {
+  if (!pzIsVideo(memory)) return "";
+  const duration = Number(memory.duration || memory.durationSeconds || 0);
+  if (!duration) return "VIDEO";
+  const hours = Math.floor(duration / 3600);
+  const mins = Math.floor((duration % 3600) / 60);
+  const secs = Math.floor(duration % 60);
+  if (hours) return hours + ":" + String(mins).padStart(2, "0") + ":" + String(secs).padStart(2, "0");
+  return mins + ":" + String(secs).padStart(2, "0");
+}
+
+function pzVideoSizeLabel(memory) {
+  const bytes = Number(memory && (memory.size || memory.bytes || memory.fileSize || memory.sizeBytes || 0)) || 0;
+  if (!bytes) return "SIZE —";
+  if (bytes < 1024 * 1024) return Math.max(1, Math.round(bytes / 1024)) + " KB";
+  if (bytes < 1024 * 1024 * 1024) return Math.round(bytes / 1024 / 102.4) / 10 + " MB";
+  return Math.round(bytes / 1024 / 1024 / 102.4) / 10 + " GB";
+}
+
+function pzVideoStats(items) {
+  const videos = safeArray(items).map(normalizeMemoryRecord).filter(pzIsVideo);
+  const starred = videos.filter(function (memory) { return memory.starred; }).length;
+  const me = videos.filter(function (memory) { return memory.isMe || memory.me; }).length;
+  const bytes = videos.reduce(function (total, memory) {
+    return total + (Number(memory.size || memory.bytes || memory.fileSize || memory.sizeBytes || 0) || 0);
+  }, 0);
+  return { count: videos.length, starred, me, bytes };
+}
+
+function PzToastStack(props) {
+  const items = safeArray(props.items);
+  if (!items.length) return null;
+  return (
+    <div className="pzToastStack" aria-live="polite">
+      {items.slice(-3).map(function (item) {
+        return (
+          <div className={item.type ? "pzToast " + item.type : "pzToast"} key={item.id}>
+            <strong>{String(item.title || "STATUS").toUpperCase()}</strong>
+            {item.message ? <span>{item.message}</span> : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function PzBackupStrip(props) {
+  const state = props.state || {};
+  return (
+    <div className="pzConfidenceStrip">
+      <div><ShieldCheck size={13} /><span>{state.lastSavedAt ? "SAVED " + new Date(state.lastSavedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "READY"}</span></div>
+      <div><ArchiveRestore size={13} /><span>{state.lastBackupAt ? "BACKUP " + new Date(state.lastBackupAt).toLocaleDateString() : "BACKUP"}</span></div>
+    </div>
+  );
+}
+
+function PzStateBanner(props) {
+  if (props.loading) return <div className="pzStateBanner"><UploadCloud size={13} /><span>LOADING</span></div>;
+  if (props.error) return <div className="pzStateBanner error"><AlertTriangle size={13} /><span>{String(props.error).toUpperCase()}</span></div>;
+  if (props.saving) return <div className="pzStateBanner"><Save size={13} /><span>SAVING</span></div>;
+  return null;
+}
+
+function PzAlbumEditorPanel(props) {
+  const album = props.album ? normalizeAlbumRecord(props.album) : null;
+  const [title, setTitle] = useState(album ? album.title || "" : "");
+  const [description, setDescription] = useState(album ? album.description || "" : "");
+  const [parentId, setParentId] = useState(album ? album.parentId || "" : "");
+  const [hideFromAll, setHideFromAll] = useState(Boolean(album && album.hideFromAll));
+
+  useEffect(function () {
+    setTitle(album ? album.title || "" : "");
+    setDescription(album ? album.description || "" : "");
+    setParentId(album ? album.parentId || "" : "");
+    setHideFromAll(Boolean(album && album.hideFromAll));
+  }, [album && album.id]);
+
+  if (!props.open || !album) return null;
+
+  const movableAlbums = safeArray(props.albums).map(normalizeAlbumRecord).filter(function (item) {
+    return item.id !== album.id && pzCanMoveAlbum(props.albums, album.id, item.id) && !isSystemAlbumGroup(item);
+  });
+
+  return (
+    <div className="modalBackdrop pzSoftBackdrop" onClick={props.onClose}>
+      <section className="pzEditorSheet pzAlbumEditorSheet" onClick={function (event) { event.stopPropagation(); }}>
+        <header><strong>ALBUM</strong><button type="button" className="closeButton" onClick={props.onClose}>×</button></header>
+        <label><span>TITLE</span><input value={title} onChange={function (event) { setTitle(event.target.value); }} /></label>
+        <label><span>DESCRIPTION</span><textarea value={description} onChange={function (event) { setDescription(event.target.value); }} /></label>
+        <label><span>INSIDE</span><select value={parentId} onChange={function (event) { setParentId(event.target.value); }}><option value="">ROOT</option>{movableAlbums.map(function (item) { return <option key={item.id} value={item.id}>{item.title || item.id}</option>; })}</select></label>
+        <button type="button" className={hideFromAll ? "pzWideToggle active" : "pzWideToggle"} onClick={function () { setHideFromAll(function (value) { return !value; }); }}><span>HIDE FROM ALL</span><em>{hideFromAll ? "ON" : "OFF"}</em></button>
+        <div className="pzEditorActions">
+          <button type="button" onClick={function () { props.onSave(album.id, { title: title.trim() || album.title, description: description.trim(), parentId: parentId || "", hideFromAll }); props.onClose(); }}>SAVE</button>
+          <button type="button" onClick={function () { props.onSetCover(album.id); }}>SET COVER</button>
+          <button type="button" className="danger" onClick={function () { props.onDelete(album.id); props.onClose(); }}>DELETE</button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function PzFileDetailEditor(props) {
+  const memory = props.memory ? normalizeMemoryRecord(props.memory) : null;
+  const [draft, setDraft] = useState(memory || {});
+
+  useEffect(function () {
+    setDraft(memory || {});
+  }, [memory && memory.id]);
+
+  if (!props.open || !memory) return null;
+
+  function setField(name, value) {
+    setDraft(function (current) { return { ...current, [name]: value }; });
+  }
+
+  const tagsText = safeArray(draft.tags).join(", ");
+  const source = memory.previewUrl || memory.storageUrl || memory.url;
+
+  return (
+    <div className="modalBackdrop pzDetailBackdrop" onClick={props.onClose}>
+      <section className="pzEditorSheet pzFileDetailEditor" onClick={function (event) { event.stopPropagation(); }}>
+        <header><strong>FILE</strong><button type="button" className="closeButton" onClick={props.onClose}>×</button></header>
+        <div className="pzDetailPreview">
+          {pzIsVideo(memory) ? <video src={source} controls playsInline /> : <img src={source} alt="" />}
+          {pzIsVideo(memory) ? <span className="pzVideoBadge"><Film size={12} />{pzVideoLabel(memory)}</span> : null}
+        </div>
+        <div className="pzDetailFieldsGrid">
+          <label><span>TITLE</span><input value={draft.title || ""} onChange={function (event) { setField("title", event.target.value); }} /></label>
+          <label><span>DATE</span><input value={draft.date || ""} onChange={function (event) { setField("date", event.target.value); }} /></label>
+          <label><span>LOCATION</span><input value={draft.location || ""} onChange={function (event) { setField("location", event.target.value); }} /></label>
+          <label><span>RATING</span><input value={draft.rating || ""} onChange={function (event) { setField("rating", event.target.value); }} /></label>
+          <label className="span2"><span>CAPTION</span><textarea value={draft.caption || draft.description || ""} onChange={function (event) { setField("caption", event.target.value); }} /></label>
+          <label className="span2"><span>TAGS</span><input value={tagsText} onChange={function (event) { setField("tags", event.target.value.split(",").map(function (tag) { return tag.trim(); }).filter(Boolean)); }} /></label>
+        </div>
+        <div className="pzEditorToggleRow">
+          <button type="button" className={draft.starred ? "active" : ""} onClick={function () { setField("starred", !draft.starred); }}>★</button>
+          <button type="button" className={draft.isMe ? "active" : ""} onClick={function () { setField("isMe", !draft.isMe); }}>ME</button>
+          <button type="button" className={draft.private ? "active" : ""} onClick={function () { setField("private", !draft.private); }}>PRIVATE</button>
+          <button type="button" className={draft.review ? "active" : ""} onClick={function () { setField("review", !draft.review); }}>REVIEW</button>
+        </div>
+        <div className="pzEditorActions">
+          <button type="button" onClick={function () { props.onSave(memory.id, draft); props.onClose(); }}>SAVE</button>
+          <button type="button" onClick={function () { props.onDownload(memory); }}>DOWNLOAD</button>
+          <button type="button" className="danger" onClick={function () { props.onTrash(memory.id); props.onClose(); }}>TRASH</button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function PzUploadReviewPanel(props) {
+  const queue = safeArray(props.queue);
+  if (!props.open) return null;
+  return (
+    <div className="floatingPanel pzUploadReviewPanel">
+      <div className="panelSection">
+        <div className="panelLabel">UPLOAD</div>
+        {queue.length ? queue.map(function (item) { return <div className="pzQueueRow" key={item.id || item.name}><span>{item.name}</span><em>{item.status || "READY"}</em></div>; }) : <div className="pzQueueRow muted"><span>NO QUEUE</span><em>—</em></div>}
+      </div>
+      <div className="panelSection">
+        <button type="button" onClick={props.onRetryFailed}>RETRY FAILED</button>
+        <button type="button" onClick={props.onClearComplete}>CLEAR COMPLETE</button>
+      </div>
+    </div>
+  );
+}
+
+function PzVideoPlaybackModal(props) {
+  const memory = props.memory ? normalizeMemoryRecord(props.memory) : null;
+  if (!props.open || !memory || !pzIsVideo(memory)) return null;
+  const source = memory.previewUrl || memory.storageUrl || memory.url;
+
+  return (
+    <div className="modalBackdrop pzVideoBackdrop" onClick={props.onClose}>
+      <section className="pzVideoCinemaPanel" onClick={function (event) { event.stopPropagation(); }}>
+        <header>
+          <div>
+            <em>VIDEO</em>
+            <strong>{memory.title || memory.name || "VIDEO"}</strong>
+          </div>
+          <button type="button" className="closeButton" onClick={props.onClose}>×</button>
+        </header>
+        <main>
+          <div className="pzCinemaStage">
+            <video src={source} controls autoPlay playsInline />
+          </div>
+          <aside className="pzCinemaInfo">
+            <div><span>DURATION</span><strong>{pzVideoRuntime(memory)}</strong></div>
+            <div><span>SIZE</span><strong>{pzVideoSizeLabel(memory)}</strong></div>
+            <div><span>DATE</span><strong>{memory.date || "—"}</strong></div>
+            <div><span>LOCATION</span><strong>{memory.location || "—"}</strong></div>
+            <button type="button" onClick={function () { props.onEdit && props.onEdit(memory); }}>EDIT DETAILS</button>
+            <button type="button" onClick={function () { props.onDownload && props.onDownload(memory); }}>DOWNLOAD</button>
+          </aside>
+        </main>
+      </section>
+    </div>
+  );
+}
+
 export default function App() {
+  const [pzAlbumEditorId, setPzAlbumEditorId] = useState(null);
+  const [pzDetailEditorId, setPzDetailEditorId] = useState(null);
+  const [pzVideoPlayerId, setPzVideoPlayerId] = useState(null);
+  const [pzUploadReviewOpen, setPzUploadReviewOpen] = useState(false);
+  const [pzUploadQueue, setPzUploadQueue] = useState([]);
+  const [pzBackupState, setPzBackupState] = useState({ lastSavedAt: "", lastBackupAt: "" });
+  const [pzLibraryError, setPzLibraryError] = useState("");
+  const [pzLibraryLoading, setPzLibraryLoading] = useState(false);
+  const [pzToasts, setPzToasts] = useState([]);
+
+  function pzPushToast(title, message, type) {
+    const item = { id: "pz-toast-" + Date.now() + "-" + Math.random().toString(16).slice(2), title, message, type };
+    setPzToasts(function (items) { return safeArray(items).concat(item).slice(-4); });
+    setTimeout(function () {
+      setPzToasts(function (items) { return safeArray(items).filter(function (toast) { return toast.id !== item.id; }); });
+    }, 3200);
+  }
+
+
   const [unlocked, setUnlocked] = useState(function () {
     try { return window.sessionStorage.getItem("photozUnlocked") === "true"; } catch (error) { return false; }
   });
@@ -2610,6 +2915,62 @@ export default function App() {
   useEffect(function () {
     installUiInteractionSounds();
   }, []);
+
+
+  const pzActiveAlbumEditor = pzFindAlbum(albums, pzAlbumEditorId);
+  const pzActiveDetailMemory = safeArray(memories).map(normalizeMemoryRecord).find(function (memory) { return memory.id === pzDetailEditorId; }) || null;
+  const pzActiveVideoMemory = safeArray(memories).map(normalizeMemoryRecord).find(function (memory) { return memory.id === pzVideoPlayerId; }) || null;
+
+  function pzSaveAlbumEditor(id, patch) {
+    setAlbums(function (items) { return pzUpdateAlbum(items, id, patch); });
+    setPzBackupState(function (state) { return { ...state, lastSavedAt: pzNowIso() }; });
+    pzPushToast("SAVED", "Album updated.", "success");
+  }
+
+  function pzDeleteAlbum(id) {
+    setAlbums(function (items) {
+      return safeArray(items).map(normalizeAlbumRecord).filter(function (album) { return album.id !== id && album.parentId !== id; });
+    });
+    setPzBackupState(function (state) { return { ...state, lastSavedAt: pzNowIso() }; });
+    pzPushToast("REMOVED", "Album deleted.", "success");
+  }
+
+  function pzSetAlbumCover(id) {
+    const album = pzFindAlbum(albums, id);
+    const first = album && safeArray(album.items)[0];
+    if (!first) {
+      pzPushToast("NO COVER", "Add files before setting cover.", "warn");
+      return;
+    }
+    setAlbums(function (items) { return pzUpdateAlbum(items, id, { coverId: first }); });
+    pzPushToast("COVER", "Album cover saved.", "success");
+  }
+
+  function pzSaveMemoryDetail(id, patch) {
+    setMemories(function (items) { return pzUpdateMemory(items, id, patch); });
+    setPzBackupState(function (state) { return { ...state, lastSavedAt: pzNowIso() }; });
+    pzPushToast("SAVED", "File updated.", "success");
+  }
+
+  function pzTrashMemory(id) {
+    setMemories(function (items) { return pzUpdateMemory(items, id, { trashed: true }); });
+    setPzBackupState(function (state) { return { ...state, lastSavedAt: pzNowIso() }; });
+    pzPushToast("TRASHED", "File moved to trash.", "success");
+  }
+
+  function pzDownloadMemory(memory) {
+    if (!pzDownload(memory)) pzPushToast("NO FILE", "Original file is unavailable.", "warn");
+  }
+
+  function pzRetryFailedUploads() {
+    setPzUploadQueue(function (items) {
+      return safeArray(items).map(function (item) { return item.status === "FAILED" ? { ...item, status: "READY" } : item; });
+    });
+  }
+
+  function pzClearCompleteUploads() {
+    setPzUploadQueue(function (items) { return safeArray(items).filter(function (item) { return item.status !== "DONE"; }); });
+  }
 
   const [archiveView, setArchiveView] = useState("albums");
   const [activePage, setActivePage] = useState("albums");
@@ -3816,14 +4177,48 @@ const [albumSort, setAlbumSort] = useState("recent");
                 <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { setBulkMoreOpen(function (value) { return !value; }); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkReview={bulkMarkReview} bulkClearReview={bulkClearReview} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDelete={bulkDelete} clearSelection={clearSelection} />
                 {activePage === "albums" ? <AlbumsView currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateOpen} archiveView={archiveView} memories={memories} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
                 {activePage === "mirror" ? <MirrorView mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={memories} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
-                {activePage === "search" ? <SearchView memories={memories} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={setAdvancedSearchOpen} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
+                {activePage === "search" ? <SearchView memories={memories} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={setAdvancedSearchOpen} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { setPzVideoPlayerId(memory.id); }} /> : null}
               </Glass>
             ) : null}
-            {screen === "group" && activeGroup ? <GroupView group={activeGroup} back={goHome} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
+            {screen === "group" && activeGroup ? <GroupView group={activeGroup} back={goHome} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { setPzVideoPlayerId(memory.id); }} /> : null}
           </motion.div>
         </AnimatePresence>
       </main>
       <Modal memory={activeMemory} close={function () { setActiveMemory(null); }} deleteMemory={deleteMemory} restoreMemory={restoreMemory} toggleMeFlag={toggleMeFlag} toggleMirror={toggleMirror} toggleArchive={toggleArchive} toggleReview={toggleReview} togglePrivate={togglePrivate} albums={albums} addToAlbum={addToAlbum} moveToAlbum={moveToAlbum} removeFromAlbum={removeFromAlbum} updateMemoryDetails={updateMemoryDetails} downloadOriginal={downloadOriginal} openOriginal={openOriginal} copyMediaUrl={copyMediaUrl} copyStorageKey={copyStorageKey} toggleStar={toggleStar} isStarred={activeMemory ? albumHasMemory(albums, "star", activeMemory.id) : false} setAlbumCover={setAlbumCover} clearAlbumCover={clearAlbumCover} />
+      <PzStateBanner loading={pzLibraryLoading} saving={saving} error={pzLibraryError} />
+      <PzBackupStrip state={pzBackupState} />
+      <PzToastStack items={pzToasts} />
+      <PzAlbumEditorPanel
+        open={Boolean(pzActiveAlbumEditor)}
+        album={pzActiveAlbumEditor}
+        albums={albums}
+        onClose={function () { setPzAlbumEditorId(null); }}
+        onSave={pzSaveAlbumEditor}
+        onDelete={pzDeleteAlbum}
+        onSetCover={pzSetAlbumCover}
+      />
+      <PzFileDetailEditor
+        open={Boolean(pzActiveDetailMemory)}
+        memory={pzActiveDetailMemory}
+        onClose={function () { setPzDetailEditorId(null); }}
+        onSave={pzSaveMemoryDetail}
+        onTrash={pzTrashMemory}
+        onDownload={pzDownloadMemory}
+      />
+      <PzVideoPlaybackModal
+        open={Boolean(pzActiveVideoMemory)}
+        memory={pzActiveVideoMemory}
+        onClose={function () { setPzVideoPlayerId(null); }}
+        onEdit={function (memory) { setPzVideoPlayerId(null); setPzDetailEditorId(memory.id); }}
+        onDownload={pzDownloadMemory}
+      />
+      <PzUploadReviewPanel
+        open={pzUploadReviewOpen}
+        queue={pzUploadQueue}
+        onRetryFailed={pzRetryFailedUploads}
+        onClearComplete={pzClearCompleteUploads}
+      />
+
     </div>
   ) : <PasswordGate onUnlock={function () { setUnlocked(true); }} />;
 }
