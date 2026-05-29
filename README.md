@@ -960,3 +960,46 @@ Changed the bottom nav:
 - Three equal circular icon buttons.
 - Active state is a subtle ring/fill instead of a chunky blob.
 - Removed old dock sizing leaks.
+
+
+## Button outline fix
+
+Replaced harsh default browser focus outlines with subtle glass-compatible focus-visible styling.
+Mouse clicks no longer leave ugly black rings, while keyboard focus still has a clean visible state.
+No `!important` rules.
+
+
+## Black button border fix
+
+The ugly outline was not only focus; it was dark idle/active border styling.
+Replaced dark button borders with glass-light borders, softer active fill, and reduced shadows.
+No `!important` rules.
+
+
+## Select and floating-space fix
+
+Fixed:
+- Select now uses the same visual system as Filter.
+- Removed the old action-button look from Select.
+- Top chrome no longer reserves weird floating blank space.
+- Filter/Select/Tools rail is compact and in the page flow.
+- Album/search controls start closer to the top chrome.
+- No `!important` rules.
+
+
+## Final merged select/space + restored dock build
+
+This build starts from `photoz-worker-select-space-fix.zip` and applies the restored wider dock on top.
+
+Preserved:
+- Select beside Filter styling.
+- Floating-space/page-flow cleanup.
+- Button black-border cleanup.
+- Upload/index hardening.
+- Screenshot visual reset work from the source chain.
+
+Added on top:
+- Wider floating glass dock.
+- Larger dock icon targets.
+- Soft dock active capsule.
+- No dock text labels.

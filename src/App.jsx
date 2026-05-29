@@ -3428,9 +3428,9 @@ const [albumSort, setAlbumSort] = useState("recent");
                 </div>
                 <ControlBar archive={archive} archiveView={archiveView} setArchiveView={setArchiveView} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} viewControlsOpen={viewControlsOpen} toggleViewControls={function () { setViewControlsOpen(function (value) { return !value; }); }} toolsOpen={toolsOpen} toggleToolsPanel={function () { setToolsOpen(function (value) { return !value; }); }} />
                 <div className="floatingUtilityRail">
-                  <button type="button" className={viewControlsOpen ? "active" : ""} onClick={function () { setToolsOpen(false); setViewControlsOpen(function (value) { return !value; }); }}>Filter</button>
-                  <button type="button" className={selectionMode ? "active" : ""} onClick={function () { setSelectionMode(function (value) { return !value; }); }}>{selectionMode ? "Done" : "Select"}</button>
-                  <button type="button" className={toolsOpen ? "active" : ""} onClick={function () { setViewControlsOpen(false); setToolsOpen(function (value) { return !value; }); }}>⚙</button>
+                  <button type="button" className={viewControlsOpen ? "utilityRailButton active" : "utilityRailButton"} onClick={function () { setToolsOpen(false); setViewControlsOpen(function (value) { return !value; }); }}>Filter</button>
+                  <button type="button" className={selectionMode ? "utilityRailButton selectUtilityButton active" : "utilityRailButton selectUtilityButton"} onClick={function () { setSelectionMode(function (value) { return !value; }); }}>{selectionMode ? "Done" : "Select"}</button>
+                  <button type="button" className={toolsOpen ? "utilityRailButton cogUtilityButton active" : "utilityRailButton cogUtilityButton"} onClick={function () { setViewControlsOpen(false); setToolsOpen(function (value) { return !value; }); }}>⚙</button>
                 </div>
                 <ViewPanel open={viewControlsOpen} close={function () { setViewControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveView === "albums"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize} />
                 <UndoBar snapshot={undoSnapshot} undo={undoLastAction} clear={function () { setUndoSnapshot(null); }} />

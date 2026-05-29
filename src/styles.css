@@ -6667,3 +6667,440 @@ input[type="file"] {
     min-height: 37px;
   }
 }
+
+
+/* Focus outline fix: remove harsh browser rings, keep subtle keyboard accessibility */
+button,
+[role="button"],
+input,
+select,
+textarea,
+.uploadButton,
+.importButton,
+.dockButton,
+.systemRailItem {
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus,
+[role="button"]:focus,
+.uploadButton:focus,
+.importButton:focus,
+.dockButton:focus,
+.systemRailItem:focus {
+  outline: none;
+}
+
+button:focus:not(:focus-visible),
+[role="button"]:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+.uploadButton:focus:not(:focus-visible),
+.importButton:focus:not(:focus-visible),
+.dockButton:focus:not(:focus-visible),
+.systemRailItem:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: inherit;
+}
+
+button:focus-visible,
+[role="button"]:focus-visible,
+.uploadButton:focus-visible,
+.importButton:focus-visible,
+.dockButton:focus-visible,
+.systemRailItem:focus-visible {
+  outline: 0;
+  border-color: rgba(0,0,0,.20);
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,.16),
+    inset 0 1px 0 rgba(255,255,255,.22);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 0;
+  border-color: rgba(0,0,0,.18);
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,.12),
+    inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+/* Dock-specific focus should stay pill-clean */
+.dock button:focus,
+.dockButton:focus {
+  outline: none;
+}
+
+.dock button:focus-visible,
+.dockButton:focus-visible {
+  outline: 0;
+  border-color: rgba(0,0,0,.22);
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,.14),
+    inset 0 1px 0 rgba(255,255,255,.30);
+}
+
+
+/* Remove ugly black button outlines before click */
+button,
+[role="button"],
+.uploadButton,
+.importButton,
+.dockButton,
+.systemRailItem,
+.modeBar button,
+.controlBar button,
+.floatingUtilityRail button,
+.toolsDropdownList button,
+.albumSortControl button,
+.sortControl button,
+.gridSizeControl button,
+.searchFilters button,
+.albumPathBar button,
+.newAlbumTrigger,
+.newAlbumPanel button,
+.mirrorControl button {
+  border-color: rgba(255,255,255,.22);
+  outline: 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.18),
+    0 5px 14px rgba(0,0,0,.035);
+}
+
+/* Active/selected should glow softly, not draw a black ring */
+button.active,
+button.selected,
+.selectModeButton.active,
+.modeBar button.selected,
+.modeBar button.active,
+.controlBar button.selected,
+.controlBar button.active,
+.floatingUtilityRail button.active,
+.searchFilters button.active,
+.dock button.active,
+.dockButton.active {
+  border-color: rgba(255,255,255,.34);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.055)),
+    rgba(255,255,255,.050);
+  color: rgba(0,0,0,.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.34),
+    inset 0 -1px 0 rgba(0,0,0,.055),
+    0 6px 16px rgba(0,0,0,.055);
+}
+
+/* Hover can lift; it should not turn into a dark outlined pill */
+button:hover,
+[role="button"]:hover,
+.uploadButton:hover,
+.importButton:hover,
+.dockButton:hover,
+.systemRailItem:hover {
+  border-color: rgba(255,255,255,.38);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.25),
+    0 7px 18px rgba(0,0,0,.055);
+}
+
+/* Inputs also should not look like black-outlined form boxes */
+input,
+select,
+textarea {
+  border-color: rgba(255,255,255,.22);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: rgba(255,255,255,.36);
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,.10),
+    inset 0 1px 0 rgba(255,255,255,.20);
+}
+
+/* Dock active state specifically: no dark circular outline */
+.dock button,
+.dockButton {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.dock button.active,
+.dockButton.active {
+  border-color: rgba(255,255,255,.36);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.34),
+    0 5px 12px rgba(0,0,0,.06);
+}
+
+/* Remove older black ring leaks */
+.dock button.active,
+.dockButton.active,
+.floatingUtilityRail button.active,
+.modeBar button.selected {
+  outline: 0;
+}
+
+
+/* SELECT + FLOATING SPACE FIX */
+
+/* Stop the page from reserving fake space for floating chrome */
+.shell {
+  padding-top: 16px;
+  gap: 6px;
+}
+
+.productHeader {
+  min-height: 0;
+  margin: 0;
+  padding-right: 0;
+}
+
+/* Build a real compact top row instead of scattered absolute controls */
+.controlBar {
+  position: static;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0;
+  padding: 4px;
+  border-radius: 13px;
+}
+
+.floatingUtilityRail {
+  position: static;
+  width: fit-content;
+  margin: -36px 0 6px auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px;
+  border-radius: 999px;
+  z-index: 4;
+}
+
+/* Select must look like Filter, not like an old action button */
+.floatingUtilityRail .utilityRailButton,
+.floatingUtilityRail button {
+  height: 28px;
+  min-height: 28px;
+  border-radius: 999px;
+  padding: 0 11px;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .01em;
+  color: rgba(0,0,0,.56);
+  border-color: rgba(255,255,255,.24);
+  background: transparent;
+  box-shadow: none;
+}
+
+.floatingUtilityRail .utilityRailButton:hover,
+.floatingUtilityRail button:hover {
+  background: rgba(255,255,255,.060);
+  border-color: rgba(255,255,255,.34);
+}
+
+.floatingUtilityRail .utilityRailButton.active,
+.floatingUtilityRail button.active {
+  color: rgba(0,0,0,.72);
+  border-color: rgba(255,255,255,.38);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.050)),
+    rgba(255,255,255,.040);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.28),
+    0 5px 13px rgba(0,0,0,.045);
+}
+
+.floatingUtilityRail .selectUtilityButton {
+  min-width: 54px;
+  text-align: center;
+}
+
+.floatingUtilityRail .cogUtilityButton,
+.floatingUtilityRail button:last-child {
+  width: 28px;
+  min-width: 28px;
+  padding: 0;
+  font-size: 14px;
+}
+
+/* Popovers should anchor under the rail without forcing blank vertical gaps */
+.toolsIconMenu,
+.toolsDropdown,
+.viewDropdown,
+.viewPanel {
+  position: absolute;
+  top: 60px;
+  right: 24px;
+  margin: 0;
+  z-index: 50;
+}
+
+/* Album/search controls should sit immediately after top chrome */
+.albumControlsRow {
+  margin-top: 4px;
+}
+
+/* Remove leftover empty spacing created by old absolute action cluster */
+.libraryActionCluster {
+  display: none;
+}
+
+/* Page content starts tighter */
+.pageScroll {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.archiveLabel {
+  margin: 8px 0 6px;
+}
+
+/* Mobile/tablet: no negative overlap */
+@media (max-width: 760px) {
+  .floatingUtilityRail {
+    margin: 0 0 6px auto;
+  }
+
+  .toolsIconMenu,
+  .toolsDropdown,
+  .viewDropdown,
+  .viewPanel {
+    position: static;
+    width: fit-content;
+    max-width: 100%;
+    margin-left: auto;
+  }
+}
+
+
+/* FINAL MERGE: restored dock applied on top of select/space fixes */
+.dockWrap {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 90;
+  width: auto;
+  height: auto;
+  border: 0;
+  background: transparent;
+  pointer-events: none;
+}
+
+.dock {
+  pointer-events: auto;
+  width: auto;
+  min-width: 214px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 7px;
+  border-radius: 28px;
+  border: 1px solid rgba(255,255,255,.30);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255,255,255,.20), transparent 36%),
+    linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.040)),
+    rgba(255,255,255,.050);
+  box-shadow:
+    0 18px 42px rgba(0,0,0,.16),
+    inset 0 1px 0 rgba(255,255,255,.38),
+    inset 0 -1px 0 rgba(0,0,0,.09);
+  backdrop-filter: blur(16px) saturate(1.10);
+}
+
+.dock button,
+.dockButton {
+  all: unset;
+  box-sizing: border-box;
+  width: 62px;
+  height: 40px;
+  min-width: 62px;
+  min-height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  color: rgba(0,0,0,.42);
+  background: transparent;
+  border: 1px solid transparent;
+  box-shadow: none;
+  cursor: pointer;
+  transition:
+    transform .16s ease,
+    background .16s ease,
+    border-color .16s ease,
+    color .16s ease,
+    box-shadow .16s ease;
+}
+
+.dock button:hover,
+.dockButton:hover {
+  transform: translateY(-1px);
+  color: rgba(0,0,0,.62);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.035));
+  border-color: rgba(255,255,255,.22);
+}
+
+.dock button.active,
+.dockButton.active {
+  color: rgba(0,0,0,.76);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.070)),
+    rgba(255,255,255,.045);
+  border-color: rgba(255,255,255,.38);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.36),
+    0 6px 14px rgba(0,0,0,.075);
+}
+
+.dock svg,
+.dockButton svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.dock span,
+.dock em,
+.dockButton span,
+.dockButton em {
+  display: none;
+}
+
+.dock button:focus,
+.dockButton:focus,
+.dock button:focus-visible,
+.dockButton:focus-visible {
+  outline: 0;
+}
+
+@media (max-width: 760px) {
+  .dockWrap {
+    bottom: 10px;
+  }
+
+  .dock {
+    min-width: 198px;
+    height: 52px;
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .dock button,
+  .dockButton {
+    width: 58px;
+    min-width: 58px;
+    height: 39px;
+    min-height: 39px;
+  }
+}
