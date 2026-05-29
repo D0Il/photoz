@@ -11,9 +11,9 @@ const INITIAL_ALBUMS = [
 ];
 
 const PAGES = [
-  { id: "albums" },
-  { id: "mirror" },
-  { id: "search" },
+  { id: "albums", icon: PhotozAlbumDockIcon },
+  { id: "mirror", icon: PhotozMirrorDockIcon },
+  { id: "search", icon: PhotozSearchDockIcon },
 ];
 
 const ARCHIVE_FILTERS = ["albums", "years", "months", "eras"];
@@ -1476,6 +1476,7 @@ function PhotoCard(props) {
             <span className="pzVideoBadge"><Film size={11} />{pzVideoRuntime(memory)}</span>
           </>
         ) : null}
+        {memory.uploadPending ? <span className="pendingUploadBadge">UPLOADING</span> : null}
         {props.isStarred || memory.starred ? <span className="starBadge">★</span> : null}
         {props.selectionMode ? <span className={props.selected ? "selectionDot active" : "selectionDot"} /> : null}
       </div>
@@ -1494,27 +1495,28 @@ function PhotoCard(props) {
 }
 
 function Dock(props) {
-  const activePage = props.activePage || props.currentPage || "albums";
-  const setActivePage = props.setActivePage || props.onChange || function () {};
-
   return (
-    <nav className="bottomDock" aria-label="Navigation">
-      {PAGES.map(function (page) {
-        const active = activePage === page.id;
-        return (
-          <button
-            type="button"
-            key={page.id}
-            data-page-id={page.id}
-            className={active ? "active" : ""}
-            aria-current={active ? "page" : undefined}
-            onClick={function () { setActivePage(page.id); }}
-          >
-            <DockIconForPage id={page.id} />
-          </button>
-        );
-      })}
-    </nav>
+    <div className="dockWrap">
+      <Glass className="dock">
+        {PAGES.map(function (page) {
+          const Icon = page.icon;
+          const active = props.active === page.id;
+          return (
+            <button
+              key={page.id}
+              type="button"
+              aria-label={page.id}
+              className={cls("dockButton", active && "active")}
+              onClick={function () {
+                props.setActive(page.id);
+              }}
+            >
+              <Icon size={19} strokeWidth={active ? 2.4 : 1.9} />
+            </button>
+          );
+        })}
+      </Glass>
+    </div>
   );
 }
 
@@ -1820,7 +1822,7 @@ function UploadQueuePanel(props) {
         <div className="uploadQueueRows">
           {active.map(function (item) {
             return (
-              <div key={item.id} data-page-id={item.id} className={"uploadQueueRow " + item.status}>
+              <div key={item.id} className={"uploadQueueRow " + item.status}>
                 <span>{up(item.name)}</span>
                 <em>{up(item.status)}</em>
               </div>
@@ -2852,7 +2854,7 @@ function PzToastStack(props) {
     <div className="pzToastStack" aria-live="polite">
       {items.slice(-3).map(function (item) {
         return (
-          <div className={item.type ? "pzToast " + item.type : "pzToast"} key={item.id} data-page-id={item.id}>
+          <div className={item.type ? "pzToast " + item.type : "pzToast"} key={item.id}>
             <strong>{String(item.title || "STATUS").toUpperCase()}</strong>
             {item.message ? <span>{item.message}</span> : null}
           </div>
@@ -2897,7 +2899,7 @@ function PzAlbumEditorPanel(props) {
         <header><strong>ALBUM</strong><button type="button" className="closeButton" onClick={props.onClose}>×</button></header>
         <label><span>TITLE</span><input value={title} onChange={function (event) { setTitle(event.target.value); }} /></label>
         <label><span>DESCRIPTION</span><textarea value={description} onChange={function (event) { setDescription(event.target.value); }} /></label>
-        <label><span>INSIDE</span><select value={parentId} onChange={function (event) { setParentId(event.target.value); }}><option value="">ROOT</option>{movableAlbums.map(function (item) { return <option key={item.id} data-page-id={item.id} value={item.id}>{item.title || item.id}</option>; })}</select></label>
+        <label><span>INSIDE</span><select value={parentId} onChange={function (event) { setParentId(event.target.value); }}><option value="">ROOT</option>{movableAlbums.map(function (item) { return <option key={item.id} value={item.id}>{item.title || item.id}</option>; })}</select></label>
         <button type="button" className={hideFromAll ? "pzWideToggle active" : "pzWideToggle"} onClick={function () { setHideFromAll(function (value) { return !value; }); }}><span>HIDE FROM ALL</span><em>{hideFromAll ? "ON" : "OFF"}</em></button>
         <div className="pzEditorActions">
           <button type="button" onClick={function () { props.onSave(album.id, { title: title.trim() || album.title, description: description.trim(), parentId: parentId || "", hideFromAll }); props.onClose(); }}>SAVE</button>
@@ -3045,10 +3047,10 @@ function withTooltip(label) {
 }
 
 function AnimatedBookDockIcon(props) {
-  const size = props.size || 22;
+  const size = props.size || 20;
   return (
-    <span className="dockIconSymbol dockBookIcon" aria-hidden="true" style={{ width: size, height: size }}>
-      <svg viewBox="0 0 28 28" focusable="false" role="img">
+    <span className="dockBookIcon" aria-hidden="true" style={{ width: size, height: size }}>
+      <svg viewBox="0 0 28 28" focusable="false">
         <path className="bookCover left" d="M4.4 7.2c3.3-.55 6.2.15 9.6 2.1v13.2c-3.2-1.85-6.3-2.35-9.6-1.65V7.2Z" />
         <path className="bookCover right" d="M23.6 7.2c-3.3-.55-6.2.15-9.6 2.1v13.2c3.2-1.85 6.3-2.35 9.6-1.65V7.2Z" />
         <path className="bookSpine" d="M14 9.3v13.3" />
@@ -3064,10 +3066,10 @@ function AnimatedBookDockIcon(props) {
 }
 
 function SparkSearchDockIcon(props) {
-  const size = props.size || 22;
+  const size = props.size || 20;
   return (
-    <span className="dockIconSymbol dockSearchSparkIcon" aria-hidden="true" style={{ width: size, height: size }}>
-      <svg viewBox="0 0 28 28" focusable="false" role="img">
+    <span className="dockSearchSparkIcon" aria-hidden="true" style={{ width: size, height: size }}>
+      <svg viewBox="0 0 28 28" focusable="false">
         <circle className="searchLens" cx="12.1" cy="12.1" r="6.35" />
         <path className="searchHandle" d="M16.9 16.9 22.2 22.2" />
         <path className="searchSpark sparkMain" d="M21.2 4.4l.7 2.0 2.0.7-2.0.7-.7 2.0-.7-2.0-2.0-.7 2.0-.7.7-2.0Z" />
@@ -3080,7 +3082,7 @@ function SparkSearchDockIcon(props) {
 function LashEyeIcon(props) {
   const size = props.size || 18;
   return (
-    <span className="dockIconSymbol lashEyeIcon" aria-hidden="true" style={{ width: size, height: size }}>
+    <span className="lashEyeIcon" aria-hidden="true" style={{ width: size, height: size }}>
       <svg viewBox="0 0 24 24" focusable="false">
         <path className="lashEyeLid top" d="M3.2 12C5.4 7.7 8.4 5.7 12 5.7s6.6 2 8.8 6.3" />
         <path className="lashEyeLid bottom" d="M3.2 12c2.2 4.3 5.2 6.3 8.8 6.3s6.6-2 8.8-6.3" />
@@ -3097,69 +3099,88 @@ function LashEyeIcon(props) {
 }
 
 
-
-
-
-
-
-
-
-function DockAlbumGlyph(props) {
-  const size = props.size || 24;
+function PhotozAlbumDockIcon(props) {
+  const size = props.size || 22;
   return (
-    <span className="dockGlyph dockGlyphAlbum" aria-hidden="true" style={{ width: size, height: size }}>
+    <span className="photozDockIcon photozDockBook" aria-hidden="true" style={{ width: size, height: size }}>
       <svg viewBox="0 0 28 28" focusable="false">
-        <path className="bookCover" d="M4.7 7.2c3.3-.5 6.2.2 9.3 2v13c-3.05-1.75-6.1-2.3-9.3-1.55V7.2Z" />
-        <path className="bookCover" d="M23.3 7.2c-3.3-.5-6.2.2-9.3 2v13c3.05-1.75 6.1-2.3 9.3-1.55V7.2Z" />
-        <path className="flipPage" d="M14 9.4c2.35-1.25 4.65-1.82 6.8-1.58v11.2c-2.1-.24-4.4.32-6.8 1.67V9.4Z" />
-        <path className="line" d="M14 9.3v13.1" />
-        <path className="line" d="M7.1 11.3c1.55-.13 3 .14 4.6.8" />
-        <path className="line" d="M16.3 12.1c1.6-.66 3.05-.93 4.6-.8" />
+        <path className="bookCover" d="M4.8 7.3c3.25-.52 6.1.16 9.2 2.02v12.9c-3-1.72-6-2.25-9.2-1.55V7.3Z" />
+        <path className="bookCover" d="M23.2 7.3c-3.25-.52-6.1.16-9.2 2.02v12.9c3-1.72 6-2.25 9.2-1.55V7.3Z" />
+        <path className="bookPage" d="M14 9.45c2.35-1.24 4.58-1.78 6.75-1.55v11.12c-2.08-.23-4.35.31-6.75 1.66V9.45Z" />
+        <path className="bookLine" d="M14 9.4v13" />
+        <path className="bookLine" d="M7.25 11.45c1.5-.12 2.95.12 4.45.76" />
+        <path className="bookLine" d="M16.3 12.2c1.55-.66 3-.92 4.45-.75" />
       </svg>
     </span>
   );
 }
 
-function DockMirrorGlyph(props) {
-  const size = props.size || 24;
+function PhotozMirrorDockIcon(props) {
+  const size = props.size || 22;
   return (
-    <span className="dockGlyph dockGlyphEye" aria-hidden="true" style={{ width: size, height: size }}>
+    <span className="photozDockIcon photozDockEye" aria-hidden="true" style={{ width: size, height: size }}>
       <svg viewBox="0 0 28 28" focusable="false">
-        <path className="eyeTop" d="M4.2 14c2.45-4.2 5.7-6.1 9.8-6.1s7.35 1.9 9.8 6.1" />
-        <path className="eyeBottom" d="M4.2 14c2.45 4.2 5.7 6.1 9.8 6.1s7.35-1.9 9.8-6.1" />
-        <path className="lash" d="M8.2 9.3 6.8 7.2" />
-        <path className="lash" d="M11.2 8.1 10.7 5.8" />
-        <path className="lash" d="M14 7.8V5.4" />
-        <path className="lash" d="M16.8 8.1l.5-2.3" />
-        <path className="lash" d="M19.8 9.3l1.4-2.1" />
+        <path className="eyeTop" d="M4.3 14c2.45-4.15 5.65-6.04 9.7-6.04S21.25 9.85 23.7 14" />
+        <path className="eyeBottom" d="M4.3 14c2.45 4.15 5.65 6.04 9.7 6.04s7.25-1.89 9.7-6.04" />
+        <path className="lash" d="M8.25 9.35 6.85 7.25" />
+        <path className="lash" d="M11.2 8.16 10.7 5.9" />
+        <path className="lash" d="M14 7.86V5.45" />
+        <path className="lash" d="M16.8 8.16l.5-2.26" />
+        <path className="lash" d="M19.75 9.35l1.4-2.1" />
         <circle className="iris" cx="14" cy="14" r="2.55" />
       </svg>
     </span>
   );
 }
 
-function DockSearchGlyph(props) {
-  const size = props.size || 24;
+function PhotozSearchDockIcon(props) {
+  const size = props.size || 22;
   return (
-    <span className="dockGlyph dockGlyphSearch" aria-hidden="true" style={{ width: size, height: size }}>
+    <span className="photozDockIcon photozDockSearch" aria-hidden="true" style={{ width: size, height: size }}>
       <svg viewBox="0 0 28 28" focusable="false">
         <circle className="lens" cx="12.2" cy="12.2" r="6.25" />
         <path className="handle" d="M16.9 16.9 22.4 22.4" />
-        <path className="spark big" d="M21.2 4.4l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7.7-2Z" />
-        <path className="spark small" d="M6.2 4.3l.45 1.25 1.25.45-1.25.45L6.2 7.7l-.45-1.25L4.5 6l1.25-.45.45-1.25Z" />
+        <path className="spark big" d="M21.25 4.45l.68 1.95 1.95.68-1.95.68-.68 1.95-.68-1.95-1.95-.68 1.95-.68.68-1.95Z" />
+        <path className="spark small" d="M6.2 4.35l.45 1.22 1.22.45-1.22.45L6.2 7.7l-.45-1.23-1.22-.45 1.22-.45.45-1.22Z" />
       </svg>
     </span>
   );
 }
 
-function DockIconForPage(props) {
-  if (props.id === "albums") return <DockAlbumGlyph size={24} />;
-  if (props.id === "mirror") return <DockMirrorGlyph size={24} />;
-  if (props.id === "search") return <DockSearchGlyph size={24} />;
-  return null;
+
+function makeUploadPreview(file) {
+  if (!file) return "";
+  try {
+    return URL.createObjectURL(file);
+  } catch (error) {
+    return "";
+  }
+}
+
+function makePendingUploadMemory(file, index) {
+  const id = "pending-" + Date.now() + "-" + index + "-" + Math.random().toString(36).slice(2);
+  const url = makeUploadPreview(file);
+  return {
+    id,
+    title: file && file.name ? file.name : "UPLOADING",
+    name: file && file.name ? file.name : "UPLOADING",
+    fileName: file && file.name ? file.name : "UPLOADING",
+    kind: file && file.type && file.type.startsWith("video/") ? "video" : "photo",
+    mimeType: file && file.type ? file.type : "",
+    size: file && file.size ? file.size : 0,
+    url,
+    previewUrl: url,
+    storageUrl: url,
+    date: new Date().toISOString(),
+    uploadPending: true,
+  };
 }
 
 export default function App() {
+  const [uploadNotice, setUploadNotice] = useState("");
+  const [uploadPendingItems, setUploadPendingItems] = useState([]);
+  const displayMemories = uploadPendingItems.concat(safeArray(memories));
+
   const [filterType, setFilterType] = useState("all");
   const [filterSource, setFilterSource] = useState("all");
   const [filterQuality, setFilterQuality] = useState("any");
@@ -4364,7 +4385,7 @@ const [albumSort, setAlbumSort] = useState("recent");
     }, 50);
   }
 
-  function handleUpload(event) {
+  function handleUploadOriginal(event) {
     const files = Array.prototype.slice.call(event.target.files || []).filter(function (file) {
       return file.type && (file.type.indexOf("image") === 0 || file.type.indexOf("video") === 0);
     });
@@ -4431,6 +4452,45 @@ const [albumSort, setAlbumSort] = useState("recent");
     }, 50);
   }
 
+async function handleUpload(eventOrFiles) {
+  const incomingFiles = eventOrFiles && eventOrFiles.target && eventOrFiles.target.files
+    ? Array.from(eventOrFiles.target.files)
+    : Array.from(eventOrFiles || []);
+
+  if (!incomingFiles.length) {
+    setUploadNotice("NO FILE SELECTED");
+    return;
+  }
+
+  const pending = incomingFiles.map(makePendingUploadMemory);
+  setUploadPendingItems(function (items) { return pending.concat(items); });
+  setUploadNotice(incomingFiles.length === 1 ? "UPLOADING 1 FILE" : "UPLOADING " + incomingFiles.length + " FILES");
+
+  try {
+    const result = await handleUploadOriginal(eventOrFiles);
+    setUploadNotice(incomingFiles.length === 1 ? "UPLOAD COMPLETE" : "UPLOADS COMPLETE");
+    window.setTimeout(function () {
+      setUploadPendingItems(function (items) {
+        const pendingIds = new Set(pending.map(function (item) { return item.id; }));
+        return items.filter(function (item) { return !pendingIds.has(item.id); });
+      });
+      setUploadNotice("");
+    }, 1200);
+    return result;
+  } catch (error) {
+    setUploadPendingItems(function (items) {
+      const pendingIds = new Set(pending.map(function (item) { return item.id; }));
+      return items.filter(function (item) { return !pendingIds.has(item.id); });
+    });
+    setUploadNotice("UPLOAD FAILED");
+    console.error("PHOTOZ upload failed", error);
+    return null;
+  } finally {
+    if (eventOrFiles && eventOrFiles.target) eventOrFiles.target.value = "";
+  }
+}
+
+
   const archive = activePage === "albums";
   const starredIds = starMap(albums);
   const validation = validateIndex(memories, albums);
@@ -4438,7 +4498,10 @@ const [albumSort, setAlbumSort] = useState("recent");
 
   return unlocked ? (
     <div className="app photozProUI">
-      <Dock active={activePage} setActive={setActivePage} />
+      
+        {uploadNotice ? <div className="uploadNoticeToast">{uploadNotice}</div> : null}
+        {uploadPendingItems.length ? <div className="uploadPendingStrip">{uploadPendingItems.length} UPLOADING</div> : null}
+<Dock active={activePage} setActive={setActivePage} />
       <main>
         <AnimatePresence mode="wait">
           <motion.div key={key} className="screen" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16 }}>
@@ -4469,13 +4532,13 @@ const [albumSort, setAlbumSort] = useState("recent");
                 toggleUploadRefilterPanel={function () { setPzUploadRefilterOpen(function (value) { return !value; }); }}/>
                 <ImportPanel open={importPanelOpen} close={function () { setImportPanelOpen(false); }} uploadBatchSize={uploadBatchSize} setUploadBatchSize={setUploadBatchSize} uploadConcurrency={uploadConcurrency} setUploadConcurrency={setUploadConcurrency} skipDuplicates={skipDuplicates} setSkipDuplicates={setSkipDuplicates} importSummary={importSummary} />
                 <UploadQueuePanel open={uploadQueueOpen} queue={uploadQueue} paused={uploadPaused} togglePause={function () { setUploadPaused(function (value) { return !value; }); }} retryFailed={retryFailedUploads} close={function () { setUploadQueueOpen(false); }} clearFinished={function () { setUploadQueue(function (items) { return items.filter(function (item) { return item.status === "queued" || item.status === "uploading"; }); }); }} />
-                <StatusPanel open={statusOpen} memories={memories} close={function () { setStatusOpen(false); }} retryUpload={retryUpload} clearLocalFailedStatus={clearLocalFailedStatus} purgeTrash={purgeTrash} />
-                <DuplicatePanel open={duplicatesOpen} memories={memories} close={function () { setDuplicatesOpen(false); }} openMemory={setActiveMemory} trashDuplicateOthers={trashDuplicateOthers} />
+                <StatusPanel open={statusOpen} memories={displayMemories} close={function () { setStatusOpen(false); }} retryUpload={retryUpload} clearLocalFailedStatus={clearLocalFailedStatus} purgeTrash={purgeTrash} />
+                <DuplicatePanel open={duplicatesOpen} memories={displayMemories} close={function () { setDuplicatesOpen(false); }} openMemory={setActiveMemory} trashDuplicateOthers={trashDuplicateOthers} />
                 <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} repairIndex={repairIndex} />
                 <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { setBulkMoreOpen(function (value) { return !value; }); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkRefilter={bulkMarkRefilter} bulkClearRefilter={bulkClearRefilter} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDelete={bulkDelete} clearSelection={clearSelection} />
-                {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateOpen} archiveFilter={archiveFilter} memories={memories} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
-                {activePage === "mirror" ? <MirrorFilter mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={memories} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
-                {activePage === "search" ? <SearchFilter memories={memories} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={setAdvancedSearchOpen} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { setPzVideoPlayerId(memory.id); }} /> : null}
+                {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateOpen} archiveFilter={archiveFilter} memories={displayMemories} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
+                {activePage === "mirror" ? <MirrorFilter mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={displayMemories} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
+                {activePage === "search" ? <SearchFilter memories={displayMemories} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={setAdvancedSearchOpen} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { setPzVideoPlayerId(memory.id); }} /> : null}
               </Glass>
             ) : null}
             {screen === "group" && activeGroup ? <GroupFilter group={activeGroup} back={goHome} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { setPzVideoPlayerId(memory.id); }} /> : null}

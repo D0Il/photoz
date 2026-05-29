@@ -10571,6 +10571,138 @@ button:hover .lashEyeIcon .lashEyeSpark {
 }
 
 
+/* DOCK ICONS: animated albums book + sparkling search */
+.dockBookIcon,
+.dockSearchSparkIcon {
+  display: inline-grid;
+  place-items: center;
+  position: relative;
+  flex: 0 0 auto;
+  color: currentColor;
+}
+
+.dockBookIcon svg,
+.dockSearchSparkIcon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+.dockBookIcon path,
+.dockSearchSparkIcon path,
+.dockSearchSparkIcon circle {
+  vector-effect: non-scaling-stroke;
+}
+
+.dockBookIcon .bookCover {
+  fill: rgba(255,255,255,.055);
+  stroke: currentColor;
+  stroke-width: 1.55;
+  stroke-linejoin: round;
+}
+
+.dockBookIcon .bookSpine,
+.dockBookIcon .bookLine {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .74;
+}
+
+.dockBookIcon .bookPage {
+  fill: rgba(255,255,255,.075);
+  stroke: currentColor;
+  stroke-width: 1.28;
+  stroke-linejoin: round;
+  transform-box: fill-box;
+  transform-origin: left center;
+  opacity: .82;
+}
+
+.dockBookIcon .pageA {
+  animation: dockBookPageFlipA 3.8s cubic-bezier(.25,.75,.2,1) infinite;
+}
+
+.dockBookIcon .pageB {
+  animation: dockBookPageFlipB 3.8s cubic-bezier(.25,.75,.2,1) infinite;
+  animation-delay: .22s;
+}
+
+.dockBookIcon .rightLine,
+.dockBookIcon .rightLine2 {
+  animation: dockBookLineDrift 3.8s ease-in-out infinite;
+}
+
+button:hover .dockBookIcon .pageA,
+button:hover .dockBookIcon .pageB {
+  animation-duration: 2.4s;
+}
+
+@keyframes dockBookPageFlipA {
+  0%, 22%, 100% { transform: perspective(52px) rotateY(0deg) translateX(0); opacity: .80; }
+  42% { transform: perspective(52px) rotateY(-72deg) translateX(-.7px); opacity: .98; }
+  58% { transform: perspective(52px) rotateY(-148deg) translateX(-1.15px); opacity: .42; }
+  72% { transform: perspective(52px) rotateY(0deg) translateX(0); opacity: .84; }
+}
+
+@keyframes dockBookPageFlipB {
+  0%, 28%, 100% { transform: perspective(52px) rotateY(0deg) translateX(0); opacity: .54; }
+  48% { transform: perspective(52px) rotateY(-84deg) translateX(-.85px); opacity: .90; }
+  64% { transform: perspective(52px) rotateY(-152deg) translateX(-1.15px); opacity: .34; }
+  78% { transform: perspective(52px) rotateY(0deg) translateX(0); opacity: .62; }
+}
+
+@keyframes dockBookLineDrift {
+  0%, 100% { opacity: .70; transform: translateX(0); }
+  50% { opacity: .38; transform: translateX(-.7px); }
+}
+
+.dockSearchSparkIcon .searchLens,
+.dockSearchSparkIcon .searchHandle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dockSearchSparkIcon .searchSpark {
+  fill: currentColor;
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: .72;
+}
+
+.dockSearchSparkIcon .sparkMain {
+  animation: searchSparkPulse 2.6s ease-in-out infinite;
+}
+
+.dockSearchSparkIcon .sparkSmall {
+  animation: searchSparkPulseSmall 2.6s ease-in-out infinite;
+  animation-delay: .42s;
+}
+
+button:hover .dockSearchSparkIcon .sparkMain,
+button:hover .dockSearchSparkIcon .sparkSmall {
+  animation-duration: 1.45s;
+}
+
+@keyframes searchSparkPulse {
+  0%, 64%, 100% { transform: scale(.55) rotate(0deg); opacity: .20; }
+  14% { transform: scale(1.08) rotate(12deg); opacity: .92; }
+  28% { transform: scale(.78) rotate(24deg); opacity: .45; }
+}
+
+@keyframes searchSparkPulseSmall {
+  0%, 70%, 100% { transform: scale(.5) rotate(0deg); opacity: .16; }
+  18% { transform: scale(1.0) rotate(-16deg); opacity: .76; }
+  34% { transform: scale(.7) rotate(-28deg); opacity: .36; }
+}
+
+
 /* RECOVERY FIX: hide internal transient saving banner from main UI */
 .pzStateBanner {
   display: none;
@@ -10687,500 +10819,7 @@ button[data-tooltip="Long-press files"] {
 }
 
 
-/* FORCE DOCK ICON VISIBILITY */
-.bottomDock {
-  overflow: visible;
-}
-
-.bottomDock button,
-.bottomDock [role="button"] {
-  display: grid;
-  place-items: center;
-}
-
-.bottomDock .dockIconSymbol,
-.bottomDock .dockBookIcon,
-.bottomDock .dockSearchSparkIcon,
-.bottomDock .lashEyeIcon {
-  display: inline-grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  min-width: 22px;
-  min-height: 22px;
-  opacity: 1;
-  visibility: visible;
-  color: rgba(0,0,0,.70);
-  line-height: 0;
-  position: relative;
-  z-index: 2;
-  flex: 0 0 auto;
-}
-
-.bottomDock .dockIconSymbol svg,
-.bottomDock .dockBookIcon svg,
-.bottomDock .dockSearchSparkIcon svg,
-.bottomDock .lashEyeIcon svg {
-  display: block;
-  width: 22px;
-  height: 22px;
-  min-width: 22px;
-  min-height: 22px;
-  overflow: visible;
-  opacity: 1;
-  visibility: visible;
-}
-
-.bottomDock button.active .dockIconSymbol,
-.bottomDock button[aria-current="page"] .dockIconSymbol,
-.bottomDock button.active .dockBookIcon,
-.bottomDock button.active .dockSearchSparkIcon,
-.bottomDock button.active .lashEyeIcon {
-  color: rgba(0,0,0,.86);
-}
-
-/* animated open book */
-.dockBookIcon path,
-.dockSearchSparkIcon path,
-.dockSearchSparkIcon circle,
-.lashEyeIcon path,
-.lashEyeIcon circle {
-  vector-effect: non-scaling-stroke;
-}
-
-.dockBookIcon .bookCover {
-  fill: rgba(0,0,0,.035);
-  stroke: currentColor;
-  stroke-width: 1.65;
-  stroke-linejoin: round;
-  opacity: 1;
-}
-
-.dockBookIcon .bookSpine,
-.dockBookIcon .bookLine {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.35;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: .86;
-}
-
-.dockBookIcon .bookPage {
-  fill: rgba(255,255,255,.18);
-  stroke: currentColor;
-  stroke-width: 1.36;
-  stroke-linejoin: round;
-  transform-box: fill-box;
-  transform-origin: left center;
-  opacity: .95;
-}
-
-.dockBookIcon .pageA {
-  animation: dockBookPageFlipA 3.8s cubic-bezier(.25,.75,.2,1) infinite;
-}
-
-.dockBookIcon .pageB {
-  animation: dockBookPageFlipB 3.8s cubic-bezier(.25,.75,.2,1) infinite;
-  animation-delay: .22s;
-}
-
-@keyframes dockBookPageFlipA {
-  0%, 22%, 100% { transform: perspective(52px) rotateY(0deg) translateX(0); opacity: .95; }
-  42% { transform: perspective(52px) rotateY(-72deg) translateX(-.7px); opacity: 1; }
-  58% { transform: perspective(52px) rotateY(-148deg) translateX(-1.15px); opacity: .50; }
-  72% { transform: perspective(52px) rotateY(0deg) translateX(0); opacity: .95; }
-}
-
-@keyframes dockBookPageFlipB {
-  0%, 28%, 100% { transform: perspective(52px) rotateY(0deg) translateX(0); opacity: .65; }
-  48% { transform: perspective(52px) rotateY(-84deg) translateX(-.85px); opacity: 1; }
-  64% { transform: perspective(52px) rotateY(-152deg) translateX(-1.15px); opacity: .40; }
-  78% { transform: perspective(52px) rotateY(0deg) translateX(0); opacity: .70; }
-}
-
-/* sparkling search */
-.dockSearchSparkIcon .searchLens,
-.dockSearchSparkIcon .searchHandle {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.9;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: 1;
-}
-
-.dockSearchSparkIcon .searchSpark {
-  fill: currentColor;
-  stroke: none;
-  transform-box: fill-box;
-  transform-origin: center;
-  opacity: .86;
-}
-
-.dockSearchSparkIcon .sparkMain {
-  animation: searchSparkPulse 2.6s ease-in-out infinite;
-}
-
-.dockSearchSparkIcon .sparkSmall {
-  animation: searchSparkPulseSmall 2.6s ease-in-out infinite;
-  animation-delay: .42s;
-}
-
-@keyframes searchSparkPulse {
-  0%, 64%, 100% { transform: scale(.55) rotate(0deg); opacity: .26; }
-  14% { transform: scale(1.08) rotate(12deg); opacity: 1; }
-  28% { transform: scale(.78) rotate(24deg); opacity: .52; }
-}
-
-@keyframes searchSparkPulseSmall {
-  0%, 70%, 100% { transform: scale(.5) rotate(0deg); opacity: .22; }
-  18% { transform: scale(1.0) rotate(-16deg); opacity: .92; }
-  34% { transform: scale(.7) rotate(-28deg); opacity: .42; }
-}
-
-/* keep lashed eye visible in dock */
-.bottomDock .lashEyeIcon .lashEyeLid,
-.bottomDock .lashEyeIcon .lash {
-  stroke: currentColor;
-  opacity: 1;
-}
-
-.bottomDock .lashEyeIcon .lashEyeIris {
-  fill: currentColor;
-  opacity: .82;
-}
-
-
-/* HARD REMOVE PAGE TITLE HEADERS */
-.pageTitle,
-.pageHeader h1,
-.pageHeader > h1,
-.heroTitle,
-.viewTitle,
-.screenTitle,
-.titleBlock,
-.titleCluster,
-.mainPageTitle,
-.appChrome > h1,
-.appChrome h1:first-child,
-.pageScroll > h1:first-child,
-.glass > h1:first-child,
-[data-page-title="true"] {
-  display: none;
-  visibility: hidden;
-  height: 0;
-  min-height: 0;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
-.pzStateBanner {
-  display: none;
-}
-
-
-/* SCREENSHOT CLEANUP PASS */
-.appChrome > h1,
-.appChrome h1:first-child,
-.pageScroll > h1:first-child,
-.glass > h1:first-child,
-.pageTitle,
-.pageHeader h1,
-.heroTitle,
-.viewTitle,
-.screenTitle,
-.titleBlock,
-.titleCluster,
-.mainPageTitle,
-[data-page-title="true"] {
-  display: none;
-  visibility: hidden;
-  height: 0;
-  min-height: 0;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
-.pzStateBanner {
-  display: none;
-}
-
-/* Guaranteed dock glyph visibility */
-.bottomDock {
-  overflow: visible;
-}
-
-.bottomDock button {
-  display: grid;
-  place-items: center;
-}
-
-.bottomDock .dockGlyph {
-  display: inline-grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
-  opacity: 1;
-  visibility: visible;
-  color: rgba(0,0,0,.74);
-  position: relative;
-  z-index: 5;
-  line-height: 0;
-}
-
-.bottomDock .dockGlyph svg {
-  display: block;
-  width: 24px;
-  height: 24px;
-  overflow: visible;
-}
-
-.bottomDock .dockGlyph path,
-.bottomDock .dockGlyph circle {
-  vector-effect: non-scaling-stroke;
-  stroke: currentColor;
-  stroke-width: 1.85;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.bottomDock .dockGlyph path {
-  fill: none;
-}
-
-.bottomDock .dockGlyphAlbum path:first-child,
-.bottomDock .dockGlyphAlbum path:nth-child(2),
-.bottomDock .dockGlyphAlbum .flipPage {
-  fill: rgba(255,255,255,.16);
-}
-
-.bottomDock .dockGlyphEye .iris,
-.bottomDock .dockGlyphSearch .spark {
-  fill: currentColor;
-  stroke: none;
-}
-
-.bottomDock .dockGlyphAlbum .flipPage {
-  transform-box: fill-box;
-  transform-origin: left center;
-  animation: dockGlyphBookFlip 3.4s ease-in-out infinite;
-}
-
-.bottomDock .dockGlyphEye .eyeTop {
-  transform-origin: 14px 14px;
-  animation: dockGlyphEyeTop 5s ease-in-out infinite;
-}
-
-.bottomDock .dockGlyphEye .eyeBottom {
-  transform-origin: 14px 14px;
-  animation: dockGlyphEyeBottom 5s ease-in-out infinite;
-}
-
-.bottomDock .dockGlyphSearch .spark {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: dockGlyphSpark 2.6s ease-in-out infinite;
-}
-
-.bottomDock .dockGlyphSearch .small {
-  animation-delay: .35s;
-}
-
-@keyframes dockGlyphBookFlip {
-  0%, 25%, 100% { transform: perspective(54px) rotateY(0deg); opacity: .9; }
-  48% { transform: perspective(54px) rotateY(-120deg); opacity: .45; }
-  68% { transform: perspective(54px) rotateY(0deg); opacity: .9; }
-}
-
-@keyframes dockGlyphEyeTop {
-  0%, 88%, 100% { transform: translateY(0) scaleY(1); }
-  92%, 94% { transform: translateY(3px) scaleY(.2); }
-}
-
-@keyframes dockGlyphEyeBottom {
-  0%, 88%, 100% { transform: translateY(0) scaleY(1); }
-  92%, 94% { transform: translateY(-3px) scaleY(.2); }
-}
-
-@keyframes dockGlyphSpark {
-  0%, 65%, 100% { transform: scale(.6) rotate(0deg); opacity: .24; }
-  14% { transform: scale(1.08) rotate(12deg); opacity: .95; }
-  30% { transform: scale(.82) rotate(24deg); opacity: .55; }
-}
-
-/* clean the left control stack from screenshot without inventing new controls */
-.albumControlsRow,
-.albumSearchOnly,
-.searchBar.librarySearchBar {
-  min-height: 34px;
-}
-
-.albumSearchOnly input,
-.searchBar.librarySearchBar input {
-  font-size: 9px;
-}
-
-
-/* FINAL NAV ICON AND TITLE FIX */
-.pageTitle,
-.pageHeader h1,
-.pageHeader > h1,
-.heroTitle,
-.viewTitle,
-.screenTitle,
-.titleBlock,
-.titleCluster,
-.mainPageTitle,
-.appChrome > h1,
-.appChrome h1:first-child,
-.pageScroll > h1:first-child,
-.glass > h1:first-child,
-[data-page-title="true"] {
-  display: none;
-  visibility: hidden;
-  height: 0;
-  min-height: 0;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
-.bottomDock {
-  overflow: visible;
-}
-
-.bottomDock button {
-  display: grid;
-  place-items: center;
-  color: rgba(0,0,0,.74);
-}
-
-.bottomDock .dockGlyph {
-  display: inline-grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
-  opacity: 1;
-  visibility: visible;
-  color: currentColor;
-  position: relative;
-  z-index: 10;
-  line-height: 0;
-}
-
-.bottomDock .dockGlyph svg {
-  display: block;
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
-  overflow: visible;
-  opacity: 1;
-  visibility: visible;
-}
-
-.bottomDock .dockGlyph path,
-.bottomDock .dockGlyph circle {
-  vector-effect: non-scaling-stroke;
-}
-
-.bottomDock .dockGlyphAlbum .bookCover,
-.bottomDock .dockGlyphAlbum .flipPage {
-  fill: rgba(255,255,255,.18);
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.bottomDock .dockGlyphAlbum .line {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.45;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.bottomDock .dockGlyphAlbum .flipPage {
-  transform-box: fill-box;
-  transform-origin: left center;
-  animation: dockFinalBookFlip 3.4s ease-in-out infinite;
-}
-
-.bottomDock .dockGlyphEye path {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.75;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.bottomDock .dockGlyphEye .iris,
-.bottomDock .dockGlyphSearch .spark {
-  fill: currentColor;
-  stroke: none;
-}
-
-.bottomDock .dockGlyphEye .eyeTop {
-  transform-origin: 14px 14px;
-  animation: dockFinalEyeTop 5s ease-in-out infinite;
-}
-
-.bottomDock .dockGlyphEye .eyeBottom {
-  transform-origin: 14px 14px;
-  animation: dockFinalEyeBottom 5s ease-in-out infinite;
-}
-
-.bottomDock .dockGlyphSearch .lens,
-.bottomDock .dockGlyphSearch .handle {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.9;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.bottomDock .dockGlyphSearch .spark {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: dockFinalSpark 2.6s ease-in-out infinite;
-}
-
-.bottomDock .dockGlyphSearch .small {
-  animation-delay: .35s;
-}
-
-@keyframes dockFinalBookFlip {
-  0%, 25%, 100% { transform: perspective(54px) rotateY(0deg); opacity: .95; }
-  48% { transform: perspective(54px) rotateY(-120deg); opacity: .45; }
-  68% { transform: perspective(54px) rotateY(0deg); opacity: .95; }
-}
-
-@keyframes dockFinalEyeTop {
-  0%, 88%, 100% { transform: translateY(0) scaleY(1); }
-  92%, 94% { transform: translateY(3px) scaleY(.2); }
-}
-
-@keyframes dockFinalEyeBottom {
-  0%, 88%, 100% { transform: translateY(0) scaleY(1); }
-  92%, 94% { transform: translateY(-3px) scaleY(.2); }
-}
-
-@keyframes dockFinalSpark {
-  0%, 65%, 100% { transform: scale(.6) rotate(0deg); opacity: .24; }
-  14% { transform: scale(1.08) rotate(12deg); opacity: .95; }
-  30% { transform: scale(.82) rotate(24deg); opacity: .55; }
-}
-
-
-/* DOCK POSITION RECOVERY */
+/* RESTORED DOCK AND FILE COUNT */
 .bottomDock,
 nav.bottomDock {
   position: fixed;
@@ -11190,94 +10829,138 @@ nav.bottomDock {
   bottom: 18px;
   transform: translateX(-50%);
   z-index: 90;
-  width: auto;
-  min-width: 192px;
-  max-width: none;
-  height: 54px;
-  min-height: 54px;
-  padding: 6px;
-  margin: 0;
   display: inline-flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 6px;
+  width: auto;
+  min-width: 178px;
+  height: 52px;
+  min-height: 52px;
+  padding: 5px;
+  margin: 0;
   border-radius: 999px;
   overflow: visible;
 }
 
 .bottomDock button,
 nav.bottomDock button {
-  position: relative;
-  width: 48px;
-  min-width: 48px;
-  max-width: 48px;
-  height: 42px;
-  min-height: 42px;
-  max-height: 42px;
+  width: 46px;
+  min-width: 46px;
+  max-width: 46px;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 46px;
   padding: 0;
   margin: 0;
-  display: inline-grid;
-  place-items: center;
-  flex: 0 0 48px;
   border-radius: 999px;
-  color: rgba(0,0,0,.70);
-  opacity: 1;
-  visibility: visible;
-  transform: none;
+  color: rgba(0,0,0,.72);
 }
 
-.bottomDock button.active,
-nav.bottomDock button.active,
-.bottomDock button[aria-current="page"],
-nav.bottomDock button[aria-current="page"] {
-  color: rgba(0,0,0,.88);
-}
-
-.bottomDock .dockGlyph,
-nav.bottomDock .dockGlyph,
-.bottomDock .dockIconSymbol,
-nav.bottomDock .dockIconSymbol,
-.bottomDock .dockBookIcon,
-.bottomDock .dockSearchSparkIcon,
-.bottomDock .lashEyeIcon {
+.photozDockIcon,
+.bottomDock .photozDockIcon,
+nav.bottomDock .photozDockIcon {
   display: inline-grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
+  width: 23px;
+  height: 23px;
+  min-width: 23px;
+  min-height: 23px;
   line-height: 0;
   opacity: 1;
   visibility: visible;
+  color: currentColor;
   position: relative;
-  z-index: 5;
+  z-index: 4;
 }
 
-.bottomDock .dockGlyph svg,
-nav.bottomDock .dockGlyph svg,
-.bottomDock .dockIconSymbol svg,
-nav.bottomDock .dockIconSymbol svg,
-.bottomDock .dockBookIcon svg,
-.bottomDock .dockSearchSparkIcon svg,
-.bottomDock .lashEyeIcon svg {
+.photozDockIcon svg,
+.bottomDock .photozDockIcon svg,
+nav.bottomDock .photozDockIcon svg {
   display: block;
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
+  width: 23px;
+  height: 23px;
+  min-width: 23px;
+  min-height: 23px;
   overflow: visible;
-  opacity: 1;
-  visibility: visible;
 }
 
-/* prevent any inherited sidebar/stack layout from moving dock buttons */
-.bottomDock > *,
-nav.bottomDock > * {
-  flex-direction: row;
+.photozDockIcon path,
+.photozDockIcon circle {
+  vector-effect: non-scaling-stroke;
 }
 
-/* keep title headers gone */
+.photozDockBook .bookCover,
+.photozDockBook .bookPage {
+  fill: rgba(255,255,255,.16);
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.photozDockBook .bookLine {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.photozDockBook .bookPage {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: photozBookPageFlip 3.6s ease-in-out infinite;
+}
+
+.photozDockEye path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.65;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.photozDockEye .iris,
+.photozDockSearch .spark {
+  fill: currentColor;
+  stroke: none;
+}
+
+.photozDockEye .eyeTop {
+  transform-origin: 14px 14px;
+  animation: photozEyeTopBlink 5.2s ease-in-out infinite;
+}
+
+.photozDockEye .eyeBottom {
+  transform-origin: 14px 14px;
+  animation: photozEyeBottomBlink 5.2s ease-in-out infinite;
+}
+
+.photozDockSearch .lens,
+.photozDockSearch .handle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.photozDockSearch .spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: photozSearchSpark 2.7s ease-in-out infinite;
+}
+
+.photozDockSearch .small {
+  animation-delay: .36s;
+}
+
+/* page title header hidden; tab labels are not targeted */
 .pageTitle,
 .pageHeader h1,
 .pageHeader > h1,
@@ -11299,4 +10982,113 @@ nav.bottomDock > * {
   margin: 0;
   padding: 0;
   overflow: hidden;
+}
+
+/* existing file count stays top-right plain text, not pill, not moved into controls */
+.fileCount,
+.filesCount,
+.libraryCount,
+.totalFiles,
+.headerCount,
+.topCount {
+  position: absolute;
+  top: 38px;
+  right: 188px;
+  z-index: 60;
+  display: block;
+  height: auto;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 850;
+  letter-spacing: .12em;
+  color: rgba(0,0,0,.34);
+  white-space: nowrap;
+}
+
+@keyframes photozBookPageFlip {
+  0%, 25%, 100% { transform: perspective(54px) rotateY(0deg); opacity: .9; }
+  48% { transform: perspective(54px) rotateY(-120deg); opacity: .48; }
+  68% { transform: perspective(54px) rotateY(0deg); opacity: .9; }
+}
+
+@keyframes photozEyeTopBlink {
+  0%, 88%, 100% { transform: translateY(0) scaleY(1); }
+  92%, 94% { transform: translateY(3px) scaleY(.2); }
+}
+
+@keyframes photozEyeBottomBlink {
+  0%, 88%, 100% { transform: translateY(0) scaleY(1); }
+  92%, 94% { transform: translateY(-3px) scaleY(.2); }
+}
+
+@keyframes photozSearchSpark {
+  0%, 65%, 100% { transform: scale(.6) rotate(0deg); opacity: .24; }
+  14% { transform: scale(1.08) rotate(12deg); opacity: .95; }
+  30% { transform: scale(.82) rotate(24deg); opacity: .55; }
+}
+
+
+/* UPLOAD FEEDBACK FIX */
+.uploadNoticeToast,
+.uploadPendingStrip {
+  position: fixed;
+  left: 50%;
+  top: 24px;
+  transform: translateX(-50%);
+  z-index: 120;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: .14em;
+  color: rgba(0,0,0,.55);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.052)),
+    rgba(255,255,255,.035);
+  border: 1px solid rgba(255,255,255,.28);
+  box-shadow:
+    0 10px 28px rgba(0,0,0,.08),
+    inset 0 1px 0 rgba(255,255,255,.28);
+  backdrop-filter: blur(16px) saturate(1.05);
+  pointer-events: none;
+}
+
+.uploadPendingStrip {
+  top: 60px;
+  opacity: .82;
+}
+
+.pendingUploadBadge {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  min-height: 20px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 7px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: .12em;
+  color: rgba(0,0,0,.58);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.06)),
+    rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.32);
+  box-shadow: 0 8px 18px rgba(0,0,0,.08);
+}
+
+.photoCard:has(.pendingUploadBadge) {
+  opacity: .86;
 }

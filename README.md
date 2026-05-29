@@ -122,12 +122,6 @@ Added:
 
 - Removed every visible Select control by deleting any button/control that directly toggles selection mode. Long-press and hold-swipe selection remain.
 
-- Forced dock icon visibility at render/CSS level: explicit icon wrapper, SVG sizing, stroke/fill, z-index, and forced PAGES mapping.
+- Restored dock from stable layout: bottom-center horizontal dock with visible animated icons; kept file count as plain top-right status text instead of moving it into controls.
 
-- Hard removed visible page title headers across all dock pages.
-
-- Screenshot cleanup: removed actual page title path, added guaranteed dock glyph components, forced dock glyph visibility, hid saving banner, and tightened visible controls.
-
-- Replaced the dock renderer with guaranteed glyph rendering and removed the actual page title strong path.
-
-- Recovered dock placement: forced animated nav back to bottom-center horizontal dock instead of top-left stacked buttons.
+- Fixed silent uploads: selecting files now immediately shows an upload status and pending cards; failed uploads show UPLOAD FAILED instead of doing nothing.
