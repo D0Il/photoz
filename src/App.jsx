@@ -41,9 +41,7 @@ function tooltipForText(value) {
 
 function withSettingtip(label) {
   return {
-    title: tooltipForText(label),
     "aria-label": tooltipForText(label),
-    "data-tooltip": tooltipForText(label),
   };
 }
 
@@ -1492,8 +1490,8 @@ function PhotoCard(props) {
         </div>
       ) : null}
       <div className="pzCardQuickActions">
-        <button type="button" aria-label="Edit file" title="Edit" data-tooltip="Edit" onClick={function (event) { event.stopPropagation(); props.onEdit && props.onEdit(memory); }}><PanelRightOpen size={12} /></button>
-        {video ? <button type="button" aria-label="Play video" title="Play" data-tooltip="Play" onClick={function (event) { event.stopPropagation(); props.onPlayVideo && props.onPlayVideo(memory); }}><Film size={12} /></button> : null}
+        <button type="button" aria-label="Edit file" onClick={function (event) { event.stopPropagation(); props.onEdit && props.onEdit(memory); }}><PanelRightOpen size={12} /></button>
+        {video ? <button type="button" aria-label="Play video" onClick={function (event) { event.stopPropagation(); props.onPlayVideo && props.onPlayVideo(memory); }}><Film size={12} /></button> : null}
       </div>
     </article>
   );
@@ -1510,7 +1508,6 @@ function Dock(props) {
             <button
               key={page.id}
               type="button"
-              title={page.label}
               aria-label={page.label}
               data-tooltip={page.label}
               className={cls("dockButton", active && "active")}
@@ -1640,7 +1637,7 @@ function HealthPanel(props) {
 
 function DuplicatePanel(props) {
   if (!props.open) return null;
-  const groups = duplicateGroups(props.memories).filter(function (group) {
+  const groups = duplicateGroups(safeArray(props.memories)).filter(function (group) {
     return group.some(function (memory) { return !memory.trashed; });
   });
 
@@ -1776,7 +1773,7 @@ function StatusPanel(props) {
   const stats = uploadStats(props.memories);
   if (!props.open) return null;
 
-  const issues = props.memories.filter(function (memory) {
+  const issues = safeArray(props.memories).filter(function (memory) {
     return memory.uploadStatus === "failed" || memory.uploadStatus === "local" || memory.uploadStatus === "needs-file";
   });
 
@@ -1870,8 +1867,6 @@ function ControlBar(props) {
             type="button"
             className={props.albumSearchOpen ? "albumSearchToggle active" : "albumSearchToggle"}
             aria-label="Search"
-            title="Search"
-            data-tooltip="Search"
             onClick={function () { props.setAlbumSearchOpen(function (value) { return !value; }); }}
           >
             <Glasses size={15} strokeWidth={2.15} />
@@ -1880,8 +1875,6 @@ function ControlBar(props) {
             type="button"
             className={props.albumCreateOpen ? "albumQuickCreate active" : "albumQuickCreate"}
             aria-label="New album"
-            title="New album"
-            data-tooltip="New album"
             onClick={function () { props.setAlbumCreateOpen(function (value) { return !value; }); }}
           >
             +
@@ -1924,7 +1917,7 @@ function GroupCard(props) {
         {video ? <span className="pzVideoBadge"><Film size={11} />{pzVideoLabel(cover)}</span> : null}
       </div>
       <div className="groupMeta"><strong>{cleanSystemLabel(group.title || group.id)}</strong><span>{safeArray(group.items).length}</span></div>
-      {!group.virtual && !isSystemAlbumGroup(group) ? <button type="button" className="pzGroupEditButton" aria-label="Edit album" title="Edit" data-tooltip="Edit" onClick={function (event) { event.stopPropagation(); props.onEditAlbum && props.onEditAlbum(group); }}><FolderPen size={12} /></button> : null}
+      {!group.virtual && !isSystemAlbumGroup(group) ? <button type="button" className="pzGroupEditButton" aria-label="Edit album" onClick={function (event) { event.stopPropagation(); props.onEditAlbum && props.onEditAlbum(group); }}><FolderPen size={12} /></button> : null}
       {group.hideFromAll ? <span className="pzHiddenBadge">HIDE</span> : null}
     </article>
   );
@@ -1971,7 +1964,7 @@ function MirrorFilter(props) {
       </div>
 
       {!items.length ? (
-        <EmptyState title="NO FILES">Files marked for mirror will appear here.</EmptyState>
+        <EmptyState />
       ) : (
         <div className="photoGrid mirrorGrid">
           {items.map(function (memory) {
@@ -2019,14 +2012,14 @@ function AlbumsFilter(props) {
     seenVirtualLabels[label] = true;
     return true;
   });
-  const realGroups = props.archiveFilter === "albums" ? safeArray(archiveGroups).filter(function (group) { return !isSystemAlbumGroup(group); }) : archiveGroups;
+  const realGroups = props.archiveFilter === "albums" ? safeArray(archiveGroups).filter(function (group) { return !isSystemAlbumGroup(group); }) : safeArray(archiveGroups);
   const isAlbums = props.archiveFilter === "albums";
   const currentAlbum = props.currentAlbumId ? albumById(props.albums, props.currentAlbumId) : null;
   const currentPhotos = currentAlbum ? directAlbumMemories(props.albums, props.memories, props.currentAlbumId) : [];
 
   return (
     <div className="pageScroll">
-      <VisibleReporter items={props.currentAlbumId ? currentPhotos : props.memories} reportVisibleIds={props.reportVisibleIds} />
+      <VisibleReporter items={props.currentAlbumId ? currentPhotos : safeArray(props.memories)} reportVisibleIds={props.reportVisibleIds} />
       {isAlbums && (props.albumSearchOpen || props.albumCreateOpen) ? (
         <div className="albumControlsRow">
           {props.albumSearchOpen ? (
@@ -2046,7 +2039,7 @@ function AlbumsFilter(props) {
                 onChange={function (event) { props.setDraft(event.target.value); }}
                 placeholder={props.currentAlbumId ? "Nested album name" : "Album name"}
               />
-              <button type="button" title="Create album" onClick={props.createAlbum}>Create</button>
+              <button type="button" onClick={props.createAlbum}>Create</button>
               <button type="button" onClick={function () { props.setAlbumCreateOpen(false); props.setDraft(""); }}>Cancel</button>
             </div>
           ) : null}
@@ -2110,7 +2103,7 @@ function AlbumsFilter(props) {
       {isAlbums && currentAlbum ? (
         <>
           <div className="archiveLabel">Photos</div>
-          {!currentPhotos.length && !realGroups.length ? <EmptyState title="EMPTY ALBUM">Add photos or create a nested album.</EmptyState> : null}
+          {!currentPhotos.length && !realGroups.length ? <EmptyState /> : null}
           {currentPhotos.length ? (
             <div className="photoGrid">
               {safeArray(currentPhotos).map(function (memory) {
@@ -2199,8 +2192,6 @@ function SearchFilter(props) {
             type="button"
             className={searchFilterOpen ? "searchFilterTrigger active" : "searchFilterTrigger"}
             aria-label="Browse filter"
-            title="Browse filter"
-            data-tooltip="Browse filter"
             onClick={function () { setSearchFilterOpen(function (value) { return !value; }); }}
           >
             {activeFilterLabel}
@@ -2226,7 +2217,7 @@ function SearchFilter(props) {
       </div>
 
       {!items.length ? (
-        <EmptyState title={query ? "NO MATCHES" : "NO FILES"}>{query ? "Nothing matched that search." : "Upload photos or videos to browse them here."}</EmptyState>
+        <EmptyState />
       ) : (
         <div className="photoGrid searchGrid">
           {items.map(function (memory) {
@@ -2256,36 +2247,43 @@ function SearchFilter(props) {
 }
 
 function GroupFilter(props) {
+  const group = props.group || {};
+  const items = sortMemories(safeArray(group.items), props.sortMode);
+  const title = up(cleanSystemLabel(group.title || group.id || ""));
   return (
-    <Glass className="groupFilter">
-      <VisibleReporter items={props.group.items} reportVisibleIds={props.reportVisibleIds} />
-      <div className="groupTop">
+    <Glass className="shell groupShell">
+      <VisibleReporter items={items} reportVisibleIds={props.reportVisibleIds} />
+      <div className="groupTop compactGroupTop">
         <button type="button" onClick={props.back}><ChevronLeft size={16} /> BACK</button>
-        <Pill>{props.group.items.length}</Pill>
+        {items.length ? <strong>{title}</strong> : null}
+        {items.length ? <Pill>{items.length}</Pill> : null}
       </div>
-      <h1>{up(props.group.title)}</h1>
-      <div className="photoGrid">
-        {sortMemories(props.group.items, props.sortMode).map(function (memory) {
-          return (
-            <PhotoCard
-              key={memory.id}
-              memory={memory}
-              showText
-              selectionMode={props.selectionMode}
-              selected={props.selectedIds && props.selectedIds[memory.id]}
-              toggleSelected={props.toggleSelected}
-              setSelectionMode={props.setSelectionMode}
-              isStarred={props.starredIds && props.starredIds[memory.id]}
-              onDelete={props.deleteMemory}
-              onClick={function () { props.openMemory(memory); }}
-              onEdit={props.onEditMemory}
-              onPlayVideo={props.onPlayVideo}
-            
-                onLongSelect={function (memory) { (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); if (fn) fn(memory.id); }}
-                onDragSelect={function (memory) { const lookup = (typeof selectedIds !== "undefined" ? selectedIds : (typeof props !== "undefined" ? props.selectedIds : {})); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); if (fn && (!lookup || !lookup[memory.id])) fn(memory.id); }}/>
-          );
-        })}
-      </div>
+      {items.length ? (
+        <div className="photoGrid">
+          {items.map(function (memory) {
+            return (
+              <PhotoCard
+                key={memory.id}
+                memory={memory}
+                showText
+                selectionMode={props.selectionMode}
+                selected={props.selectedIds && props.selectedIds[memory.id]}
+                toggleSelected={props.toggleSelected}
+                setSelectionMode={props.setSelectionMode}
+                isStarred={props.starredIds && props.starredIds[memory.id]}
+                onDelete={props.deleteMemory}
+                onClick={function () { props.openMemory(memory); }}
+                onEdit={props.onEditMemory}
+                onPlayVideo={props.onPlayVideo}
+                onLongSelect={function (memory) { props.setSelectionMode && props.setSelectionMode(true); props.toggleSelected && props.toggleSelected(memory.id); }}
+                onDragSelect={function (memory) { props.setSelectionMode && props.setSelectionMode(true); if (props.toggleSelected && (!props.selectedIds || !props.selectedIds[memory.id])) props.toggleSelected(memory.id); }}
+              />
+            );
+          })}
+        </div>
+      ) : (
+        <EmptyState />
+      )}
     </Glass>
   );
 }
@@ -2695,7 +2693,7 @@ function PasswordGate(props) {
             {error === "CONFIG" ? "ACCESS CODE NOT SET" : "WRONG CODE"}
           </div>
         ) : null}
-        <button type="submit" disabled={busy} data-tooltip="Unlock" title="Unlock" aria-label="Unlock">
+        <button type="submit" disabled={busy} aria-label="Unlock">
           <UnlockKeyhole size={14} strokeWidth={2.1} />
         </button>
       </form>
@@ -3017,7 +3015,7 @@ function PzVideoPlaybackModal(props) {
 
 function withTooltip(label) {
   const value = String(label || "").trim();
-  return value ? { title: value, "data-tooltip": value, "aria-label": value } : {};
+  return value ? { "aria-label": value } : {};
 }
 
 
@@ -3278,7 +3276,7 @@ const [albumSort, setAlbumSort] = useState("recent");
   }
 
   function toggleAlbumExcludeFromAll(albumId) {
-    const next = albums.map(function (album) {
+    const next = safeArray(albums).map(function (album) {
       if (String(album.id) !== String(albumId)) return album;
       return { ...album, excludeFromAll: !Boolean(album.excludeFromAll), updatedAt: new Date().toISOString() };
     });
@@ -3308,7 +3306,7 @@ const [albumSort, setAlbumSort] = useState("recent");
 
   function toggleAlbumLock(id) {
     if (id === UNASSIGNED_ALBUM_ID || id === "star") return;
-    const next = albums.map(function (album) {
+    const next = safeArray(albums).map(function (album) {
       return album.id === id ? { ...album, locked: !Boolean(album.locked), updatedAt: new Date().toISOString() } : album;
     });
     setAlbums(next);
@@ -3316,7 +3314,7 @@ const [albumSort, setAlbumSort] = useState("recent");
   }
 
   function toggleAlbumPin(id) {
-    const next = albums.map(function (album) {
+    const next = safeArray(albums).map(function (album) {
       return album.id === id ? { ...album, pinned: !Boolean(album.pinned), updatedAt: new Date().toISOString() } : album;
     });
     setAlbums(next);
@@ -3882,7 +3880,7 @@ const [albumSort, setAlbumSort] = useState("recent");
     const rating = normalizeRating(patch.rating);
     const label = normalizeLabel(patch.label);
 
-    const nextMemories = memories.map(function (item) {
+    const nextMemories = safeArray(memories).map(function (item) {
       if (item.id !== memory.id) return item;
       return {
         ...item,
@@ -3930,7 +3928,7 @@ const [albumSort, setAlbumSort] = useState("recent");
     if (!memory || !albumId) return;
     let nextAlbums = removeMemoryEverywhere(albums, memory.id);
     nextAlbums = addMemoryToAlbum(nextAlbums, albumId, memory.id);
-    const nextMemories = memories.map(function (item) {
+    const nextMemories = safeArray(memories).map(function (item) {
       return item.id === memory.id ? { ...item, inMirror: false } : item;
     });
     const nextActive = nextMemories.find(function (item) {
@@ -3954,7 +3952,7 @@ const [albumSort, setAlbumSort] = useState("recent");
 
   function toggleMeFlag(memory) {
     if (!memory) return;
-    const nextMemories = memories.map(function (item) {
+    const nextMemories = safeArray(memories).map(function (item) {
       return item.id === memory.id ? { ...item, isMe: !Boolean(item.isMe) } : item;
     });
     const nextActive = nextMemories.find(function (item) {
@@ -3967,7 +3965,7 @@ const [albumSort, setAlbumSort] = useState("recent");
 
   function toggleRefilter(memory) {
     if (!memory) return;
-    const nextMemories = memories.map(function (item) {
+    const nextMemories = safeArray(memories).map(function (item) {
       return item.id === memory.id ? { ...item, review: !Boolean(item.review) } : item;
     });
     const nextActive = nextMemories.find(function (item) { return item.id === memory.id; });
@@ -3978,7 +3976,7 @@ const [albumSort, setAlbumSort] = useState("recent");
 
   function togglePrivate(memory) {
     if (!memory) return;
-    const nextMemories = memories.map(function (item) {
+    const nextMemories = safeArray(memories).map(function (item) {
       return item.id === memory.id ? { ...item, private: !Boolean(item.private) } : item;
     });
     const nextActive = nextMemories.find(function (item) { return item.id === memory.id; });
@@ -3991,7 +3989,7 @@ const [albumSort, setAlbumSort] = useState("recent");
     rememberUndo("ARCHIVE CHANGE");
     
     if (!memory) return;
-    const nextMemories = memories.map(function (item) {
+    const nextMemories = safeArray(memories).map(function (item) {
       return item.id === memory.id ? { ...item, archived: !Boolean(item.archived) } : item;
     });
     const nextActive = nextMemories.find(function (item) {
@@ -4006,7 +4004,7 @@ const [albumSort, setAlbumSort] = useState("recent");
     rememberUndo("MIRROR CHANGE");
     
     if (!memory) return;
-    const nextMemories = memories.map(function (item) {
+    const nextMemories = safeArray(memories).map(function (item) {
       return item.id === memory.id ? { ...item, inMirror: !Boolean(item.inMirror) } : item;
     });
     const nextMemory = nextMemories.find(function (item) {
@@ -4029,7 +4027,7 @@ const [albumSort, setAlbumSort] = useState("recent");
     rememberUndo("RESTORE");
     
     if (!memory) return;
-    const nextMemories = memories.map(function (item) {
+    const nextMemories = safeArray(memories).map(function (item) {
       return item.id === memory.id ? { ...item, trashed: false, deletedAt: "" } : item;
     });
     const nextAlbums = ensureAlbumCoverage(nextMemories, albums);
@@ -4062,7 +4060,7 @@ const [albumSort, setAlbumSort] = useState("recent");
     
     if (!memory) return;
     if (!memory.trashed) {
-      const nextMemories = memories.map(function (item) {
+      const nextMemories = safeArray(memories).map(function (item) {
         return item.id === memory.id ? { ...item, trashed: true, deletedAt: new Date().toISOString(), inMirror: false } : item;
       });
       const nextActive = nextMemories.find(function (item) { return item.id === memory.id; });
@@ -4392,8 +4390,8 @@ async function handleUpload(eventOrFiles) {
                   <span className="utilityFileCount" aria-label={safeArray(memories).length + " files"}>{safeArray(memories).length} FILES</span>
                   <div className="floatingUtilityRail" aria-label="Quick actions">
                     <AmbientMusicControl />
-                    <button type="button" aria-label="Filter" title="Filter" data-tooltip="Filter" className={filterControlsOpen ? "utilityRailButton iconUtilityButton active" : "utilityRailButton iconUtilityButton"} onClick={function () { setSettingsOpen(false); setFilterControlsOpen(function (value) { return !value; }); }}><SlidersHorizontal size={14} strokeWidth={2.1} /></button>
-                    <button type="button" aria-label="Settings" title="Settings" data-tooltip="Settings" className={settingsOpen ? "utilityRailButton cogUtilityButton iconUtilityButton active" : "utilityRailButton cogUtilityButton iconUtilityButton"} onClick={function () { setFilterControlsOpen(false); setSettingsOpen(function (value) { return !value; }); }}>⚙</button>
+                    <button type="button" aria-label="Filter" className={filterControlsOpen ? "utilityRailButton iconUtilityButton active" : "utilityRailButton iconUtilityButton"} onClick={function () { setSettingsOpen(false); setFilterControlsOpen(function (value) { return !value; }); }}><SlidersHorizontal size={14} strokeWidth={2.1} /></button>
+                    <button type="button" aria-label="Settings" className={settingsOpen ? "utilityRailButton cogUtilityButton iconUtilityButton active" : "utilityRailButton cogUtilityButton iconUtilityButton"} onClick={function () { setFilterControlsOpen(false); setSettingsOpen(function (value) { return !value; }); }}>⚙</button>
                   </div>
                 </div>
                 <FilterPanel open={filterControlsOpen} close={function () { setFilterControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveFilter === "albums"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize} 

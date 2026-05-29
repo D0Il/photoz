@@ -47,15 +47,17 @@ check("no old count render paths", !/libraryFileCount|albumFileCountText|albumFi
 check("dock icon exports", dockIcons.includes("export function PhotozAlbumDockIcon") && dockIcons.includes("export function PhotozMirrorDockIcon") && dockIcons.includes("export function PhotozSearchDockIcon"));
 check("dock pages carry labels and components", app.includes('{ id: "albums", label: "PHOTO ALBUM", Icon: PhotozAlbumDockIcon }') && app.includes('{ id: "mirror", label: "MIRROR", Icon: PhotozMirrorDockIcon }') && app.includes('{ id: "search", label: "SEARCH", Icon: PhotozSearchDockIcon }'));
 check("dock renderer uses Icon component", /const Icon = page\.Icon;[\s\S]*<Icon size=\{28\} \/>/.test(dockFunction));
-check("dock renderer uses tooltip labels", dockFunction.includes("title={page.label}") && dockFunction.includes("aria-label={page.label}") && dockFunction.includes("data-tooltip={page.label}"));
+check("dock renderer uses dock-only tooltip labels without native title", !dockFunction.includes("title={page.label}") && dockFunction.includes("aria-label={page.label}") && dockFunction.includes("data-tooltip={page.label}"));
 check("dock uses bottomDock class on actual Glass", dockFunction.includes('className="dock bottomDock"'));
 check("dock icons are svg elements, not span-wrapped nodes hidden by old dock span rules", /<svg className="photozDockIcon photozDockBook"/.test(dockIcons) && /<svg className="photozDockIcon photozDockEye"/.test(dockIcons) && /<svg className="photozDockIcon photozDockSearch"/.test(dockIcons));
-check("dock animated icon CSS targets real dock", css.includes(".dock .photozDockIcon") && css.includes("svg.photozDockIcon") && css.includes("photozPrestigeBookFlip") && css.includes("photozPrestigeEyeBlink") && css.includes("photozPrestigeSearchSpark"));
+check("dock animated icon CSS targets real dock", css.includes(".dock .photozDockIcon") && css.includes("svg.photozDockIcon") && css.includes("photozPrestigeBookFlip") && css.includes("photozPrestigeSearchSpark"));
+check("eye blink is one cohesive group, not split eyelids", dockIcons.includes("eyeBlinkGroup") && dockIcons.includes("eyeOutline") && !dockIcons.includes("eyeTop") && !dockIcons.includes("eyeBottom") && css.includes("photozUnifiedEyeBlink"));
 check("music glyph is an actual music note", app.includes("musicNoteStem") && app.includes("musicNoteFlag") && app.includes("musicNoteHead") && !app.includes("musicDisc") && css.includes(".musicUtilityIcon .musicNoteStem"));
 check("utility spacing is explicitly aligned", css.includes("count is plain text to the LEFT") && css.includes(".floatingUtilityCluster > .utilityFileCount") && css.includes("order: 0") && css.includes(".floatingUtilityCluster > .floatingUtilityRail") && css.includes("order: 1"));
 
 check("settings panel has no redundant header", !settingsPanel.includes("settingsMenuHeader") && !settingsPanel.includes("<strong>SETTINGS</strong>") && !settingsPanel.includes("<Settings"));
 check("filter panel has no redundant header", !filterMenu.includes("filterMenuHeader") && !filterMenu.includes("<strong>FILTER</strong>") && !filterMenu.includes("<SlidersHorizontal"));
+check("filter menu does not emit native titles", !filterMenu.includes("title: value"));
 check("tooltip z-index high", /\[data-tooltip\]::after[\s\S]*z-index:\s*9999/.test(css));
 check("tooltip containers overflow visible", css.includes(".dockWrap,") && css.includes(".dock,") && css.includes(".bottomDock,") && css.includes(".floatingUtilityCluster,") && css.includes("overflow: visible"));
 check("no broad important overrides", !css.includes("!important"));
@@ -63,9 +65,9 @@ check("no broad important overrides", !css.includes("!important"));
 
 check("app exposes active page class for page-specific layout", app.includes('className={"app photozProUI page-" + activePage}'));
 check("empty states deliberately show X marker", app.includes('className="emptyStateX"') && app.includes('>X</span>') && css.includes('.emptyStateX'));
-check("empty states use intentional no-file copy", app.includes('NO FILES') && app.includes('Upload photos or videos to browse them here.'));
+check("empty states are X only with no helper copy", app.includes('className="emptyStateX"') && !app.includes('Upload photos or videos to browse them here.') && !app.includes('Files marked for mirror will appear here.') && !app.includes('Add photos or create a nested album.'));
 check("final utility cluster is tight to corner", css.includes('top: 16px;') && css.includes('right: 18px;'));
-check("dock tooltips are lifted above icons", css.includes('.photozProUI .dockButton[data-tooltip]::after') && css.includes('top: -48px;'));
+check("dock tooltips are lifted above icons", css.includes('.photozProUI .dockButton[data-tooltip]::after') && css.includes('bottom: calc(100% + 13px);'));
 check("search and mirror control bars hidden by active page class", css.includes('.photozProUI.page-search .controlBar') && css.includes('.photozProUI.page-mirror .controlBar'));
 check("empty states are compact with deliberate X not giant debug panels", css.includes('.photozProUI .emptyState,') && css.includes('.emptyStateX') && css.includes('border-radius: 22px;'));
 
@@ -77,6 +79,11 @@ check("worker supports both bucket binding names", worker.includes('env.photoz')
 check("worker serves legacy media URLs", worker.includes('url.pathname.startsWith("/media/")'));
 check("worker file reads do not hard-code PHOTOZ_BUCKET only", !worker.includes('env.PHOTOZ_BUCKET.get(key);'));
 check("worker uploads do not hard-code PHOTOZ_BUCKET only", !worker.includes('env.PHOTOZ_BUCKET.put(key'));
+
+check("non-dock tooltips are disabled", css.includes("Only the bottom dock gets visual tooltips") && css.includes("[data-tooltip]:not(.dockButton)::after"));
+check("native title helper functions removed", !app.includes("title: tooltipForText(label)") && !app.includes("title: value"));
+check("group pages use framed shell and X-only empty state", app.includes('className="shell groupShell"') && app.includes('<EmptyState />') && css.includes('.photozProUI .groupShell'));
+check("runtime filter paths use safe arrays", !app.includes("props.memories.filter") && !app.includes(" : archiveGroups;") && app.includes("duplicateGroups(safeArray(props.memories))") && app.includes("safeArray(props.memories).filter(function (memory)"));
 
 if (failures.length) {
   console.error("PHOTOZ validation failed:");

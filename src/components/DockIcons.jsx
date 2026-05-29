@@ -25,14 +25,13 @@ export function PhotozMirrorDockIcon(props) {
       <path className="lash" d="M16 9.1V6.2" />
       <path className="lash" d="M20.7 9.55l.65-2.6" />
       <path className="lash" d="M24.15 11.1l1.6-2.35" />
-      <g className="eyeAperture">
-        <path className="eyeTop" d="M4.85 16c2.78-4.82 6.48-7.04 11.15-7.04S24.37 11.18 27.15 16" />
-        <path className="eyeBottom" d="M4.85 16c2.78 4.82 6.48 7.04 11.15 7.04S24.37 20.82 27.15 16" />
-      </g>
-      <g className="eyePupil">
+      <g className="eyeBlinkGroup">
+        <path className="eyeOutline" d="M4.85 16c2.78-4.82 6.48-7.04 11.15-7.04S24.37 11.18 27.15 16c-2.78 4.82-6.48 7.04-11.15 7.04S7.63 20.82 4.85 16Z" />
+        <g className="eyePupil">
         <circle className="irisRing" cx="16" cy="16" r="4.2" />
         <circle className="iris" cx="16" cy="16" r="2.55" />
         <circle className="pupilGlint" cx="17.15" cy="14.65" r=".68" />
+        </g>
       </g>
     </svg>
   );

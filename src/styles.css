@@ -13111,3 +13111,166 @@ svg.photozDockIcon {
 .floatingUtilityCluster > .utilityFileCount { order: 0; }
 .floatingUtilityCluster > .floatingUtilityRail { order: 1; }
 .photozProUI [data-tooltip]::after { z-index: 9999; }
+
+/* FINAL CLEANUP PASS: no native/loose tooltips, compact search surfaces, framed group pages. */
+.photozProUI button[title],
+.photozProUI [data-tooltip]:not(.dockButton) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Only the bottom dock gets visual tooltips. Everything else stays quiet. */
+.photozProUI [data-tooltip]:not(.dockButton)::before,
+.photozProUI [data-tooltip]:not(.dockButton)::after,
+.photozProUI .systemRail [data-tooltip]::before,
+.photozProUI .systemRail [data-tooltip]::after,
+.photozProUI .floatingUtilityRail [data-tooltip]::before,
+.photozProUI .floatingUtilityRail [data-tooltip]::after,
+.photozProUI .searchFilterDropdown [data-tooltip]::before,
+.photozProUI .searchFilterDropdown [data-tooltip]::after {
+  display: none;
+  content: none;
+}
+
+.photozProUI .dockButton[data-tooltip]::after {
+  display: block;
+  bottom: calc(100% + 13px);
+  top: auto;
+  height: auto;
+  min-height: 20px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  font-size: 7.5px;
+  letter-spacing: .10em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.photozProUI .dockButton[data-tooltip]::before {
+  display: block;
+  bottom: calc(100% + 7px);
+  top: auto;
+}
+
+/* Search page: keep filter dropdown attached and quiet, not like a tooltip explosion. */
+.searchControlRow {
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.searchFilterMenu {
+  top: calc(100% + 5px);
+  right: 0;
+  min-width: 108px;
+  padding: 5px;
+  gap: 4px;
+}
+
+.searchFilterMenu button {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+/* System chips are counters only; no hover label blocks. */
+.systemRailItem {
+  position: relative;
+}
+
+.systemRailItem::before,
+.systemRailItem::after {
+  display: none;
+  content: none;
+}
+
+/* Group pages should stay inside the same PHOTOZ glass frame, and empty groups should only show X. */
+.photozProUI .groupShell {
+  position: relative;
+  min-height: calc(100vh - 36px);
+  margin: 18px;
+  padding: 24px;
+  border-radius: 34px;
+  overflow: hidden;
+}
+
+.photozProUI .groupShell .compactGroupTop {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  height: 34px;
+}
+
+.photozProUI .groupShell .compactGroupTop button,
+.photozProUI .groupShell .compactGroupTop .pill {
+  height: 30px;
+  min-height: 30px;
+  border-radius: 999px;
+}
+
+.photozProUI .groupShell .compactGroupTop strong {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .14em;
+  color: rgba(0,0,0,.48);
+}
+
+.photozProUI .groupShell .emptyStateXOnly {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  height: auto;
+  margin: 0;
+  pointer-events: none;
+}
+
+.photozProUI .groupShell .emptyStateXOnly .emptyStateX {
+  pointer-events: auto;
+}
+
+/* Album top cluster: keep it polished but not cramped into one ugly strip. */
+.photozProUI.page-albums .controlBar {
+  margin-bottom: 6px;
+}
+
+.photozProUI .albumControlsRow {
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.photozProUI .albumSearchOnly input::placeholder {
+  color: rgba(0,0,0,.34);
+}
+
+/* PHOTOZ runtime crash + cohesive eye repair */
+.photozDockIcon .eyeTop,
+.photozDockIcon .eyeBottom,
+.photozDockEye .eyeTop,
+.photozDockEye .eyeBottom {
+  animation: none;
+  transform: none;
+}
+
+.photozDockIcon .eyeOutline {
+  fill: rgba(0,0,0,.035);
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.photozDockIcon .eyeBlinkGroup {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: photozUnifiedEyeBlink 4.8s ease-in-out infinite;
+}
+
+.photozDockIcon .eyeBlinkGroup .eyePupil {
+  animation: none;
+  transform: none;
+  opacity: 1;
+}
+
+@keyframes photozUnifiedEyeBlink {
+  0%, 76%, 100% { transform: scaleY(1); }
+  82% { transform: scaleY(.18); }
+  88% { transform: scaleY(1); }
+}

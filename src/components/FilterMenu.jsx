@@ -2,7 +2,7 @@ import React from "react";
 
 function withTooltip(label) {
   const value = String(label || "").trim();
-  return value ? { title: value, "data-tooltip": value, "aria-label": value } : {};
+  return value ? { "aria-label": value } : {};
 }
 
 function PanelSection(props) {
