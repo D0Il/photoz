@@ -221,28 +221,6 @@ function groupBy(mode, items) {
   }));
 }
 
-function recentAlbumGroups(groups) {
-  return groups
-    .filter(function (group) { return !group.virtual && group.items && group.items.length; })
-    .slice()
-    .sort(function (a, b) { return (b.sort || 0) - (a.sort || 0); })
-    .slice(0, 6);
-}
-
-function pinnedAlbumGroups(groups) {
-  return groups.filter(function (group) { return !group.virtual && group.pinned; });
-}
-
-function unpinnedAlbumGroups(groups) {
-  const pinned = {};
-  pinnedAlbumGroups(groups).forEach(function (group) { pinned[group.id] = true; });
-  const recent = {};
-  recentAlbumGroups(groups).forEach(function (group) { recent[group.id] = true; });
-  return groups.filter(function (group) {
-    return !group.virtual && !pinned[group.id] && !recent[group.id];
-  });
-}
-
 function sortAlbumGroups(groups, mode) {
   const sortMode = mode || "recent";
   return groups.slice().sort(function (a, b) {
@@ -483,77 +461,6 @@ function isTakeoutMemory(memory) {
   return /takeout|google photos/i.test(path);
 }
 
-function takeoutBaseName(path) {
-  return String(path || "")
-    .replace(/\\/g, "/")
-    .split("/")
-    .pop()
-    .replace(/\.json$/i, "")
-    .replace(/\.(jpg|jpeg|png|webp|gif|heic|heif|mp4|mov|m4v|avi|webm)$/i, "");
-}
-
-function takeoutFolderName(path) {
-  const parts = String(path || "").replace(/\\/g, "/").split("/").filter(Boolean);
-  if (parts.length < 2) return "";
-  const file = parts[parts.length - 1];
-  if (/\.json$/i.test(file)) return parts[parts.length - 2] || "";
-  return parts[parts.length - 2] || "";
-}
-
-function isTakeoutJsonFile(file) {
-  return file && /\.json$/i.test(file.name || "") && /takeout|google photos/i.test(file.webkitRelativePath || file.name || "");
-}
-
-function isMediaFile(file) {
-  return file && file.type && (file.type.indexOf("image/") === 0 || file.type.indexOf("video/") === 0);
-}
-
-function takeoutPairKey(file) {
-  const path = file.webkitRelativePath || file.name || "";
-  const folder = takeoutFolderName(path).toLowerCase();
-  return folder + "::" + takeoutBaseName(path).toLowerCase();
-}
-
-function readJsonFile(file) {
-  return new Promise(function (resolve) {
-    const reader = new FileReader();
-    reader.onload = function () {
-      try {
-        resolve(JSON.parse(String(reader.result || "{}")));
-      } catch (error) {
-        resolve(null);
-      }
-    };
-    reader.onerror = function () { resolve(null); };
-    reader.readAsText(file);
-  });
-}
-
-function dateFromTakeoutMeta(meta) {
-  if (!meta) return "";
-  const timestamp = meta.photoTakenTime && meta.photoTakenTime.timestamp ? Number(meta.photoTakenTime.timestamp) : 0;
-  if (timestamp) return new Date(timestamp * 1000).toISOString().slice(0, 10);
-  if (meta.creationTime && meta.creationTime.timestamp) return new Date(Number(meta.creationTime.timestamp) * 1000).toISOString().slice(0, 10);
-  return "";
-}
-
-function titleFromTakeoutMeta(meta) {
-  if (!meta) return "";
-  return String(meta.title || meta.description || "").trim();
-}
-
-async function buildTakeoutSidecarMap(files) {
-  const sidecars = Array.from(files || []).filter(isTakeoutJsonFile);
-  const entries = await Promise.all(sidecars.map(async function (file) {
-    return { key: takeoutPairKey(file), path: file.webkitRelativePath || file.name, meta: await readJsonFile(file) };
-  }));
-  const map = {};
-  entries.forEach(function (entry) {
-    if (entry.meta) map[entry.key] = entry;
-  });
-  return { map: map, sidecarCount: sidecars.length, parsedCount: Object.keys(map).length };
-}
-
 function uploadPlanStats(files, memories) {
   const signatures = existingSignatureMap(memories);
   return Array.from(files || []).reduce(function (stats, file) {
@@ -635,26 +542,28 @@ function searchableText(memory, albums) {
     memory.storageKey,
     memory.uploadStatus,
     memory.isMe ? "me marked" : "",
-    memory.inMirror ? "mirror" : "",
-    memory.archived ? "archived" : "",
-    memory.trashed ? "trash deleted" : "",
-    memory.caption || "",
-    memory.location || "",
-    memory.event || "",
     memory.rating ? "rated rating " + memory.rating : "",
     memory.label ? "label labeled " + memory.label : "",
     memory.review ? "review" : "",
     memory.private ? "private" : "",
-    Array.isArray(memory.tags) ? memory.tags.join(" ") : "",
     metadata.name,
     metadata.type,
     metadata.size,
     metadata.lastModified,
     metadata.lastModifiedISO,
     metadata.webkitRelativePath,
+    
+    memory.isMe ? "me" : "",
+    memory.inMirror ? "mirror" : "",
+    memory.archived ? "archived" : "",
+    memory.trashed ? "trash deleted" : "",
+    memory.caption || "",
+    memory.location || "",
+    memory.event || "",
     isTakeoutMemory(memory) ? "takeout google photos" : "",
     memory.takeoutMeta && memory.takeoutMeta.folder ? memory.takeoutMeta.folder : "",
     memory.takeoutMeta && memory.takeoutMeta.sidecarPath ? memory.takeoutMeta.sidecarPath : "",
+    Array.isArray(memory.tags) ? memory.tags.join(" ") : "",
     metadata.signature,
     memoryAlbumTitles(memory, albums).join(" "),
   ].join(" ").toLowerCase();
@@ -799,7 +708,6 @@ function normalizeMemoryUrl(memory) {
     storageBase: MEDIA_BASE,
     storageUrl: originalUrlForMemory(memory),
     previewUrl: previewUrlForMemory(memory),
-      memory.isMe ? "me" : "",
     tags: Array.isArray(memory.tags) ? memory.tags : [],
     caption: memory.caption || "",
     location: memory.location || "",
@@ -1388,14 +1296,6 @@ function ImportPanel(props) {
           <span>CONCURRENCY</span>
           <input value={props.uploadConcurrency} onChange={function (event) { props.setUploadConcurrency(event.target.value); }} />
         </label>
-        <label>
-          <span>DESTINATION</span>
-          <select value={props.uploadAlbum} onChange={function (event) { props.setUploadAlbum(event.target.value); }}>
-            {assignableAlbums(props.albums).map(function (album) {
-              return <option key={album.id} value={album.id}>{album.title}</option>;
-            })}
-          </select>
-        </label>
         <label className="toggleLine">
           <input type="checkbox" checked={props.skipDuplicates} onChange={function (event) { props.setSkipDuplicates(event.target.checked); }} />
           <span>SKIP DUPLICATES</span>
@@ -1407,8 +1307,6 @@ function ImportPanel(props) {
           <span>ADDED {props.importSummary.added}</span>
           <span>SKIPPED {props.importSummary.skipped}</span>
           <span>LARGE {props.importSummary.large}</span>
-          <span>SIDECARS {props.importSummary.sidecars || 0}</span>
-          <span>UNMATCHED {props.importSummary.unmatchedSidecars || 0}</span>
           <span>SIZE {formatBytes(props.importSummary.bytes)}</span>
         </div>
       ) : <div className="statusClean">SELECT FILES OR A FOLDER TO START AN IMPORT.</div>}
@@ -1686,12 +1584,12 @@ function AlbumsView(props) {
           <input
             value={props.albumQuery}
             onChange={function (event) { props.setAlbumQuery(event.target.value); }}
-            placeholder="FIND ALBUM"
+            placeholder="FILTER FOLDERS"
           />
           <input
             value={props.draft}
             onChange={function (event) { props.setDraft(event.target.value); }}
-            placeholder="CREATE ALBUM"
+            placeholder="NEW ALBUM"
           />
           <button type="button" onClick={props.createAlbum}>CREATE</button>
         </div>
@@ -1892,7 +1790,6 @@ function Modal(props) {
             <span>{formatBytes(fileSizeBytes(props.memory))}</span>
             <span>{props.memory.uploadStatus ? up(props.memory.uploadStatus) : "LOCAL"}</span>
             <span>{props.memory.metadata && props.memory.metadata.webkitRelativePath ? props.memory.metadata.webkitRelativePath : props.memory.storageKey || "NO STORAGE KEY"}</span>
-            {props.memory.takeoutMeta && props.memory.takeoutMeta.sidecarPath ? <span>TAKEOUT JSON {props.memory.takeoutMeta.sidecarPath}</span> : null}
           </div>
 
           <div className="modalSectionTitle">DETAILS</div>
@@ -1966,20 +1863,6 @@ function Modal(props) {
     </AnimatePresence>
   );
 }
-
-function verifyTakeoutSidecarModel() {
-  console.assert(takeoutBaseName("Takeout/Google Photos/Album/IMG_1.JPG.json") === "IMG_1", "Takeout base name");
-  console.assert(takeoutPairKey({ name: "IMG_1.JPG.json", webkitRelativePath: "Takeout/Google Photos/Album/IMG_1.JPG.json" }).indexOf("album::img_1") !== -1, "Takeout pair key");
-  console.assert(typeof buildTakeoutSidecarMap === "function", "Takeout sidecar map helper");
-}
-verifyTakeoutSidecarModel();
-
-function verifyAlbumsHomePolishModel() {
-  console.assert(typeof recentAlbumGroups === "function", "Recent album grouping");
-  console.assert(typeof pinnedAlbumGroups === "function", "Pinned album grouping");
-  console.assert(typeof unpinnedAlbumGroups === "function", "Unpinned album grouping");
-}
-verifyAlbumsHomePolishModel();
 
 function verifySchedulerSafetyModel() {
   console.assert(clampNumber("9", 2, 1, 6) === 6, "Clamp concurrency");
@@ -2173,7 +2056,6 @@ export default function App() {
   const [advancedSearchOpen, setAdvancedSearchOpen] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState({});
-  const [uploadAlbum, setUploadAlbum] = useState(UNASSIGNED_ALBUM_ID);
   const [bulkAlbum, setBulkAlbum] = useState(UNASSIGNED_ALBUM_ID);
   const [bulkText, setBulkText] = useState("");
   const [bulkMoreOpen, setBulkMoreOpen] = useState(false);
@@ -3221,17 +3103,17 @@ export default function App() {
     }, 50);
   }
 
-  async function handleUpload(event) {
-    const allFiles = Array.prototype.slice.call(event.target.files || []);
-    const files = allFiles.filter(isMediaFile);
+  function handleUpload(event) {
+    const files = Array.prototype.slice.call(event.target.files || []).filter(function (file) {
+      return file.type && (file.type.indexOf("image") === 0 || file.type.indexOf("video") === 0);
+    });
     event.target.value = "";
 
-    if (!files.length && !allFiles.length) return;
+    if (!files.length) return;
 
     rememberUndo("IMPORT");
     backupIndex();
 
-    const sidecarData = await buildTakeoutSidecarMap(allFiles);
     const signatures = existingSignatureMap(memories);
     const plan = uploadPlanStats(files, memories);
     const freshFiles = files.filter(function (file) {
@@ -3240,7 +3122,6 @@ export default function App() {
 
     const batchLimit = clampNumber(uploadBatchSize, 250, 10, 2000);
     const batchFiles = freshFiles.slice(0, batchLimit);
-    const matchedSidecarKeys = {};
 
     setImportSummary({
       total: plan.total,
@@ -3248,52 +3129,16 @@ export default function App() {
       skipped: files.length - batchFiles.length,
       large: plan.large,
       duplicates: plan.duplicates,
-      sidecars: sidecarData.sidecarCount,
-      unmatchedSidecars: Math.max(0, sidecarData.sidecarCount - sidecarData.parsedCount),
       bytes: plan.bytes,
     });
     setImportPanelOpen(true);
 
     const imported = batchFiles.map(function (file, index) {
       const memory = fromFile(file, index);
-      const pair = sidecarData.map[takeoutPairKey(file)];
-      if (pair && pair.meta) {
-        matchedSidecarKeys[takeoutPairKey(file)] = true;
-        const takeoutDate = dateFromTakeoutMeta(pair.meta);
-        const takeoutTitle = titleFromTakeoutMeta(pair.meta);
-        const folder = takeoutFolderName(file.webkitRelativePath || file.name);
-        if (takeoutDate) {
-          memory.date = takeoutDate;
-          memory.year = yearFromDateText(takeoutDate, memory.year);
-          memory.month = monthFromDateText(takeoutDate, memory.month);
-        }
-        if (takeoutTitle && (!memory.title || memory.title === memory.fileName)) {
-          memory.title = takeoutTitle;
-        }
-        if (pair.meta.description && !memory.caption) {
-          memory.caption = String(pair.meta.description || "").trim();
-        }
-        memory.takeoutMeta = {
-          matched: true,
-          sidecarPath: pair.path,
-          folder: folder,
-        };
-        if (folder && !/photos from/i.test(folder)) {
-          memory.era = folder;
-        }
-      }
       memory.queueId = Date.now() + "-" + index + "-" + safeName(file.name);
       memory.uploadStatus = "queued";
       uploadFileRefs.current[memory.queueId] = { file: file, memory: memory };
       return memory;
-    });
-
-    const unmatchedSidecars = Object.keys(sidecarData.map).filter(function (key) {
-      return !matchedSidecarKeys[key];
-    }).length;
-
-    setImportSummary(function (current) {
-      return { ...(current || {}), unmatchedSidecars: unmatchedSidecars };
     });
 
     const queueItems = imported.map(function (memory, index) {
@@ -3313,31 +3158,7 @@ export default function App() {
     setUploadQueueOpen(true);
 
     const nextMemories = memories.concat(imported);
-    let nextAlbums = ensureAlbumCoverage(nextMemories, albums);
-
-    if (uploadAlbum && uploadAlbum !== UNASSIGNED_ALBUM_ID) {
-      imported.forEach(function (memory) {
-        nextAlbums = addMemoryToAlbum(nextAlbums, uploadAlbum, memory.id);
-        nextAlbums = removeMemoryFromAlbum(nextAlbums, UNASSIGNED_ALBUM_ID, memory.id);
-      });
-    } else {
-      imported.forEach(function (memory) {
-        const folder = memory.takeoutMeta && memory.takeoutMeta.folder ? memory.takeoutMeta.folder : "";
-        if (folder && !/photos from/i.test(folder)) {
-          const existingAlbum = nextAlbums.find(function (album) {
-            return String(album.title || "").toLowerCase() === folder.toLowerCase();
-          });
-          const albumId = existingAlbum ? existingAlbum.id : "takeout-" + safeName(folder.toLowerCase()) + "-" + Date.now();
-          if (!existingAlbum) {
-            nextAlbums = nextAlbums.concat([{ id: albumId, title: folder, description: "Imported from Google Takeout", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), memoryIds: [] }]);
-          }
-          nextAlbums = addMemoryToAlbum(nextAlbums, albumId, memory.id);
-          nextAlbums = removeMemoryFromAlbum(nextAlbums, UNASSIGNED_ALBUM_ID, memory.id);
-        }
-      });
-    }
-
-    nextAlbums = ensureAlbumCoverage(nextMemories, nextAlbums);
+    const nextAlbums = ensureAlbumCoverage(nextMemories, albums);
 
     setMemories(nextMemories);
     setAlbums(nextAlbums);
@@ -3366,7 +3187,7 @@ export default function App() {
                 <div className="controlMiniRow"><SortControl sortMode={sortMode} setSortMode={setSortMode} /><AlbumSortControl show={activePage === "albums" && archiveView === "folders"} albumSort={albumSort} setAlbumSort={setAlbumSort} /><GridSizeControl gridSize={gridSize} setGridSize={setGridSize} /></div>
                 <UndoBar snapshot={undoSnapshot} undo={undoLastAction} clear={function () { setUndoSnapshot(null); }} />
                 <ToolsPanel open={toolsOpen} close={function () { setToolsOpen(false); }} toggleImportPanel={function () { setImportPanelOpen(function (value) { return !value; }); }} toggleUploadQueuePanel={function () { setUploadQueueOpen(function (value) { return !value; }); }} toggleStatusPanel={function () { setStatusOpen(function (value) { return !value; }); }} toggleDuplicatePanel={function () { setDuplicatesOpen(function (value) { return !value; }); }} toggleHealthPanel={function () { setHealthOpen(function (value) { return !value; }); }} exportVaultIndex={exportVaultIndex} exportManifestCsv={exportManifestCsv} importVaultIndex={importVaultIndex} />
-                <ImportPanel open={importPanelOpen} close={function () { setImportPanelOpen(false); }} uploadBatchSize={uploadBatchSize} setUploadBatchSize={setUploadBatchSize} uploadConcurrency={uploadConcurrency} setUploadConcurrency={setUploadConcurrency} skipDuplicates={skipDuplicates} setSkipDuplicates={setSkipDuplicates} uploadAlbum={uploadAlbum} setUploadAlbum={setUploadAlbum} albums={albums} importSummary={importSummary} />
+                <ImportPanel open={importPanelOpen} close={function () { setImportPanelOpen(false); }} uploadBatchSize={uploadBatchSize} setUploadBatchSize={setUploadBatchSize} uploadConcurrency={uploadConcurrency} setUploadConcurrency={setUploadConcurrency} skipDuplicates={skipDuplicates} setSkipDuplicates={setSkipDuplicates} importSummary={importSummary} />
                 <UploadQueuePanel open={uploadQueueOpen} queue={uploadQueue} paused={uploadPaused} togglePause={function () { setUploadPaused(function (value) { return !value; }); }} retryFailed={retryFailedUploads} close={function () { setUploadQueueOpen(false); }} clearFinished={function () { setUploadQueue(function (items) { return items.filter(function (item) { return item.status === "queued" || item.status === "uploading"; }); }); }} />
                 <StatusPanel open={statusOpen} memories={memories} close={function () { setStatusOpen(false); }} retryUpload={retryUpload} clearLocalFailedStatus={clearLocalFailedStatus} purgeTrash={purgeTrash} />
                 <DuplicatePanel open={duplicatesOpen} memories={memories} close={function () { setDuplicatesOpen(false); }} openMemory={setActiveMemory} trashDuplicateOthers={trashDuplicateOthers} />
@@ -3381,7 +3202,6 @@ export default function App() {
           </motion.div>
         </AnimatePresence>
       </main>
-    </AccessGate>
       <Modal memory={activeMemory} close={function () { setActiveMemory(null); }} deleteMemory={deleteMemory} restoreMemory={restoreMemory} toggleMeFlag={toggleMeFlag} toggleMirror={toggleMirror} toggleArchive={toggleArchive} toggleReview={toggleReview} togglePrivate={togglePrivate} albums={albums} addToAlbum={addToAlbum} moveToAlbum={moveToAlbum} removeFromAlbum={removeFromAlbum} updateMemoryDetails={updateMemoryDetails} downloadOriginal={downloadOriginal} openOriginal={openOriginal} copyMediaUrl={copyMediaUrl} copyStorageKey={copyStorageKey} toggleStar={toggleStar} isStarred={activeMemory ? albumHasMemory(albums, "star", activeMemory.id) : false} setAlbumCover={setAlbumCover} clearAlbumCover={clearAlbumCover} />
     </div>
   );

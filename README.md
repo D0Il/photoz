@@ -612,31 +612,17 @@ Added upload scheduler and index safety:
 - Backups are stored under `index-backups/`.
 
 
-## Albums home polish pass
+## Build syntax hotfix
 
-Albums now behave more like the real home of PHOTOZ:
+Fixed invalid JSX/JavaScript syntax in `src/App.jsx` where searchable text fragments were accidentally pasted inside an object literal. This resolves the Vite error:
 
-- System folders are displayed as a separate strip.
-- Pinned albums get their own section.
-- Recent albums get their own section.
-- All remaining albums are shown below.
-- Real album count excludes system folders.
-- Album search copy is cleaner.
-- New album field says CREATE ALBUM.
-- Import panel now has an upload destination selector.
-- Uploads can go directly into a selected album instead of always landing in Unassigned.
+`Expected ',' or '}' but found '.'`
 
 
-## Google Takeout sidecar pass
+## Build hotfix verified
 
-Added Takeout import handling:
+Fixed Cloudflare/Vite build failures:
+- removed invalid searchable-text fragments accidentally pasted into an object literal
+- removed stray `</AccessGate>` closing tag in `App.jsx`
 
-- Detects `.json` Google Takeout sidecar files.
-- Pairs sidecars with media by folder + base file name.
-- Reads `photoTakenTime.timestamp` as the real date when available.
-- Reads title/description from sidecar metadata.
-- Preserves matched sidecar path in each memory record.
-- Infers album/folder names from Takeout paths.
-- Can auto-create albums from Takeout folder names when no explicit upload destination is selected.
-- Import summary reports sidecar and unmatched sidecar counts.
-- Search now includes Takeout folder and sidecar path.
+Verified locally with `npm run build`.
