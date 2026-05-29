@@ -115,3 +115,7 @@ Added:
 - Recovery build: removed broad glass/scale override passes that broke page layout; kept stable dock icons, lashed eye, Settings/Filter, hold-swipe selection, PHOTO ALBUMS label, playback-only video, and password fix.
 
 - Fixed missing `withTooltip` helper crash and forced dock PAGES to use animated book / lashed eye / sparkling search icons.
+
+- Removed remaining visible Select controls. Selection remains long-press / hold-swipe only.
+
+- Restored Filter menu as a useful compact control panel: sort, type, source, quality, and view density. Removed the useless ALL/ME/star/video/trash category dump.

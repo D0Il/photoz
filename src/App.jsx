@@ -1561,47 +1561,68 @@ function GridSizeControl(props) {
 function FilterPanel(props) {
   if (!props.open) return null;
 
-  const filter = props.searchFilter || props.filter || "all";
-  const setFilter = props.setSearchFilter || props.setFilter || function () {};
-  const filters = [
-    { id: "all", label: "ALL", icon: <Image size={13} /> },
-    { id: "me", label: "ME", icon: <UserRound size={13} /> },
-    { id: "starred", label: "★", icon: <Star size={13} /> },
-    { id: "videos", label: "VIDEO", icon: <Film size={13} /> },
-    { id: "trash", label: "TRASH", icon: <Trash2 size={13} /> },
-  ];
+  const sortMode = props.sortMode || "newest";
+  const setSortMode = props.setSortMode || function () {};
+  const filterType = props.filterType || "all";
+  const setFilterType = props.setFilterType || function () {};
+  const filterSource = props.filterSource || "all";
+  const setFilterSource = props.setFilterSource || function () {};
+  const filterQuality = props.filterQuality || "any";
+  const setFilterQuality = props.setFilterQuality || function () {};
+  const viewDensity = props.viewDensity || "normal";
+  const setViewDensity = props.setViewDensity || function () {};
 
   return (
-    <div className="floatingPanel filterPopover filterMenuPanel" role="menu" aria-label="FILTER">
+    <div className="floatingPanel filterPopover filterMenuPanel refinedFilterMenu" role="menu" aria-label="FILTER">
       <div className="filterMenuHeader">
         <SlidersHorizontal size={14} strokeWidth={2.1} />
         <strong>FILTER</strong>
       </div>
 
-      <div className="filterChipGrid">
-        {filters.map(function (item) {
-          return (
-            <button
-              type="button"
-              key={item.id}
-              className={filter === item.id ? "active" : ""}
-              onClick={function () { setFilter(item.id); }}
-              {...withTooltip(item.label === "★" ? "Starred" : item.label)}
-            >
-              {item.icon}
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
-      </div>
+      <section className="filterMenuSection">
+        <span>SORT</span>
+        <div className="segmentedFilterRow">
+          <button type="button" className={sortMode === "newest" ? "active" : ""} onClick={function () { setSortMode("newest"); }} {...withTooltip("Newest first")}>NEWEST</button>
+          <button type="button" className={sortMode === "oldest" ? "active" : ""} onClick={function () { setSortMode("oldest"); }} {...withTooltip("Oldest first")}>OLDEST</button>
+          <button type="button" className={sortMode === "title" ? "active" : ""} onClick={function () { setSortMode("title"); }} {...withTooltip("Title")}>TITLE</button>
+        </div>
+      </section>
 
-      <div className="filterSortRow">
-        <button type="button" {...withTooltip("Newest first")} className={props.sortMode === "newest" ? "active" : ""} onClick={function () { props.setSortMode && props.setSortMode("newest"); }}>NEW</button>
-        <button type="button" {...withTooltip("Oldest first")} className={props.sortMode === "oldest" ? "active" : ""} onClick={function () { props.setSortMode && props.setSortMode("oldest"); }}>OLD</button>
-        <button type="button" {...withTooltip("Reset filter")} onClick={function () { setFilter("all"); }}>
-          <RotateCcw size={12} />
-        </button>
-      </div>
+      <section className="filterMenuSection">
+        <span>TYPE</span>
+        <div className="segmentedFilterRow">
+          <button type="button" className={filterType === "all" ? "active" : ""} onClick={function () { setFilterType("all"); }} {...withTooltip("Any file type")}>ANY</button>
+          <button type="button" className={filterType === "photos" ? "active" : ""} onClick={function () { setFilterType("photos"); }} {...withTooltip("Photos only")}>PHOTOS</button>
+          <button type="button" className={filterType === "videos" ? "active" : ""} onClick={function () { setFilterType("videos"); }} {...withTooltip("Videos only")}>VIDEOS</button>
+        </div>
+      </section>
+
+      <section className="filterMenuSection">
+        <span>SOURCE</span>
+        <div className="segmentedFilterRow">
+          <button type="button" className={filterSource === "all" ? "active" : ""} onClick={function () { setFilterSource("all"); }} {...withTooltip("Any source")}>ANY</button>
+          <button type="button" className={filterSource === "takeout" ? "active" : ""} onClick={function () { setFilterSource("takeout"); }} {...withTooltip("Google Takeout")}>TAKEOUT</button>
+          <button type="button" className={filterSource === "needs-file" ? "active" : ""} onClick={function () { setFilterSource("needs-file"); }} {...withTooltip("Needs file")}>MISSING</button>
+        </div>
+      </section>
+
+      <section className="filterMenuSection">
+        <span>QUALITY</span>
+        <div className="segmentedFilterRow">
+          <button type="button" className={filterQuality === "any" ? "active" : ""} onClick={function () { setFilterQuality("any"); }} {...withTooltip("Any quality")}>ANY</button>
+          <button type="button" className={filterQuality === "rated" ? "active" : ""} onClick={function () { setFilterQuality("rated"); setSortMode("rating"); }} {...withTooltip("Rated")}>RATED</button>
+          <button type="button" className={sortMode === "largest" ? "active" : ""} onClick={function () { setSortMode("largest"); }} {...withTooltip("Largest files")}>LARGE</button>
+        </div>
+      </section>
+
+      <section className="filterMenuSection">
+        <span>VIEW</span>
+        <div className="segmentedFilterRow">
+          <button type="button" className={viewDensity === "compact" ? "active" : ""} onClick={function () { setViewDensity("compact"); }} {...withTooltip("Compact grid")}>TIGHT</button>
+          <button type="button" className={viewDensity === "normal" ? "active" : ""} onClick={function () { setViewDensity("normal"); }} {...withTooltip("Normal grid")}>NORMAL</button>
+          <button type="button" className={viewDensity === "large" ? "active" : ""} onClick={function () { setViewDensity("large"); }} {...withTooltip("Large grid")}>LARGE</button>
+        </div>
+      </section>
     </div>
   );
 }
@@ -3077,6 +3098,12 @@ function LashEyeIcon(props) {
 }
 
 export default function App() {
+  const [filterType, setFilterType] = useState("all");
+  const [filterSource, setFilterSource] = useState("all");
+  const [filterQuality, setFilterQuality] = useState("any");
+  const [viewDensity, setViewDensity] = useState("normal");
+
+
   const [pzAlbumEditorId, setPzAlbumEditorId] = useState(null);
   const [pzDetailEditorId, setPzDetailEditorId] = useState(null);
   const [pzVideoPlayerId, setPzVideoPlayerId] = useState(null);
@@ -4368,7 +4395,15 @@ const [albumSort, setAlbumSort] = useState("recent");
                 </div>
                 <FilterPanel open={filterControlsOpen} close={function () { setFilterControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveFilter === "albums"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize} 
                 searchFilter={searchFilter}
-                setSearchFilter={setSearchFilter}/>
+                setSearchFilter={setSearchFilter}
+                filterType={filterType}
+                setFilterType={setFilterType}
+                filterSource={filterSource}
+                setFilterSource={setFilterSource}
+                filterQuality={filterQuality}
+                setFilterQuality={setFilterQuality}
+                viewDensity={viewDensity}
+                setViewDensity={setViewDensity}/>
                 <UndoBar snapshot={undoSnapshot} undo={undoLastAction} clear={function () { setUndoSnapshot(null); }} />
                 <SettingsPanel onUpload={handleUpload} open={settingsOpen} close={function () { setSettingsOpen(false); }} toggleImportPanel={function () { setImportPanelOpen(function (value) { return !value; }); }} toggleUploadQueuePanel={function () { setUploadQueueOpen(function (value) { return !value; }); }} toggleStatusPanel={function () { setStatusOpen(function (value) { return !value; }); }} toggleDuplicatePanel={function () { setDuplicatesOpen(function (value) { return !value; }); }} toggleHealthPanel={function () { setHealthOpen(function (value) { return !value; }); }} exportVaultIndex={exportVaultIndex} exportManifestCsv={exportManifestCsv} importVaultIndex={importVaultIndex} 
                 toggleUploadRefilterPanel={function () { setPzUploadRefilterOpen(function (value) { return !value; }); }}/>

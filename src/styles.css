@@ -10707,3 +10707,98 @@ button:hover .dockSearchSparkIcon .sparkSmall {
 .pzStateBanner {
   display: none;
 }
+
+
+/* REMOVE VISIBLE SELECT CONTROL: selection is long-press / hold-swipe only */
+.selectButton,
+button.selectButton,
+[data-role="select-button"],
+button[aria-label="Select"],
+button[title="Select"],
+button[data-tooltip="Select"] {
+  display: none;
+}
+
+
+/* FILTER MENU RECOVERY PASS */
+.refinedFilterMenu {
+  width: min(306px, calc(100vw - 28px));
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.refinedFilterMenu .filterMenuHeader {
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 4px;
+}
+
+.refinedFilterMenu .filterMenuHeader strong {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .16em;
+  color: rgba(0,0,0,.56);
+}
+
+.filterMenuSection {
+  display: grid;
+  gap: 6px;
+  padding: 7px;
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.050), rgba(255,255,255,.018)),
+    rgba(255,255,255,.018);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.16),
+    inset 0 -1px 0 rgba(0,0,0,.030);
+}
+
+.filterMenuSection > span {
+  padding: 0 2px;
+  font-size: 7px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: .16em;
+  color: rgba(0,0,0,.34);
+}
+
+.segmentedFilterRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 5px;
+}
+
+.segmentedFilterRow button {
+  min-height: 31px;
+  border-radius: 12px;
+  padding: 0 6px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 7.5px;
+  line-height: 1;
+  font-weight: 850;
+  letter-spacing: .075em;
+  white-space: nowrap;
+}
+
+.segmentedFilterRow button.active {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.052)),
+    rgba(255,255,255,.035);
+  border-color: rgba(255,255,255,.34);
+  box-shadow:
+    0 8px 18px rgba(0,0,0,.060),
+    inset 0 1px 0 rgba(255,255,255,.24);
+}
+
+.selectButton,
+button.selectButton,
+[data-role="select-button"],
+button[aria-label="Select"],
+button[title="Select"],
+button[data-tooltip="Select"] {
+  display: none;
+}
