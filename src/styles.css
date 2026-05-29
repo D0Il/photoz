@@ -3957,3 +3957,71 @@ input[type="file"] {
   overflow: auto;
   border-radius: 24px;
 }
+
+
+/* Albums-only cards source fix */
+.systemRail {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 18px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.systemRailItem {
+  all: unset;
+  box-sizing: border-box;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 9px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,.075);
+  background: rgba(255,255,255,.03);
+  color: rgba(0,0,0,.48);
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.systemRailItem span {
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .02em;
+  color: rgba(0,0,0,.50);
+}
+
+.systemRailItem em {
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+  color: rgba(0,0,0,.32);
+}
+
+.systemFolderStrip,
+.systemFolderBadge {
+  display: none;
+}
+
+.albumGrid.folderView {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  align-items: stretch;
+}
+
+.albumTile {
+  min-height: 292px;
+  border-radius: 22px;
+}
+
+input[type="file"] {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+}

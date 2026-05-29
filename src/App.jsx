@@ -28,6 +28,20 @@ const INDEX_SCHEMA_VERSION = 3;
 const MEDIA_BASE = "/media";
 const MAX_PARALLEL_UPLOADS = 3;
 
+function safeArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function normalizeVaultIndex(index) {
+  const source = index && typeof index === "object" ? index : {};
+  return {
+    memories: safeArray(source.memories),
+    albums: safeArray(source.albums),
+    settings: source.settings && typeof source.settings === "object" ? source.settings : {},
+    updatedAt: source.updatedAt || new Date().toISOString(),
+  };
+}
+
 function displayShortcutSymbol(value) {
   const text = String(value || "").toLowerCase();
   if (text === "starred" || text === "star") return "★";
@@ -63,7 +77,7 @@ function filterLabel(value) {
 
 function cleanSystemLabel(value) {
   const text = String(value || "").toLowerCase();
-  if (text === "starred" || text === "star") return "★";
+  if (text === "starred" || text === "star" || text === "★") return "★";
   if (text === "archived" || text === "archive" || text === "hidden") return "Hidden";
   if (text === "trash" || text === "trashed") return "Trash";
   if (text === "all") return "All";
@@ -87,6 +101,8 @@ function newest(items) {
 }
 
 function sortMemories(items, sortMode) {
+  items = safeArray(items);
+
   const mode = sortMode || "newest";
   return items.slice().sort(function (a, b) {
     if (mode === "oldest") return (a.sort || 0) - (b.sort || 0);
@@ -247,6 +263,8 @@ function pageItems(page, memories) {
 }
 
 function groupBy(mode, items) {
+  memories = safeArray(memories);
+
   const key = mode === "months" ? "month" : mode === "eras" ? "era" : "year";
   const groups = {};
   newest(items).forEach(function (memory) {
@@ -277,7 +295,33 @@ function sortAlbumGroups(groups, mode) {
   });
 }
 
+function isSystemAlbumGroup(group) {
+  const id = String((group && (group.id || group.sourceId)) || "").toLowerCase();
+  const title = String((group && group.title) || "").toLowerCase();
+  return Boolean(group && group.virtual) ||
+    id === "all" ||
+    id === "starred" ||
+    id === "archive" ||
+    id === "archived" ||
+    id === "trash" ||
+    id === "trashed" ||
+    id === "unassigned" ||
+    id === "videos" ||
+    title === "all" ||
+    title === "starred" ||
+    title === "archive" ||
+    title === "archived" ||
+    title === "hidden" ||
+    title === "trash" ||
+    title === "unassigned" ||
+    title === "videos" ||
+    title === "★";
+}
+
 function virtualAlbumGroups(albums, memories) {
+  albums = safeArray(albums);
+  memories = safeArray(memories);
+
   const all = newest(memories.filter(function (memory) { return !memory.inMirror && !memory.archived && !memory.trashed; }));
   const archived = newest(memories.filter(function (memory) { return Boolean(memory.archived) && !memory.trashed; }));
   const trash = newest(memories.filter(function (memory) { return Boolean(memory.trashed); }));
@@ -295,6 +339,9 @@ function virtualAlbumGroups(albums, memories) {
 }
 
 function albumGroups(albums, memories) {
+  albums = safeArray(albums);
+  memories = safeArray(memories);
+
   return albums.map(function (album) {
     const items = newest(album.memoryIds.map(function (id) {
       return memories.find(function (memory) {
@@ -351,6 +398,9 @@ function memoryHasHomeAlbum(memory, albums) {
 }
 
 function ensureAlbumCoverage(memories, albums) {
+  memories = safeArray(memories);
+  albums = safeArray(albums);
+
   const cleanAlbums = ensureCoreAlbums(albums).map(function (album) {
     return { ...album, memoryIds: Array.from(new Set(album.memoryIds || [])) };
   });
@@ -391,6 +441,8 @@ function albumHasMemory(albums, albumId, memoryId) {
 }
 
 function mirrorItems(memories) {
+  memories = safeArray(memories);
+
   return newest(memories.filter(function (memory) {
     return !memory.trashed && (Boolean(memory.inMirror) || Boolean(memory.isMe));
   }));
@@ -1565,6 +1617,9 @@ function SystemShortcutCard(props) {
 
 function GroupCard(props) {
   const group = props.group;
+  if (isSystemAlbumGroup(group)) {
+    return <SystemShortcutCard group={group} openGroup={props.openGroup} />;
+  }
   if (group && group.virtual) {
     return <SystemShortcutCard group={group} openGroup={props.openGroup} />;
   }
@@ -1644,13 +1699,13 @@ function MirrorView(props) {
 }
 
 function AlbumsView(props) {
-  const albums = sortAlbumGroups(virtualAlbumGroups(props.albums, props.memories).concat(albumGroups(props.albums, props.memories)), props.albumSort).filter(function (folder) {
+  const albums = sortAlbumGroups(virtualAlbumGroups(safeArray(props.albums), safeArray(props.memories)).concat(albumGroups(safeArray(props.albums), safeArray(props.memories))), props.albumSort).filter(function (folder) {
     const q = props.albumQuery.trim().toLowerCase();
     return !q || String(folder.title || "").toLowerCase().indexOf(q) !== -1;
   });
-  const archiveGroups = props.archiveView === "albums" ? albums : groupBy(props.archiveView, props.memories);
-  const virtualGroups = props.archiveView === "albums" ? archiveGroups.filter(function (group) { return group.virtual; }) : [];
-  const realGroups = props.archiveView === "albums" ? archiveGroups.filter(function (group) { return !group.virtual; }) : archiveGroups;
+  const archiveGroups = props.archiveView === "albums" ? albums : groupBy(props.archiveView, safeArray(props.memories));
+  const virtualGroups = props.archiveView === "albums" ? archiveGroups.filter(isSystemAlbumGroup) : [];
+  const realGroups = props.archiveView === "albums" ? archiveGroups.filter(function (group) { return !isSystemAlbumGroup(group); }) : archiveGroups;
   const isAlbums = props.archiveView === "albums";
 
   return (
@@ -2036,7 +2091,7 @@ export default function App() {
     let alive = true;
     loadIndex().then(function (index) {
       if (!alive) return;
-      setMemories(index.memories);
+      setMemories(normalizeVaultIndex(index).memories);
       setAlbums(ensureAlbumCoverage(index.memories, index.albums));
       setSync("saved");
     }).catch(function () {
@@ -2058,8 +2113,8 @@ export default function App() {
 
   function undoLastAction() {
     if (!undoSnapshot) return;
-    setMemories(undoSnapshot.memories);
-    setAlbums(undoSnapshot.albums);
+    setMemories(normalizeVaultIndex(undoSnapshot).memories);
+    setAlbums(normalizeVaultIndex(undoSnapshot).albums);
     setActiveMemory(undoSnapshot.activeMemory || null);
     setActiveGroup(undoSnapshot.activeGroup || null);
     persist(undoSnapshot.memories, undoSnapshot.albums);
@@ -2232,8 +2287,8 @@ export default function App() {
       try {
         const parsed = JSON.parse(String(reader.result || "{}"));
         const restored = cleanIndex(parsed);
-        setMemories(restored.memories);
-        setAlbums(restored.albums);
+        setMemories(normalizeVaultIndex(restored).memories);
+        setAlbums(normalizeVaultIndex(restored).albums);
         setActiveMemory(null);
         setActiveGroup(null);
         setSelectedIds({});
@@ -2961,8 +3016,8 @@ export default function App() {
   function reloadIndex() {
     loadIndex().then(function (index) {
       const clean = cleanIndex(index);
-      setMemories(clean.memories);
-      setAlbums(clean.albums);
+      setMemories(normalizeVaultIndex(clean).memories);
+      setAlbums(normalizeVaultIndex(clean).albums);
       setSync("saved");
     });
   }

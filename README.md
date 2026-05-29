@@ -773,3 +773,19 @@ This build starts from the best-looking visual design and consolidates it instea
 - Splits system shortcuts out of the album grid at source level.
 - Hides native file inputs.
 - Keeps actual rendered-class coverage for dock, albumTile, groupGrid, photoOverlay, modalCard, etc.
+
+## Albums-only cards hotfix
+- System/utility groups are detected with `isSystemAlbumGroup`.
+- All, ★, Hidden, Trash, Unassigned, and Videos render in the shortcut rail.
+- Only true user albums render as large album cards.
+- Preserves the visual design and keeps zero `!important`.
+
+
+## API index crash hotfix
+
+Fixed:
+- `/api/index` returns a safe empty index instead of crashing.
+- Frontend normalizes missing `memories` / `albums` to empty arrays.
+- Album/search/mirror helpers guard array operations.
+- Removed shipped console assertions.
+- `/favicon.ico` returns 204 instead of triggering worker errors.

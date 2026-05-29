@@ -1,3 +1,4 @@
+const DEFAULT_INDEX = { memories: [], albums: [], settings: {}, updatedAt: new Date().toISOString() };
 
 const INDEX_KEY = "vault-index.json";
 const BACKUP_PREFIX = "index-backups/";
@@ -253,3 +254,15 @@ export default {
     return env.ASSETS.fetch(request);
   },
 };
+
+
+function jsonResponse(data, init = {}) {
+  return new Response(JSON.stringify(data), {
+    status: init.status || 200,
+    headers: { "content-type": "application/json", "cache-control": "no-store", ...(init.headers || {}) },
+  });
+}
+
+function emptyIndex(reason = "") {
+  return { memories: [], albums: [], settings: {}, updatedAt: new Date().toISOString(), warning: reason };
+}
