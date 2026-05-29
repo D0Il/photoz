@@ -129,3 +129,5 @@ Added:
 - Screenshot cleanup: removed actual page title path, added guaranteed dock glyph components, forced dock glyph visibility, hid saving banner, and tightened visible controls.
 
 - Replaced the dock renderer with guaranteed glyph rendering and removed the actual page title strong path.
+
+- Recovered dock placement: forced animated nav back to bottom-center horizontal dock instead of top-left stacked buttons.

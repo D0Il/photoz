@@ -11178,3 +11178,125 @@ button[data-tooltip="Long-press files"] {
   14% { transform: scale(1.08) rotate(12deg); opacity: .95; }
   30% { transform: scale(.82) rotate(24deg); opacity: .55; }
 }
+
+
+/* DOCK POSITION RECOVERY */
+.bottomDock,
+nav.bottomDock {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  top: auto;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 90;
+  width: auto;
+  min-width: 192px;
+  max-width: none;
+  height: 54px;
+  min-height: 54px;
+  padding: 6px;
+  margin: 0;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 999px;
+  overflow: visible;
+}
+
+.bottomDock button,
+nav.bottomDock button {
+  position: relative;
+  width: 48px;
+  min-width: 48px;
+  max-width: 48px;
+  height: 42px;
+  min-height: 42px;
+  max-height: 42px;
+  padding: 0;
+  margin: 0;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 48px;
+  border-radius: 999px;
+  color: rgba(0,0,0,.70);
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+
+.bottomDock button.active,
+nav.bottomDock button.active,
+.bottomDock button[aria-current="page"],
+nav.bottomDock button[aria-current="page"] {
+  color: rgba(0,0,0,.88);
+}
+
+.bottomDock .dockGlyph,
+nav.bottomDock .dockGlyph,
+.bottomDock .dockIconSymbol,
+nav.bottomDock .dockIconSymbol,
+.bottomDock .dockBookIcon,
+.bottomDock .dockSearchSparkIcon,
+.bottomDock .lashEyeIcon {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  line-height: 0;
+  opacity: 1;
+  visibility: visible;
+  position: relative;
+  z-index: 5;
+}
+
+.bottomDock .dockGlyph svg,
+nav.bottomDock .dockGlyph svg,
+.bottomDock .dockIconSymbol svg,
+nav.bottomDock .dockIconSymbol svg,
+.bottomDock .dockBookIcon svg,
+.bottomDock .dockSearchSparkIcon svg,
+.bottomDock .lashEyeIcon svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  overflow: visible;
+  opacity: 1;
+  visibility: visible;
+}
+
+/* prevent any inherited sidebar/stack layout from moving dock buttons */
+.bottomDock > *,
+nav.bottomDock > * {
+  flex-direction: row;
+}
+
+/* keep title headers gone */
+.pageTitle,
+.pageHeader h1,
+.pageHeader > h1,
+.heroTitle,
+.viewTitle,
+.screenTitle,
+.titleBlock,
+.titleCluster,
+.mainPageTitle,
+.appChrome > h1,
+.appChrome h1:first-child,
+.pageScroll > h1:first-child,
+.glass > h1:first-child,
+[data-page-title="true"] {
+  display: none;
+  visibility: hidden;
+  height: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
