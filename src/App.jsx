@@ -1384,7 +1384,6 @@ function Dock(props) {
               }}
             >
               <Icon size={19} strokeWidth={active ? 2.4 : 1.9} />
-              <span>{up(page.id)}</span>
             </button>
           );
         })}
@@ -1866,6 +1865,13 @@ function AlbumsView(props) {
   const archiveGroups = props.archiveView === "albums" ? albums : groupBy(props.archiveView, safeArray(props.memories));
   const virtualGroups = props.archiveView === "albums" && !props.currentAlbumId ? archiveGroups.filter(isSystemAlbumGroup) : [];
   const realGroups = props.archiveView === "albums" ? archiveGroups.filter(function (group) { return !isSystemAlbumGroup(group); }) : archiveGroups;
+  const seenVirtualLabels = {};
+  const dedupedVirtualGroups = virtualGroups.filter(function (group) {
+    const label = cleanSystemLabel(group.title || group.id);
+    if (seenVirtualLabels[label]) return false;
+    seenVirtualLabels[label] = true;
+    return true;
+  });
   const isAlbums = props.archiveView === "albums";
   const currentAlbum = props.currentAlbumId ? albumById(props.albums, props.currentAlbumId) : null;
   const currentPhotos = currentAlbum ? directAlbumMemories(props.albums, props.memories, props.currentAlbumId) : [];
@@ -1912,9 +1918,9 @@ function AlbumsView(props) {
         </div>
       ) : null}
 
-      {isAlbums && virtualGroups.length ? (
+      {isAlbums && dedupedVirtualGroups.length ? (
         <div className="systemRail">
-          {virtualGroups.map(function (group) {
+          {dedupedVirtualGroups.map(function (group) {
             return <SystemShortcutCard key={group.id} group={group} openGroup={props.openGroup} />;
           })}
         </div>

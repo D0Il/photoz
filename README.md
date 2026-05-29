@@ -938,3 +938,25 @@ Fixed the layout problems from the screenshots:
 - Album search and New album are separate controls.
 - Mirror All button is real-sized and labeled All.
 - Bottom dock remains icon-only.
+
+
+## Screenshot visual reset
+
+Changed based on the supplied screenshots:
+- Smaller page identity instead of large headline.
+- Deduped system rail.
+- Clean separated album search/new-album controls.
+- Compact non-overlapping Filter/Tools popovers.
+- Select beside Filter.
+- Mirror All is full-sized and labeled All.
+- Empty states and search controls reduced.
+
+
+## Dock fix
+
+Changed the bottom nav:
+- Fully icon-only source and CSS.
+- Smaller floating capsule.
+- Three equal circular icon buttons.
+- Active state is a subtle ring/fill instead of a chunky blob.
+- Removed old dock sizing leaks.
