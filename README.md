@@ -865,3 +865,18 @@ Changed the album editor so search and creation are not exposed at the same time
 - Clicking + reveals the Album name field and create button.
 - Removed the always-visible New album field from the main row.
 - No `!important` rules.
+
+
+## Product layout structure fix
+
+Fixed the scattered control-panel layout:
+
+- Tools menu is small, anchored, titleless, and subtitle-free.
+- Cog remains the tools trigger.
+- Filter is named Filter and stays separate.
+- Upload/Folder are inside Tools only.
+- Select is no longer stranded in the middle.
+- Album search/create is aligned under the album tabs.
+- Header is more compact.
+- Utility rail is larger and intentional.
+- No `!important` rules.
