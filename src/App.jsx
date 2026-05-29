@@ -1,6 +1,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {ChevronLeft, Eye, Images, Search, Upload, X, Trash2, CircleHelp, SlidersHorizontal, CircleCheck, Music2, Volume2, VolumeX, LockKeyhole, UnlockKeyhole, FolderPen, ShieldCheck, Film, Download, PanelRightOpen, ArchiveRestore, Save, AlertTriangle, UploadCloud, Play, Clock3, HardDrive, Sparkles, Maximize2, CalendarDays, RotateCcw, Undo2, Settings, FolderUp, FileDown, Wrench, Star, Image, UserRound} from "lucide-react";
+import {ChevronLeft, Eye, Images, Search, Upload, X, Trash2, CircleHelp, SlidersHorizontal, CircleCheck, Music2, Volume2, VolumeX, LockKeyhole, UnlockKeyhole, FolderPen, ShieldCheck, Film, Download, PanelRightOpen, ArchiveRestore, Save, AlertTriangle, UploadCloud, Play, Clock3, HardDrive, Sparkles, Maximize2, CalendarDays, RotateCcw, Undo2, Settings, FolderUp, FileDown, Wrench, Star, Image, UserRound, ChevronDown, Glasses} from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { FilterPanel } from "./components/FilterMenu.jsx";
@@ -1312,6 +1312,7 @@ function VisibleReporter(props) {
 function EmptyState(props) {
   return (
     <div className="emptyState">
+      <span className="emptyStateX" aria-hidden="true">X</span>
       <strong>{props.title || "EMPTY"}</strong>
       <span>{props.children}</span>
     </div>
@@ -1519,7 +1520,7 @@ function Dock(props) {
                 props.setActive(page.id);
               }}
             >
-              <Icon size={23} />
+              <Icon size={28} />
             </button>
           );
         })}
@@ -1867,6 +1868,28 @@ function ControlBar(props) {
             })}
           </div>
         ) : null}
+        <div className="albumInlineActions">
+          <button
+            type="button"
+            className={props.albumSearchOpen ? "albumSearchToggle active" : "albumSearchToggle"}
+            aria-label="Search"
+            title="Search"
+            data-tooltip="Search"
+            onClick={function () { props.setAlbumSearchOpen(function (value) { return !value; }); }}
+          >
+            <Glasses size={15} strokeWidth={2.15} />
+          </button>
+          <button
+            type="button"
+            className={props.albumCreateOpen ? "albumQuickCreate active" : "albumQuickCreate"}
+            aria-label="New album"
+            title="New album"
+            data-tooltip="New album"
+            onClick={function () { props.setAlbumCreateOpen(function (value) { return !value; }); }}
+          >
+            +
+          </button>
+        </div>
         {props.sync !== "saved" ? <Pill>{up(props.sync)}</Pill> : null}
       </div>
     </div>
@@ -2004,19 +2027,17 @@ function AlbumsFilter(props) {
   return (
     <div className="pageScroll">
       <VisibleReporter items={props.currentAlbumId ? currentPhotos : props.memories} reportVisibleIds={props.reportVisibleIds} />
-      {isAlbums ? (
+      {isAlbums && (props.albumSearchOpen || props.albumCreateOpen) ? (
         <div className="albumControlsRow">
-          <label className="albumSearchOnly" aria-label={props.currentAlbumId ? "SEARCH INSIDE ALBUM" : "SEARCH PHOTO ALBUMS"}>
-            <input
-              value={props.albumQuery}
-              onChange={function (event) { props.setAlbumQuery(event.target.value); }}
-              placeholder={props.currentAlbumId ? "SEARCH INSIDE ALBUM" : "SEARCH PHOTO ALBUMS"}
-            />
-          </label>
-          {!props.albumCreateOpen ? (
-            <button type="button" className="newAlbumTrigger" onClick={function () { props.setAlbumCreateOpen(true); }}>
-              {props.currentAlbumId ? "+ Nested album" : "+"}
-            </button>
+          {props.albumSearchOpen ? (
+            <label className="albumSearchOnly" aria-label="SEARCH">
+              <input
+                value={props.albumQuery}
+                onChange={function (event) { props.setAlbumQuery(event.target.value); }}
+                placeholder="SEARCH"
+                autoFocus
+              />
+            </label>
           ) : null}
           {props.albumCreateOpen ? (
             <div className="newAlbumPanel">
@@ -2157,34 +2178,51 @@ function SearchFilter(props) {
   const items = allItems.filter(function (memory) {
     return matchesSearchQuery(memory, query, allAlbums);
   });
+  const [searchFilterOpen, setSearchFilterOpen] = useState(false);
+  const activeFilterLabel = activeSearchFilter === "all" ? "BROWSE" : up(activeSearchFilter);
 
   return (
     <div className="pageScroll searchPage">
       <VisibleReporter items={items} reportVisibleIds={props.reportVisibleIds} />
 
-      <div className="searchBar librarySearchBar">
-        <Search size={15} />
-        <input
-          value={props.query}
-          onChange={function (event) { props.setQuery(event.target.value); }}
-          placeholder={activeSearchFilter === "videos" ? "SEARCH VIDEOS" : "BROWSE"}
-        />
-      </div>
-
-      <div className="searchFilters librarySearchFilters">
-        {PRIMARY_SEARCH_FILTERS.map(function (filter) {
-          return (
-            <button
-              type="button"
-              key={filter}
-              {...withSettingtip(filter === "all" ? "All files" : up(filter))}
-              className={activeSearchFilter === filter ? "active" : ""}
-              onClick={function () { setFilter(filter); }}
-            >
-              {filter === "all" ? "All" : up(filter)}
-            </button>
-          );
-        })}
+      <div className="searchControlRow">
+        <div className="searchBar librarySearchBar">
+          <Search size={15} />
+          <input
+            value={props.query}
+            onChange={function (event) { props.setQuery(event.target.value); }}
+            placeholder={activeSearchFilter === "videos" ? "SEARCH VIDEOS" : "BROWSE"}
+          />
+        </div>
+        <div className="searchFilterDropdown">
+          <button
+            type="button"
+            className={searchFilterOpen ? "searchFilterTrigger active" : "searchFilterTrigger"}
+            aria-label="Browse filter"
+            title="Browse filter"
+            data-tooltip="Browse filter"
+            onClick={function () { setSearchFilterOpen(function (value) { return !value; }); }}
+          >
+            {activeFilterLabel}
+            <ChevronDown size={12} />
+          </button>
+          {searchFilterOpen ? (
+            <div className="searchFilterMenu">
+              {PRIMARY_SEARCH_FILTERS.map(function (filter) {
+                return (
+                  <button
+                    type="button"
+                    key={filter}
+                    className={activeSearchFilter === filter ? "active" : ""}
+                    onClick={function () { setFilter(filter); setSearchFilterOpen(false); }}
+                  >
+                    {filter === "all" ? "BROWSE" : up(filter)}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {!items.length ? (
@@ -3002,17 +3040,15 @@ function withTooltip(label) {
 
 
 function MusicUtilityIcon(props) {
-  const size = props.size || 18;
+  const size = props.size || 19;
   return (
     <span className="musicUtilityIcon" aria-hidden="true" style={{ width: size, height: size }}>
       <svg viewBox="0 0 28 28" focusable="false">
-        <circle className="musicDisc" cx="14" cy="14" r="7.1" />
-        <circle className="musicDiscHole" cx="14" cy="14" r="1.55" />
-        <path className="musicGroove" d="M9.55 14a4.45 4.45 0 0 1 4.45-4.45M18.45 14A4.45 4.45 0 0 1 14 18.45" />
-        <path className="musicBeam" d="M16.8 7.65v9.05" />
-        <path className="musicFlag" d="M16.8 7.65c2.38.22 3.98.82 4.82 1.82v2.58c-.98-.78-2.58-1.28-4.82-1.52" />
-        <ellipse className="musicNoteHead" cx="13.1" cy="17.6" rx="2.75" ry="1.9" transform="rotate(-18 13.1 17.6)" />
-        <path className="musicGlint" d="M21.75 4.9l.42 1.12 1.12.42-1.12.42-.42 1.12-.42-1.12-1.12-.42 1.12-.42.42-1.12Z" />
+        <path className="musicNoteStem" d="M17.8 6.2v12.05" />
+        <path className="musicNoteFlag" d="M17.8 6.2c2.45.38 4.22 1.05 5.3 2.02v3.08c-1.18-.9-2.95-1.52-5.3-1.88" />
+        <ellipse className="musicNoteHead" cx="12.25" cy="19.15" rx="4.15" ry="2.7" transform="rotate(-18 12.25 19.15)" />
+        <path className="musicNoteCut" d="M10.1 19.4c1.25-.5 2.55-.66 3.9-.44" />
+        <path className="musicNoteSpark" d="M22.45 4.55l.48 1.3 1.3.48-1.3.48-.48 1.3-.48-1.3-1.3-.48 1.3-.48.48-1.3Z" />
       </svg>
     </span>
   );
@@ -3166,7 +3202,8 @@ const [screen, setScreen] = useState("home");
   const [missingReport, setMissingReport] = useState(null);
   const [gridSize, setGridSize] = useState("normal");
   const [albumQuery, setAlbumQuery] = useState("");
-    const [albumCreateOpen, setAlbumCreateOpen] = useState(false);
+  const [albumSearchOpen, setAlbumSearchOpen] = useState(false);
+  const [albumCreateOpen, setAlbumCreateOpen] = useState(false);
   const [currentAlbumId, setCurrentAlbumId] = useState("");
 const [albumSort, setAlbumSort] = useState("recent");
   const [visibleIds, setVisibleIds] = useState([]);
@@ -3227,6 +3264,7 @@ const [albumSort, setAlbumSort] = useState("recent");
       setCurrentAlbumId(String(group.sourceId));
       setAlbumQuery("");
       setAlbumCreateOpen(false);
+      setAlbumSearchOpen(false);
       setScreen("home");
       setActiveGroup(null);
       return;
@@ -4350,7 +4388,7 @@ async function handleUpload(eventOrFiles) {
           <motion.div key={key} className="screen" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16 }}>
             {screen === "home" ? (
               <Glass className={"shell grid-" + gridSize + (settingsOpen || filterControlsOpen || importPanelOpen || uploadQueueOpen || statusOpen || duplicatesOpen || healthOpen ? " has-panel-open" : "")}>
-                <ControlBar activePage={activePage} archive={archive} archiveFilter={archiveFilter} setArchiveFilter={setArchiveFilter} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} filterControlsOpen={filterControlsOpen} toggleFilterControls={function () { setFilterControlsOpen(function (value) { return !value; }); }} settingsOpen={settingsOpen} toggleSettingsPanel={function () { setSettingsOpen(function (value) { return !value; }); }} />
+                <ControlBar activePage={activePage} archive={archive} archiveFilter={archiveFilter} setArchiveFilter={setArchiveFilter} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} filterControlsOpen={filterControlsOpen} toggleFilterControls={function () { setFilterControlsOpen(function (value) { return !value; }); }} settingsOpen={settingsOpen} toggleSettingsPanel={function () { setSettingsOpen(function (value) { return !value; }); }} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchOpen} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateOpen} />
                 <div className="floatingUtilityCluster">
                   <span className="utilityFileCount" aria-label={safeArray(memories).length + " files"}>{safeArray(memories).length} FILES</span>
                   <div className="floatingUtilityRail" aria-label="Quick actions">
@@ -4379,7 +4417,7 @@ async function handleUpload(eventOrFiles) {
                 <DuplicatePanel open={duplicatesOpen} memories={uploadPendingItems.concat(safeArray(memories))} close={function () { setDuplicatesOpen(false); }} openMemory={setActiveMemory} trashDuplicateOthers={trashDuplicateOthers} />
                 <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} repairIndex={repairIndex} />
                 <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { setBulkMoreOpen(function (value) { return !value; }); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkRefilter={bulkMarkRefilter} bulkClearRefilter={bulkClearRefilter} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDelete={bulkDelete} clearSelection={clearSelection} />
-                {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateOpen} archiveFilter={archiveFilter} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
+                {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchOpen} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateOpen} archiveFilter={archiveFilter} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
                 {activePage === "mirror" ? <MirrorFilter mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={uploadPendingItems.concat(safeArray(memories))} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
                 {activePage === "search" ? <SearchFilter memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={setAdvancedSearchOpen} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { setPzVideoPlayerId(memory.id); }} /> : null}
               </Glass>

@@ -12031,3 +12031,554 @@ svg.photozDockIcon {
   place-items: center;
   color: rgba(0,0,0,.34);
 }
+
+/* PHOTOZ final prestige/corner pass: compact corner controls, deliberate X empty marker, dropdown filters, larger dock. */
+.photozProUI .shell {
+  padding: 11px 12px 12px;
+}
+
+.photozProUI.page-albums .controlBar {
+  margin: 0 0 5px;
+  padding: 4px;
+  border-radius: 13px;
+}
+
+.photozProUI .controlBar .leftControls,
+.photozProUI .controlBar .modeBar {
+  gap: 4px;
+}
+
+.photozProUI .controlBar button {
+  height: 29px;
+  min-height: 29px;
+  padding: 0 9px;
+  border-radius: 9px;
+  font-size: 10.5px;
+}
+
+.photozProUI.page-search .pageScroll,
+.photozProUI.page-mirror .pageScroll,
+.photozProUI.page-albums .pageScroll {
+  padding-top: 2px;
+  padding-right: 4px;
+}
+
+.photozProUI .albumControlsRow {
+  width: min(315px, calc(100vw - 88px));
+  gap: 6px;
+  margin: 4px 0 6px;
+}
+
+.photozProUI .albumSearchOnly input,
+.photozProUI .searchPage .librarySearchBar input {
+  height: 32px;
+  min-height: 32px;
+}
+
+.photozProUI .newAlbumTrigger {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+}
+
+.searchControlRow {
+  width: min(440px, calc(100vw - 92px));
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 7px;
+  overflow: visible;
+}
+
+.photozProUI .searchPage .librarySearchBar {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  height: 34px;
+  min-height: 34px;
+  margin: 0;
+  padding: 4px 10px;
+  border-radius: 14px;
+}
+
+.searchFilterDropdown {
+  position: relative;
+  flex: 0 0 auto;
+  overflow: visible;
+  z-index: 30;
+}
+
+.searchFilterTrigger {
+  height: 34px;
+  min-height: 34px;
+  min-width: 78px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 10px;
+  border-radius: 14px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .11em;
+  color: rgba(0,0,0,.54);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.05)),
+    rgba(0,0,0,.026);
+  border: 1px solid rgba(255,255,255,.34);
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.075),
+    inset 0 1px 0 rgba(255,255,255,.36);
+}
+
+.searchFilterTrigger.active,
+.searchFilterTrigger:hover {
+  color: rgba(0,0,0,.72);
+  transform: translateY(-1px);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.26), rgba(255,255,255,.08)),
+    rgba(255,255,255,.05);
+}
+
+.searchFilterMenu {
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  min-width: 112px;
+  display: grid;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 15px;
+  background:
+    linear-gradient(180deg, rgba(245,245,245,.28), rgba(245,245,245,.09)),
+    rgba(190,190,190,.16);
+  border: 1px solid rgba(255,255,255,.42);
+  box-shadow:
+    0 18px 46px rgba(0,0,0,.14),
+    inset 0 1px 0 rgba(255,255,255,.45);
+  backdrop-filter: blur(18px) saturate(1.12);
+  -webkit-backdrop-filter: blur(18px) saturate(1.12);
+}
+
+.searchFilterMenu button {
+  height: 28px;
+  min-height: 28px;
+  padding: 0 9px;
+  border-radius: 11px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .1em;
+  color: rgba(0,0,0,.50);
+  text-align: left;
+}
+
+.searchFilterMenu button.active,
+.searchFilterMenu button:hover {
+  color: rgba(0,0,0,.78);
+  background: rgba(255,255,255,.20);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.32);
+}
+
+.photozProUI .emptyState,
+.photozProUI .searchPage .emptyState,
+.photozProUI .mirrorPage .emptyState {
+  width: fit-content;
+  min-width: 118px;
+  max-width: 260px;
+  margin: 13px auto 0;
+  padding: 10px 14px 11px;
+  display: inline-grid;
+  place-items: center;
+  gap: 3px;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.11), rgba(255,255,255,.025)),
+    rgba(0,0,0,.015);
+  border: 1px solid rgba(255,255,255,.24);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.25);
+}
+
+.photozProUI .emptyStateX {
+  display: block;
+  font-size: 25px;
+  line-height: .88;
+  font-weight: 350;
+  letter-spacing: 0;
+  color: rgba(0,0,0,.30);
+  margin-bottom: 2px;
+}
+
+.photozProUI .emptyState strong {
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: .16em;
+  color: rgba(0,0,0,.42);
+}
+
+.photozProUI .emptyState span:not(.emptyStateX) {
+  max-width: 210px;
+  font-size: 7.5px;
+  line-height: 1.25;
+  font-weight: 750;
+  letter-spacing: .045em;
+  color: rgba(0,0,0,.30);
+}
+
+.photozProUI .floatingUtilityCluster {
+  top: 16px;
+  right: 18px;
+  gap: 7px;
+}
+
+.photozProUI .floatingUtilityCluster > .utilityFileCount {
+  font-size: 8px;
+  letter-spacing: .12em;
+  color: rgba(0,0,0,.42);
+}
+
+.photozProUI .floatingUtilityCluster > .floatingUtilityRail {
+  height: 36px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.photozProUI .floatingUtilityRail .utilityRailButton,
+.photozProUI .floatingUtilityRail button {
+  width: 29px;
+  min-width: 29px;
+  height: 29px;
+  min-height: 29px;
+}
+
+.musicUtilityIcon,
+.musicUtilityIcon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.musicUtilityIcon .musicNoteStem,
+.musicUtilityIcon .musicNoteFlag,
+.musicUtilityIcon .musicNoteCut {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.musicUtilityIcon .musicNoteStem {
+  stroke-width: 2.05;
+  opacity: .92;
+}
+
+.musicUtilityIcon .musicNoteFlag {
+  stroke-width: 1.72;
+  opacity: .86;
+}
+
+.musicUtilityIcon .musicNoteCut {
+  stroke-width: 1.18;
+  opacity: .32;
+}
+
+.musicUtilityIcon .musicNoteHead,
+.musicUtilityIcon .musicNoteSpark {
+  fill: currentColor;
+  stroke: none;
+}
+
+.musicUtilityIcon .musicNoteHead {
+  opacity: .95;
+}
+
+.musicUtilityIcon .musicNoteSpark {
+  opacity: .68;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: photozMusicGlint 2.9s ease-in-out infinite;
+}
+
+.photozProUI .dockWrap {
+  bottom: 18px;
+  z-index: 150;
+}
+
+.photozProUI .dock.bottomDock {
+  min-width: 232px;
+  height: 66px;
+  min-height: 66px;
+  padding: 7px;
+  gap: 8px;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,.075)),
+    rgba(15,15,15,.055);
+  border: 1px solid rgba(255,255,255,.48);
+  box-shadow:
+    0 24px 70px rgba(0,0,0,.25),
+    0 8px 22px rgba(0,0,0,.13),
+    inset 0 1px 0 rgba(255,255,255,.62),
+    inset 0 -1px 0 rgba(0,0,0,.16);
+}
+
+.photozProUI .dockButton,
+.photozProUI .dock.bottomDock button,
+.photozProUI .dock .dockButton {
+  min-width: 58px;
+  width: 58px;
+  max-width: 58px;
+  height: 52px;
+  min-height: 52px;
+  max-height: 52px;
+  border-radius: 999px;
+  color: rgba(0,0,0,.64);
+  transition: transform .18s ease, color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+
+.photozProUI .dockButton:hover {
+  transform: translateY(-3px) scale(1.035);
+  color: rgba(0,0,0,.82);
+  background: rgba(255,255,255,.16);
+}
+
+.photozProUI .dockButton.active {
+  min-width: 64px;
+  width: 64px;
+  max-width: 64px;
+  height: 52px;
+  color: rgba(0,0,0,.90);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.34), rgba(255,255,255,.13)),
+    rgba(255,255,255,.08);
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.16),
+    inset 0 1px 0 rgba(255,255,255,.66),
+    inset 0 -1px 0 rgba(0,0,0,.13);
+}
+
+.photozProUI .dock .photozDockIcon,
+.photozProUI .dock svg.photozDockIcon,
+.photozDockIcon,
+.dock .photozDockIcon,
+.bottomDock .photozDockIcon,
+nav.bottomDock .photozDockIcon,
+svg.photozDockIcon {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  stroke-width: 1.75;
+  overflow: visible;
+}
+
+.photozDockIcon .bookShadow {
+  fill: none;
+  stroke: currentColor;
+  opacity: .22;
+  stroke-width: 1.2;
+}
+
+.photozDockIcon .bookCover {
+  fill: rgba(0,0,0,.055);
+  stroke: currentColor;
+  stroke-width: 1.55;
+}
+
+.photozDockIcon .bookPage,
+.photozDockIcon .bookSpine,
+.photozDockIcon .bookFlipPage {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.35;
+}
+
+.photozDockIcon .bookFlipPage {
+  fill: rgba(0,0,0,.035);
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: photozPrestigeBookFlip 3.4s cubic-bezier(.42,0,.2,1) infinite;
+}
+
+.photozDockIcon .eyeTop,
+.photozDockIcon .eyeBottom,
+.photozDockIcon .lash,
+.photozDockIcon .irisRing {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+}
+
+.photozDockIcon .lash {
+  stroke-width: 1.45;
+  opacity: .72;
+}
+
+.photozDockIcon .irisRing {
+  opacity: .42;
+  stroke-width: 1.25;
+}
+
+.photozDockIcon .iris,
+.photozDockIcon .pupilGlint,
+.photozDockIcon .spark {
+  fill: currentColor;
+  stroke: none;
+}
+
+.photozDockIcon .eyeTop {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: photozPrestigeEyeBlink 4.2s ease-in-out infinite;
+}
+
+.photozDockIcon .lensOuter,
+.photozDockIcon .lensInner,
+.photozDockIcon .handle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.72;
+}
+
+.photozDockIcon .lensInner {
+  opacity: .30;
+  stroke-width: 1.05;
+}
+
+.photozDockIcon .spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: photozPrestigeSearchSpark 2.9s ease-in-out infinite;
+}
+
+.photozDockIcon .spark.small {
+  animation-delay: .75s;
+  opacity: .58;
+}
+
+@keyframes photozPrestigeBookFlip {
+  0%, 54%, 100% { transform: perspective(80px) rotateY(0deg); opacity: .70; }
+  18% { transform: perspective(80px) rotateY(-48deg) skewY(-3deg); opacity: .98; }
+  34% { transform: perspective(80px) rotateY(18deg) skewY(1deg); opacity: .85; }
+}
+
+@keyframes photozPrestigeEyeBlink {
+  0%, 74%, 100% { transform: scaleY(1); }
+  80% { transform: translateY(2px) scaleY(.16); }
+  86% { transform: scaleY(1); }
+}
+
+@keyframes photozPrestigeSearchSpark {
+  0%, 63%, 100% { transform: scale(.68) rotate(0deg); opacity: .32; }
+  16% { transform: scale(1.14) rotate(18deg); opacity: .95; }
+  31% { transform: scale(.86) rotate(28deg); opacity: .62; }
+}
+
+.photozProUI .dockButton[data-tooltip]::after {
+  top: -48px;
+  height: 24px;
+  padding: 0 10px;
+  font-size: 7.5px;
+  color: rgba(0,0,0,.62);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.32), rgba(255,255,255,.13)),
+    rgba(235,235,235,.22);
+}
+
+/* PHOTOZ album search collapse pass: search and create live beside archive tabs. */
+.photozProUI.page-albums .controlBar {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: calc(100% - 210px);
+  margin: 0 0 4px;
+  padding: 4px;
+  overflow: visible;
+}
+
+.photozProUI .controlBar .leftControls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: visible;
+}
+
+.photozProUI .controlBar .modeBar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.albumInlineActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 2px;
+  overflow: visible;
+}
+
+.albumSearchToggle,
+.albumQuickCreate {
+  width: 31px;
+  min-width: 31px;
+  height: 29px;
+  min-height: 29px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.albumSearchToggle svg {
+  width: 15px;
+  height: 15px;
+}
+
+.albumSearchToggle.active,
+.albumQuickCreate.active {
+  color: rgba(0,0,0,.78);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.25), rgba(255,255,255,.08)),
+    rgba(255,255,255,.055);
+  box-shadow:
+    0 8px 20px rgba(0,0,0,.09),
+    inset 0 1px 0 rgba(255,255,255,.42),
+    inset 0 -1px 0 rgba(0,0,0,.08);
+}
+
+.photozProUI .albumControlsRow {
+  width: min(360px, calc(100vw - 96px));
+  margin: 2px 0 5px;
+  gap: 5px;
+}
+
+.photozProUI .albumSearchOnly {
+  width: 100%;
+  padding: 4px;
+  border-radius: 13px;
+}
+
+.photozProUI .albumSearchOnly input {
+  height: 30px;
+  min-height: 30px;
+  border-radius: 9px;
+  font-size: 9px;
+  letter-spacing: .08em;
+}
+
+.photozProUI .newAlbumPanel {
+  flex-basis: 100%;
+  padding: 4px;
+  gap: 5px;
+  border-radius: 13px;
+}
+
+.photozProUI .newAlbumPanel input,
+.photozProUI .newAlbumPanel button {
+  height: 30px;
+  min-height: 30px;
+  border-radius: 9px;
+}
