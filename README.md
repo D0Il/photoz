@@ -125,3 +125,6 @@ Added:
 - Restored dock from stable layout: bottom-center horizontal dock with visible animated icons; kept file count as plain top-right status text instead of moving it into controls.
 
 - Fixed silent uploads: selecting files now immediately shows an upload status and pending cards; failed uploads show UPLOAD FAILED instead of doing nothing.
+
+- Fixed upload-feedback runtime TDZ crash by removing displayMemories before memories initialization; pending uploads now merge inline at render time.
+- Changed album tab labels to singular: PHOTO ALBUM, YEAR, MONTH, ERA.
