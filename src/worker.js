@@ -141,7 +141,7 @@ function getConfiguredPassword(env) {
   return String((env && env.PHOTOZ_ACCESS_CODE) || "").trim();
 }
 
-async async function handleUnlock(request, env) {
+async function handleUnlock(request, env) {
   const configured = String(getConfiguredPassword(env) || "").trim();
   let supplied = "";
   try {
