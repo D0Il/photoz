@@ -789,3 +789,17 @@ Fixed:
 - Album/search/mirror helpers guard array operations.
 - Removed shipped console assertions.
 - `/favicon.ico` returns 204 instead of triggering worker errors.
+
+## Final combined API + UI fix
+Includes:
+- API/index crash protection.
+- Arrays normalized so `.filter()` cannot crash on undefined.
+- Dock restored as a rounded pill.
+- View/Tools removed from main toolbar and moved to tiny utility rail.
+- Search bars and album create row reduced.
+- Headers reduced.
+- Album cards widened and shortened.
+- Mirror bar made compact.
+- Cluttered search copy shortened.
+- System shortcuts stay out of album cards.
+- No `!important`.

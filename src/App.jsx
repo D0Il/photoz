@@ -1596,8 +1596,6 @@ function ControlBar(props) {
       </div>
       <div className="rightControls">
         <button type="button" className={props.selectionMode ? "selectModeButton active" : "selectModeButton"} onClick={props.toggleSelectionMode}>{props.selectionMode ? "DONE" : "SELECT"}</button>
-        <button type="button" className={props.viewControlsOpen ? "selectModeButton active" : "selectModeButton"} onClick={props.toggleViewControls}>View</button>
-        <button type="button" className={props.toolsOpen ? "selectModeButton active" : "selectModeButton"} onClick={props.toggleToolsPanel}>Tools</button>
         <UploadButton onUpload={props.onUpload} />
         <UploadButton onUpload={props.onUpload} folder />
       </div>
@@ -1836,10 +1834,10 @@ function SearchView(props) {
       ) : null}
 
       <div className="searchMeta">
-        <span>SEARCHES FILES, ALBUMS, DATES, TAGS, ALBUMS, MIRROR, ME, AND STATUS.</span>
+        <span>Find photos.</span>
       </div>
 
-      {!results.length ? <EmptyState title={active ? "NO RESULTS" : "SEARCH"}>{active ? "Nothing matched this search." : "Search files, albums, dates, metadata, ME, Mirror, and upload status."}</EmptyState> : null}
+      {!results.length ? <EmptyState title={active ? "NO RESULTS" : "SEARCH"}>{active ? "Nothing matched this search." : "Find photos."}</EmptyState> : null}
       <div className="photoGrid">
         {results.map(function (memory) {
           return <PhotoCard key={memory.id} memory={memory} showText selectionMode={props.selectionMode} selected={props.selectedIds && props.selectedIds[memory.id]} toggleSelected={props.toggleSelected} isStarred={props.starredIds && props.starredIds[memory.id]} onDelete={props.deleteMemory} onClick={function () { props.openMemory(memory); }} />;
@@ -3191,6 +3189,10 @@ export default function App() {
                   <em>{memories.length} files</em>
                 </div>
                 <ControlBar archive={archive} archiveView={archiveView} setArchiveView={setArchiveView} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} viewControlsOpen={viewControlsOpen} toggleViewControls={function () { setViewControlsOpen(function (value) { return !value; }); }} toolsOpen={toolsOpen} toggleToolsPanel={function () { setToolsOpen(function (value) { return !value; }); }} />
+                <div className="floatingUtilityRail">
+                  <button type="button" className={viewControlsOpen ? "active" : ""} onClick={function () { setViewControlsOpen(function (value) { return !value; }); }}>View</button>
+                  <button type="button" className={toolsOpen ? "active" : ""} onClick={function () { setToolsOpen(function (value) { return !value; }); }}>Tools</button>
+                </div>
                 <ViewPanel open={viewControlsOpen} close={function () { setViewControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveView === "albums"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize} />
                 <UndoBar snapshot={undoSnapshot} undo={undoLastAction} clear={function () { setUndoSnapshot(null); }} />
                 <ToolsPanel open={toolsOpen} close={function () { setToolsOpen(false); }} toggleImportPanel={function () { setImportPanelOpen(function (value) { return !value; }); }} toggleUploadQueuePanel={function () { setUploadQueueOpen(function (value) { return !value; }); }} toggleStatusPanel={function () { setStatusOpen(function (value) { return !value; }); }} toggleDuplicatePanel={function () { setDuplicatesOpen(function (value) { return !value; }); }} toggleHealthPanel={function () { setHealthOpen(function (value) { return !value; }); }} exportVaultIndex={exportVaultIndex} exportManifestCsv={exportManifestCsv} importVaultIndex={importVaultIndex} />

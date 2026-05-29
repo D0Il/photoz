@@ -4025,3 +4025,359 @@ input[type="file"] {
   pointer-events: none;
   overflow: hidden;
 }
+
+
+/* FINAL COMBINED UI FIXES */
+
+/* Small editorial header, not a brick */
+.productHeader {
+  margin: 0 0 6px;
+  align-items: flex-end;
+}
+
+.productHeader strong {
+  font-size: clamp(30px, 3.7vw, 52px);
+  line-height: .88;
+  letter-spacing: -.075em;
+}
+
+.productHeader em {
+  font-size: 9px;
+  letter-spacing: .10em;
+}
+
+/* Main toolbar only has core actions */
+.controlBar {
+  width: fit-content;
+  max-width: min(760px, 100%);
+  padding: 5px;
+  gap: 4px;
+  border-radius: 13px;
+}
+
+.modeBar {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.modeBar button,
+.controlBar button,
+.uploadButton {
+  min-height: 28px;
+  height: 28px;
+  border-radius: 8px;
+  padding: 0 9px;
+  font-size: 10px;
+  letter-spacing: .02em;
+}
+
+/* View/Tools no longer clutter the toolbar */
+.floatingUtilityRail {
+  position: absolute;
+  top: clamp(18px, 2.4vw, 30px);
+  right: clamp(18px, 2.4vw, 30px);
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.026);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+  z-index: 5;
+}
+
+.floatingUtilityRail button {
+  height: 26px;
+  min-height: 26px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: 10px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.floatingUtilityRail button.active {
+  background: rgba(255,255,255,.095);
+  color: rgba(0,0,0,.70);
+}
+
+.viewDropdown,
+.viewPanel,
+.toolsDropdown,
+.toolsPanel {
+  width: min(320px, 100%);
+  margin: -4px 0 8px auto;
+  padding: 8px;
+  border-radius: 14px;
+}
+
+/* Smaller search/create rows */
+.albumEditor {
+  width: min(820px, 100%);
+  display: grid;
+  grid-template-columns: 34px minmax(180px, 1fr) minmax(180px, .9fr) auto;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 13px;
+}
+
+.albumEditor input,
+.albumEditor button,
+.albumEditor .pill {
+  min-height: 30px;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 10px;
+}
+
+.searchBar {
+  width: min(760px, 100%);
+  padding: 6px;
+  border-radius: 13px;
+}
+
+.searchBar input {
+  min-height: 36px;
+  height: 36px;
+  border-radius: 9px;
+  font-size: 11px;
+}
+
+.searchMeta,
+.searchPage .searchMeta {
+  max-width: 520px;
+  color: rgba(0,0,0,.34);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .04em;
+}
+
+/* Album cards should be cover-like, not skinny */
+.albumGrid.folderView,
+.albumGrid {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+  align-items: stretch;
+}
+
+.albumTile,
+.groupCard {
+  min-height: 230px;
+  max-height: none;
+  border-radius: 22px;
+  padding: 14px;
+  display: grid;
+  grid-template-rows: minmax(118px, 1fr) auto;
+  align-content: stretch;
+}
+
+.albumTile .emptyCard,
+.groupCard .emptyCard,
+.groupPreviewGrid {
+  min-height: 130px;
+  aspect-ratio: 16 / 10;
+  width: 100%;
+  border-radius: 17px;
+}
+
+.groupGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(62px, 1fr);
+  gap: 7px;
+  min-height: 132px;
+}
+
+.groupGrid .emptyCard {
+  grid-column: 1 / -1;
+  min-height: 132px;
+}
+
+.groupGrid .photoCard {
+  min-height: 74px;
+  border-radius: 13px;
+}
+
+.groupTitle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.groupTitle strong {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Mirror bar compact, not chunky */
+.mirrorControl,
+.mirrorPage .modeBar,
+.mirrorPage .searchFilters,
+.mirrorPage .groupTop {
+  width: fit-content;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.024);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16);
+}
+
+.mirrorControl button,
+.mirrorPage .modeBar button,
+.mirrorPage .searchFilters button,
+.mirrorPage .groupTop button {
+  min-height: 26px;
+  height: 26px;
+  border-radius: 8px;
+  padding: 0 8px;
+  font-size: 10px;
+  letter-spacing: .01em;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Dock restored as a pill */
+.dockWrap {
+  position: fixed;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 80;
+  width: auto;
+  border: 0;
+  background: transparent;
+}
+
+.dock {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: auto;
+  padding: 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.34);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.105), rgba(255,255,255,.035)),
+    rgba(255,255,255,.07);
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.16),
+    inset 0 1px 0 rgba(255,255,255,.34),
+    inset 0 -1px 0 rgba(0,0,0,.10);
+  backdrop-filter: blur(14px) saturate(1.1);
+}
+
+.dock button,
+.dockButton {
+  min-width: 54px;
+  min-height: 40px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  box-shadow: none;
+  padding: 4px 8px;
+}
+
+.dock button.active,
+.dockButton.active {
+  background: rgba(255,255,255,.16);
+  border-color: rgba(0,0,0,.20);
+}
+
+/* System shortcut rail only */
+.systemRail {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.systemRailItem {
+  all: unset;
+  box-sizing: border-box;
+  height: 26px;
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border-radius: 7px;
+  border: 1px solid rgba(0,0,0,.075);
+  background: rgba(255,255,255,.03);
+  color: rgba(0,0,0,.48);
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.systemFolderStrip,
+.systemFolderBadge {
+  display: none;
+}
+
+input[type="file"] {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+@media (max-width: 980px) {
+  .albumGrid.folderView,
+  .albumGrid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .floatingUtilityRail {
+    position: static;
+    width: fit-content;
+    margin-left: auto;
+  }
+
+  .albumEditor {
+    grid-template-columns: 34px 1fr;
+  }
+
+  .albumEditor button {
+    grid-column: 2;
+  }
+
+  .controlBar {
+    width: 100%;
+  }
+}
+
+@media (max-width: 620px) {
+  .albumGrid.folderView,
+  .albumGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .albumTile,
+  .groupCard {
+    min-height: 220px;
+  }
+
+  .mirrorControl,
+  .mirrorPage .modeBar,
+  .mirrorPage .searchFilters,
+  .mirrorPage .groupTop {
+    width: 100%;
+  }
+}
