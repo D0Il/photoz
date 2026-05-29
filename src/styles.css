@@ -14040,3 +14040,254 @@ svg.photozDockIcon {
   letter-spacing: .12em;
   color: rgba(90,0,0,.68);
 }
+
+
+/* PHOTOZ menu/music cleanup 2026-05-29: polished real controls, no crude popover stacks. */
+.refinedMusicNoteIcon,
+.refinedMusicNoteIcon svg,
+.musicUtilityIcon,
+.musicUtilityIcon svg {
+  width: 19px;
+  height: 19px;
+  display: block;
+  overflow: visible;
+}
+
+.refinedMusicNoteIcon .musicNoteStem,
+.refinedMusicNoteIcon .musicNoteBeam,
+.refinedMusicNoteIcon .musicNoteFlag,
+.musicUtilityIcon .musicNoteStem,
+.musicUtilityIcon .musicNoteBeam,
+.musicUtilityIcon .musicNoteFlag {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.05;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .96;
+}
+
+.refinedMusicNoteIcon .musicNoteBeam,
+.musicUtilityIcon .musicNoteBeam {
+  stroke-width: 2.2;
+}
+
+.refinedMusicNoteIcon .musicNoteFlag,
+.musicUtilityIcon .musicNoteFlag {
+  stroke-width: 1.62;
+  opacity: .64;
+}
+
+.refinedMusicNoteIcon .musicNoteHead,
+.musicUtilityIcon .musicNoteHead {
+  fill: currentColor;
+  stroke: none;
+  opacity: .98;
+}
+
+.refinedMusicNoteIcon .musicNoteShine,
+.musicUtilityIcon .musicNoteShine {
+  fill: currentColor;
+  opacity: .48;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: photozMusicShinePulse 3.1s ease-in-out infinite;
+}
+
+@keyframes photozMusicShinePulse {
+  0%, 72%, 100% { opacity: .18; transform: scale(.74) rotate(0deg); }
+  24% { opacity: .70; transform: scale(1.06) rotate(10deg); }
+}
+
+.floatingUtilityRail .ambientUtilityButton {
+  color: rgba(0,0,0,.74);
+}
+
+.floatingUtilityRail .ambientUtilityButton.active {
+  color: rgba(0,0,0,.84);
+}
+
+/* Upgrade the utility menus into crisp glass inspectors. */
+.settingsPopover,
+.filterPopover,
+.filterMenuPanel,
+.settingsMenuPanel,
+.refinedFilterMenu,
+.polishedMenuPanel {
+  width: 258px;
+  right: 24px;
+  top: 58px;
+  padding: 9px;
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,.46);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255,255,255,.28), transparent 34%),
+    linear-gradient(145deg, rgba(255,255,255,.18), rgba(255,255,255,.055) 54%, rgba(0,0,0,.035)),
+    rgba(210,210,210,.18);
+  box-shadow:
+    0 28px 78px rgba(0,0,0,.22),
+    0 2px 4px rgba(255,255,255,.18) inset,
+    0 -1px 0 rgba(0,0,0,.13) inset;
+  backdrop-filter: blur(18px) saturate(1.18);
+  -webkit-backdrop-filter: blur(18px) saturate(1.18);
+  overflow: visible;
+}
+
+.settingsPopover::before,
+.filterPopover::before,
+.filterMenuPanel::before,
+.settingsMenuPanel::before,
+.refinedFilterMenu::before,
+.polishedMenuPanel::before {
+  content: "";
+  position: absolute;
+  inset: 1px 1px auto 1px;
+  height: 42%;
+  border-radius: 21px 21px 14px 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,.24), rgba(255,255,255,0));
+  pointer-events: none;
+}
+
+.panelSection,
+.settingsMenuGroup,
+.filterMenuSection {
+  position: relative;
+  gap: 7px;
+  padding: 9px;
+  margin: 0 0 7px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.035)),
+    rgba(255,255,255,.035);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.23),
+    0 10px 26px rgba(0,0,0,.055);
+}
+
+.panelSection:last-child,
+.settingsMenuGroup:last-child,
+.filterMenuSection:last-child {
+  margin-bottom: 0;
+}
+
+.settingsMenuGroup.primary,
+.panelSection.primary {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(255,255,255,.20), transparent 45%),
+    linear-gradient(180deg, rgba(255,255,255,.15), rgba(255,255,255,.04)),
+    rgba(255,255,255,.045);
+}
+
+.panelLabel {
+  height: 12px;
+  margin: 0 0 2px;
+  padding: 0 1px;
+  font-size: 7.5px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: .18em;
+  color: rgba(0,0,0,.40);
+}
+
+.panelActionList {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.settingsPopover button,
+.settingsPopover .uploadButton,
+.settingsPopover .importButton,
+.filterPopover button,
+.filterMenuPanel button,
+.refinedFilterMenu button,
+.polishedMenuPanel button {
+  min-height: 32px;
+  height: 32px;
+  border-radius: 13px;
+  border: 1px solid rgba(255,255,255,.28);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.20), rgba(255,255,255,.065)),
+    rgba(255,255,255,.045);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.28),
+    inset 0 -1px 0 rgba(0,0,0,.07),
+    0 8px 18px rgba(0,0,0,.045);
+  color: rgba(0,0,0,.66);
+  font-size: 9.5px;
+  font-weight: 850;
+  letter-spacing: .045em;
+}
+
+.settingsPopover button svg,
+.filterPopover button svg,
+.filterMenuPanel button svg,
+.refinedFilterMenu button svg,
+.polishedMenuPanel button svg {
+  color: rgba(0,0,0,.58);
+  opacity: .95;
+}
+
+.settingsPopover button:hover,
+.settingsPopover .uploadButton:hover,
+.settingsPopover .importButton:hover,
+.filterPopover button:hover,
+.filterMenuPanel button:hover,
+.refinedFilterMenu button:hover,
+.polishedMenuPanel button:hover {
+  transform: translateY(-1px) scale(1.008);
+  border-color: rgba(255,255,255,.48);
+  color: rgba(0,0,0,.76);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.30), rgba(255,255,255,.09)),
+    rgba(255,255,255,.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.38),
+    0 12px 28px rgba(0,0,0,.08);
+}
+
+.segmentedPanelGrid,
+.segmentedPanelGrid.three {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 5px;
+}
+
+.segmentedPanelGrid button {
+  min-height: 29px;
+  height: 29px;
+  justify-content: center;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 7.5px;
+  font-weight: 900;
+  letter-spacing: .10em;
+  pointer-events: auto;
+  color: rgba(0,0,0,.52);
+}
+
+.segmentedPanelGrid button.active,
+.filterPopover button.active,
+.filterMenuPanel button.active,
+.refinedFilterMenu button.active,
+.polishedMenuPanel button.active {
+  color: rgba(0,0,0,.80);
+  border-color: rgba(255,255,255,.58);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.44), rgba(255,255,255,.13)),
+    rgba(255,255,255,.09);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.55),
+    inset 0 -1px 0 rgba(0,0,0,.08),
+    0 10px 24px rgba(0,0,0,.07);
+}
+
+/* Remove accidental native-looking tooltip boxes from menu controls. */
+.settingsPopover [data-tooltip]::after,
+.filterPopover [data-tooltip]::after,
+.filterMenuPanel [data-tooltip]::after,
+.refinedFilterMenu [data-tooltip]::after,
+.polishedMenuPanel [data-tooltip]::after {
+  display: none;
+}

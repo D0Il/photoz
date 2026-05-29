@@ -57,6 +57,7 @@ check("dock icons are svg elements, not span-wrapped nodes hidden by old dock sp
 check("dock animated icon CSS targets real dock", css.includes(".dock .photozDockIcon") && css.includes("svg.photozDockIcon") && css.includes("photozPrestigeBookFlip") && css.includes("photozPrestigeSearchSpark"));
 check("eye blink is one cohesive group, not split eyelids", dockIcons.includes("eyeBlinkGroup") && dockIcons.includes("eyeOutline") && !dockIcons.includes("eyeTop") && !dockIcons.includes("eyeBottom") && css.includes("photozUnifiedEyeBlink"));
 check("music glyph is an actual music note", app.includes("musicNoteStem") && app.includes("musicNoteFlag") && app.includes("musicNoteHead") && !app.includes("musicDisc") && css.includes(".musicUtilityIcon .musicNoteStem"));
+check("polished menu overrides are present", css.includes("PHOTOZ menu/music cleanup 2026-05-29") && css.includes(".settingsPopover::before") && css.includes(".segmentedPanelGrid button.active"));
 check("AmbientMusicControl is defined before use", app.includes("function AmbientMusicControl()") && app.includes("<AmbientMusicControl />"));
 check("PzToastStack is defined before use", app.includes("function PzToastStack(props)") && app.includes("<PzToastStack items={pzToasts} />"));
 check("PzAlbumEditorPanel is defined before use", app.includes("function PzAlbumEditorPanel(props)") && app.includes("<PzAlbumEditorPanel"));

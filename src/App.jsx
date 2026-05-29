@@ -2772,14 +2772,15 @@ function withTooltip(label) {
 function MusicUtilityIcon(props) {
   const size = props.size || 19;
   return (
-    <span className="musicUtilityIcon" aria-hidden="true" style={{ width: size, height: size }}>
+    <span className="musicUtilityIcon refinedMusicNoteIcon" aria-hidden="true" style={{ width: size, height: size }}>
       <svg viewBox="0 0 28 28" focusable="false">
-        <path className="musicNoteBeam" d="M12.4 7.15 21.2 5.35" />
-        <path className="musicNoteStem leftStem" d="M12.4 7.15v11.1" />
-        <path className="musicNoteStem rightStem" d="M21.2 5.35v10.65" />
-        <path className="musicNoteFlag" d="M12.4 9.88 21.2 8.08" />
-        <ellipse className="musicNoteHead leftHead" cx="8.75" cy="19.28" rx="3.75" ry="2.42" transform="rotate(-18 8.75 19.28)" />
-        <ellipse className="musicNoteHead rightHead" cx="17.55" cy="17.05" rx="3.75" ry="2.42" transform="rotate(-18 17.55 17.05)" />
+        <path className="musicNoteStem leftStem" d="M10.25 8.05v10.62" />
+        <path className="musicNoteStem rightStem" d="M19.25 6.55v10.25" />
+        <path className="musicNoteBeam" d="M10.25 8.05 19.25 6.55" />
+        <path className="musicNoteFlag" d="M10.25 10.72 19.25 9.22" />
+        <ellipse className="musicNoteHead leftHead" cx="7.55" cy="19.45" rx="3.24" ry="2.22" transform="rotate(-17 7.55 19.45)" />
+        <ellipse className="musicNoteHead rightHead" cx="16.55" cy="17.75" rx="3.24" ry="2.22" transform="rotate(-17 16.55 17.75)" />
+        <path className="musicNoteShine" d="M22.35 5.25l.52 1.08 1.13.43-1.13.43-.52 1.08-.52-1.08-1.13-.43 1.13-.43.52-1.08Z" />
       </svg>
     </span>
   );
