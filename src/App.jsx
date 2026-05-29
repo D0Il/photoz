@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import { FilterPanel } from "./components/FilterMenu.jsx";
 import { makeUploadPreview, makePendingUploadMemory } from "./components/UploadFlow.jsx";
-import { PhotozAlbumDockIcon, PhotozMirrorDockIcon, PhotozSearchDockIcon } from "./components/DockIcons.jsx";
+import { PhotozAlbumDockIcon, PhotozMirrorDockIcon, PhotozSearchDockIcon, AnimatedBookDockIcon, LashEyeIcon, SparkSearchDockIcon, DockAlbumGlyph, DockMirrorGlyph, DockSearchGlyph } from "./components/DockIcons.jsx";
 const UNASSIGNED_ALBUM_ID = "unassigned";
 const INITIAL_ALBUMS = [
   { id: UNASSIGNED_ALBUM_ID, title: "UNASSIGNED", memoryIds: [] },

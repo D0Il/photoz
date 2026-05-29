@@ -152,3 +152,5 @@ npx wrangler deploy --dry-run
 - Fixed regression: 0 FILES is now beside the music/utility controls as plain text, and dock animated symbols are restored with explicit icon components/CSS.
 
 - Cleaned music/settings/filter/tooltip regressions: polished music icon, removed redundant menu headers, restored dock tooltips, and raised tooltip layering above glass UI.
+
+- Fixed crash from leftover LashEyeIcon reference by exporting all dock aliases. Removed duplicate file counts and kept exactly one plain utility count beside music. Restored dock icon exports and CSS.

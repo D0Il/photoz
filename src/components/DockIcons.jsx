@@ -47,3 +47,10 @@ export function PhotozSearchDockIcon(props) {
     </span>
   );
 }
+
+export const AnimatedBookDockIcon = PhotozAlbumDockIcon;
+export const LashEyeIcon = PhotozMirrorDockIcon;
+export const SparkSearchDockIcon = PhotozSearchDockIcon;
+export const DockAlbumGlyph = PhotozAlbumDockIcon;
+export const DockMirrorGlyph = PhotozMirrorDockIcon;
+export const DockSearchGlyph = PhotozSearchDockIcon;
