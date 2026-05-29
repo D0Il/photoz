@@ -12582,3 +12582,532 @@ svg.photozDockIcon {
   min-height: 30px;
   border-radius: 9px;
 }
+
+/* FINAL USER CORRECTION PASS: intentional placement, symbols, glass detail */
+.photozProUI .shell {
+  padding-top: 26px;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.photozProUI .productHeader {
+  margin-bottom: 8px;
+}
+
+/* Keep archive tabs as the only segmented bubble. Search/+ are separate action buttons beside it. */
+.photozProUI.page-albums .controlBar {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: calc(100% - 210px);
+  margin: 0 0 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  overflow: visible;
+}
+
+.photozProUI .controlBar .leftControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  overflow: visible;
+}
+
+.photozProUI .controlBar .modeBar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 15px;
+  border: 1px solid rgba(255,255,255,.25);
+  background:
+    radial-gradient(circle at 16% 0%, rgba(255,255,255,.16), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,.105), rgba(255,255,255,.030)),
+    rgba(255,255,255,.026);
+  box-shadow:
+    0 12px 28px rgba(0,0,0,.075),
+    inset 0 1px 0 rgba(255,255,255,.28),
+    inset 0 -1px 0 rgba(0,0,0,.050);
+  backdrop-filter: blur(12px) saturate(1.08);
+  -webkit-backdrop-filter: blur(12px) saturate(1.08);
+}
+
+.albumInlineActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.albumSearchToggle,
+.albumQuickCreate {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.26);
+  background:
+    radial-gradient(circle at 50% 10%, rgba(255,255,255,.18), transparent 55%),
+    linear-gradient(180deg, rgba(255,255,255,.090), rgba(255,255,255,.026)),
+    rgba(255,255,255,.024);
+  box-shadow:
+    0 8px 18px rgba(0,0,0,.060),
+    inset 0 1px 0 rgba(255,255,255,.27),
+    inset 0 -1px 0 rgba(0,0,0,.045);
+  backdrop-filter: blur(10px) saturate(1.08);
+  -webkit-backdrop-filter: blur(10px) saturate(1.08);
+  font-size: 14px;
+  color: rgba(0,0,0,.58);
+}
+
+.albumSearchToggle svg {
+  width: 15px;
+  height: 15px;
+}
+
+.albumSearchToggle.active,
+.albumQuickCreate.active {
+  color: rgba(0,0,0,.78);
+  border-color: rgba(255,255,255,.40);
+  background:
+    radial-gradient(circle at 50% 8%, rgba(255,255,255,.26), transparent 58%),
+    linear-gradient(180deg, rgba(255,255,255,.19), rgba(255,255,255,.060)),
+    rgba(255,255,255,.044);
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.090),
+    inset 0 1px 0 rgba(255,255,255,.42),
+    inset 0 -1px 0 rgba(0,0,0,.060);
+}
+
+/* Top-right rail stays inside the frame, aligned and pretty. */
+.photozProUI .floatingUtilityCluster {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 70;
+}
+
+.photozProUI .utilityFileCount {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 850;
+  letter-spacing: .13em;
+  color: rgba(0,0,0,.38);
+  white-space: nowrap;
+}
+
+.photozProUI .floatingUtilityRail {
+  position: static;
+  top: auto;
+  right: auto;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.26);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255,255,255,.17), transparent 36%),
+    linear-gradient(180deg, rgba(255,255,255,.105), rgba(255,255,255,.030)),
+    rgba(255,255,255,.026);
+  box-shadow:
+    0 12px 28px rgba(0,0,0,.085),
+    inset 0 1px 0 rgba(255,255,255,.30),
+    inset 0 -1px 0 rgba(0,0,0,.050);
+  backdrop-filter: blur(13px) saturate(1.10);
+  -webkit-backdrop-filter: blur(13px) saturate(1.10);
+}
+
+/* X means empty. No bloat text. */
+.emptyState.emptyStateXOnly,
+.searchPage .emptyState.emptyStateXOnly,
+.mirrorPage .emptyState.emptyStateXOnly {
+  min-height: 168px;
+  height: 168px;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.emptyState.emptyStateXOnly .emptyStateX {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  font-family: Georgia, "Times New Roman", ui-serif, serif;
+  font-size: 31px;
+  line-height: 1;
+  font-weight: 400;
+  letter-spacing: -.045em;
+  color: rgba(0,0,0,.28);
+  border: 1px solid rgba(255,255,255,.24);
+  background:
+    radial-gradient(circle at 50% 10%, rgba(255,255,255,.18), transparent 60%),
+    linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.020)),
+    rgba(255,255,255,.018);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.24),
+    0 12px 28px rgba(0,0,0,.045);
+}
+
+.emptyState.emptyStateXOnly strong,
+.emptyState.emptyStateXOnly span:not(.emptyStateX),
+.emptyState.emptyStateXOnly p {
+  display: none;
+}
+
+/* Counter shortcut chips must remain symbols/icons, not text titles. */
+.systemRailItem.iconShortcut {
+  width: auto;
+  min-width: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 10px;
+}
+
+.systemRailItem.iconShortcut span:first-child {
+  min-width: 14px;
+  height: 14px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 900;
+  color: rgba(0,0,0,.56);
+}
+
+.systemRailItem.iconShortcut em {
+  margin: 0;
+  min-width: 10px;
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 850;
+  color: rgba(0,0,0,.38);
+}
+
+/* Menus: cleaner panels with nicer grouped controls. */
+.polishedMenuPanel.settingsMenuPanel,
+.polishedMenuPanel.filterMenuPanel {
+  width: 286px;
+  padding: 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,.28);
+  background:
+    radial-gradient(circle at 16% 0%, rgba(255,255,255,.20), transparent 38%),
+    linear-gradient(180deg, rgba(255,255,255,.115), rgba(255,255,255,.034)),
+    rgba(255,255,255,.032);
+  box-shadow:
+    0 24px 58px rgba(0,0,0,.15),
+    inset 0 1px 0 rgba(255,255,255,.34),
+    inset 0 -1px 0 rgba(0,0,0,.060);
+  backdrop-filter: blur(19px) saturate(1.14);
+  -webkit-backdrop-filter: blur(19px) saturate(1.14);
+}
+
+.polishedMenuPanel .panelSection {
+  display: grid;
+  gap: 7px;
+  padding: 0 0 10px;
+  margin: 0 0 10px;
+  border-bottom: 1px solid rgba(255,255,255,.14);
+}
+
+.polishedMenuPanel .panelSection:last-child {
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border-bottom: 0;
+}
+
+.polishedMenuPanel .panelLabel {
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: .16em;
+  color: rgba(0,0,0,.32);
+  padding-left: 2px;
+}
+
+.panelActionList,
+.segmentedPanelGrid {
+  display: grid;
+  gap: 6px;
+}
+
+.segmentedPanelGrid.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.polishedMenuPanel button,
+.polishedMenuPanel .uploadButton,
+.polishedMenuPanel .importButton {
+  min-height: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 0 11px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.20);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.080), rgba(255,255,255,.024)),
+    rgba(255,255,255,.024);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.22),
+    0 7px 15px rgba(0,0,0,.030);
+  color: rgba(0,0,0,.58);
+  font-size: 10px;
+  font-weight: 850;
+  text-align: left;
+}
+
+.polishedMenuPanel .segmentedPanelGrid button {
+  min-height: 30px;
+  height: 30px;
+  justify-content: center;
+  padding: 0 6px;
+  border-radius: 10px;
+  font-size: 9px;
+}
+
+.polishedMenuPanel button:hover,
+.polishedMenuPanel .uploadButton:hover,
+.polishedMenuPanel .importButton:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255,255,255,.36);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.040)),
+    rgba(255,255,255,.036);
+}
+
+.polishedMenuPanel button.active {
+  color: rgba(0,0,0,.75);
+  border-color: rgba(255,255,255,.42);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.22), transparent 64%),
+    linear-gradient(180deg, rgba(255,255,255,.19), rgba(255,255,255,.060)),
+    rgba(255,255,255,.044);
+}
+
+/* Prestige dock: bigger glass, stronger symbols, refined motion. */
+.photozProUI .dock {
+  min-width: 246px;
+  height: 62px;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 32px;
+  border: 1px solid rgba(255,255,255,.34);
+  background:
+    radial-gradient(circle at 16% 0%, rgba(255,255,255,.25), transparent 38%),
+    radial-gradient(circle at 82% 110%, rgba(255,255,255,.10), transparent 42%),
+    linear-gradient(180deg, rgba(255,255,255,.145), rgba(255,255,255,.043)),
+    rgba(255,255,255,.052);
+  box-shadow:
+    0 24px 58px rgba(0,0,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.44),
+    inset 0 -1px 0 rgba(0,0,0,.085);
+  backdrop-filter: blur(19px) saturate(1.14);
+  -webkit-backdrop-filter: blur(19px) saturate(1.14);
+}
+
+.photozProUI .dock button,
+.photozProUI .dockButton {
+  width: 70px;
+  height: 46px;
+  min-width: 70px;
+  min-height: 46px;
+  border-radius: 23px;
+}
+
+.photozProUI .dock svg,
+.photozProUI .dockButton svg {
+  width: 24px;
+  height: 24px;
+}
+
+.photozDockIcon .bookFlipPage {
+  animation: none;
+}
+
+.photozDockIcon .bookPageLayer {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .64;
+  animation: photozBookPageBreath 4.8s ease-in-out infinite;
+}
+
+.photozDockIcon .bookPageLayer.layerTwo,
+.photozDockIcon .bookPageLayer.layerFour {
+  animation-delay: .45s;
+}
+
+@keyframes photozBookPageBreath {
+  0%, 100% { opacity: .52; transform: translateY(0); }
+  45% { opacity: .88; transform: translateY(-.35px); }
+}
+
+.photozDockIcon .eyeTop,
+.photozDockIcon .eyeBottom {
+  animation: none;
+  transform: none;
+}
+
+.photozDockIcon .eyeAperture,
+.photozDockIcon .eyePupil,
+.photozDockIcon .lash {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.photozDockIcon .eyeAperture {
+  animation: photozCohesiveEyeBlink 4.5s ease-in-out infinite;
+}
+
+.photozDockIcon .eyePupil {
+  animation: photozCohesivePupilBlink 4.5s ease-in-out infinite;
+}
+
+.photozDockIcon .lash {
+  animation: photozCohesiveLashBlink 4.5s ease-in-out infinite;
+}
+
+@keyframes photozCohesiveEyeBlink {
+  0%, 74%, 100% { transform: scaleY(1); }
+  80% { transform: scaleY(.20); }
+  86% { transform: scaleY(1); }
+}
+
+@keyframes photozCohesivePupilBlink {
+  0%, 74%, 100% { opacity: 1; transform: scaleY(1); }
+  80% { opacity: .12; transform: scaleY(.28); }
+  86% { opacity: 1; transform: scaleY(1); }
+}
+
+@keyframes photozCohesiveLashBlink {
+  0%, 74%, 100% { opacity: .72; transform: translateY(0); }
+  80% { opacity: .38; transform: translateY(1px); }
+  86% { opacity: .72; transform: translateY(0); }
+}
+
+/* Music button is a real note. */
+.musicUtilityIcon svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.musicUtilityIcon .musicNoteStem,
+.musicUtilityIcon .musicNoteFlag {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.05;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.musicUtilityIcon .musicNoteHead {
+  fill: currentColor;
+  stroke: none;
+  opacity: .86;
+}
+
+.musicUtilityIcon .musicNoteSpark,
+.musicUtilityIcon .musicNoteCut {
+  display: none;
+}
+
+/* Tooltips: subtle small glass labels, not huge blocks. */
+.photozProUI [data-tooltip]::after {
+  padding: 5px 7px;
+  border-radius: 8px;
+  font-size: 8px;
+  letter-spacing: .08em;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.26), rgba(255,255,255,.10)),
+    rgba(34,34,34,.64);
+  color: rgba(255,255,255,.90);
+  box-shadow: 0 10px 22px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.20);
+}
+
+.photozProUI .dockButton[data-tooltip]::after,
+.photozProUI .dock [data-tooltip]::after {
+  top: auto;
+  bottom: calc(100% + 14px);
+  height: auto;
+  min-height: 0;
+}
+
+.photozProUI .dockButton[data-tooltip]::before,
+.photozProUI .dock [data-tooltip]::before {
+  bottom: calc(100% + 8px);
+}
+
+@media (max-width: 760px) {
+  .photozProUI .shell {
+    padding-top: 18px;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .photozProUI .floatingUtilityCluster {
+    position: static;
+    margin: 0 0 6px auto;
+  }
+
+  .photozProUI.page-albums .controlBar {
+    max-width: 100%;
+  }
+
+  .photozProUI .dock {
+    min-width: 222px;
+    height: 58px;
+  }
+
+  .photozProUI .dock button,
+  .photozProUI .dockButton {
+    width: 64px;
+    min-width: 64px;
+    height: 42px;
+    min-height: 42px;
+  }
+}
+
+
+/* validation lock: count is plain text to the LEFT */
+.floatingUtilityCluster > .utilityFileCount { order: 0; }
+.floatingUtilityCluster > .floatingUtilityRail { order: 1; }
+.photozProUI [data-tooltip]::after { z-index: 9999; }

@@ -1309,12 +1309,10 @@ function VisibleReporter(props) {
   return null;
 }
 
-function EmptyState(props) {
+function EmptyState() {
   return (
-    <div className="emptyState">
+    <div className="emptyState emptyStateXOnly" aria-label="No files">
       <span className="emptyStateX" aria-hidden="true">X</span>
-      <strong>{props.title || "EMPTY"}</strong>
-      <span>{props.children}</span>
     </div>
   );
 }
@@ -1574,42 +1572,41 @@ function SettingsPanel(props) {
   if (!props.open) return null;
 
   return (
-    <div className="floatingPanel settingsPopover settingsMenuPanel" role="menu" aria-label="SETTINGS">
-
-      <div className="settingsMenuGroup">
-        <span>IMPORT</span>
-        <div className="settingsMenuGrid">
+    <div className="floatingPanel settingsPopover settingsMenuPanel polishedMenuPanel" role="menu" aria-label="SETTINGS">
+      <section className="panelSection settingsMenuGroup primary">
+        <span className="panelLabel">IMPORT</span>
+        <div className="panelActionList">
           <UploadButton onUpload={props.onUpload} />
           <UploadButton onUpload={props.onUpload} folder />
           <button type="button" {...withTooltip("Upload queue")} onClick={props.toggleUploadRefilterPanel || props.toggleUploadQueuePanel}>
-            <UploadCloud size={13} /> Queue
+            <UploadCloud size={14} strokeWidth={2.05} /> <span>Queue</span>
           </button>
         </div>
-      </div>
+      </section>
 
-      <div className="settingsMenuGroup">
-        <span>LIBRARY</span>
-        <div className="settingsMenuGrid">
+      <section className="panelSection settingsMenuGroup">
+        <span className="panelLabel">LIBRARY</span>
+        <div className="panelActionList">
           <button type="button" {...withTooltip("Import backup")} onClick={props.toggleImportPanel}>
-            <ArchiveRestore size={13} /> Import
+            <ArchiveRestore size={14} strokeWidth={2.05} /> <span>Import</span>
           </button>
           <button type="button" {...withTooltip("Export backup index")} onClick={props.exportVaultIndex}>
-            <FileDown size={13} /> Backup
+            <FileDown size={14} strokeWidth={2.05} /> <span>Backup</span>
           </button>
           <button type="button" {...withTooltip("Export file list")} onClick={props.exportManifestCsv}>
-            <FileDown size={13} /> List
+            <FileDown size={14} strokeWidth={2.05} /> <span>List</span>
           </button>
         </div>
-      </div>
+      </section>
 
-      <div className="settingsMenuGroup">
-        <span>MAINTENANCE</span>
-        <div className="settingsMenuGrid">
+      <section className="panelSection settingsMenuGroup">
+        <span className="panelLabel">MAINTAIN</span>
+        <div className="panelActionList">
           <button type="button" {...withTooltip("Refilter duplicates")} onClick={props.toggleDuplicatePanel}>Duplicates</button>
           <button type="button" {...withTooltip("Find missing files")} onClick={props.toggleStatusPanel}>Missing</button>
           <button type="button" {...withTooltip("Repair library")} onClick={props.toggleHealthPanel}>Repair</button>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
@@ -1899,14 +1896,17 @@ function ControlBar(props) {
 function SystemShortcutCard(props) {
   const group = props.group || {};
   const sourceId = String((group && (group.sourceId || group.id)) || "").toLowerCase();
-  const label = cleanSystemLabel(group.title || group.id);
-  const isTrash = sourceId === "virtual-trash" || sourceId === "trash" || sourceId === "trashed";
-  const isUnassigned = sourceId === "unassigned" || sourceId === "virtual-unassigned";
-  const tooltip = isTrash ? "Trash" : isUnassigned ? "Unassigned" : label === "★" ? "Starred" : label;
+  const rawLabel = cleanSystemLabel(group.title || group.id);
+  const labelText = String(rawLabel || "").toLowerCase();
+  const isStarred = sourceId.indexOf("star") !== -1 || sourceId.indexOf("favorite") !== -1 || rawLabel === "★" || labelText === "starred" || labelText === "favorites";
+  const isTrash = sourceId.indexOf("trash") !== -1 || labelText === "trash" || labelText === "trashed";
+  const isUnassigned = sourceId.indexOf("unassigned") !== -1 || sourceId.indexOf("unknown") !== -1 || labelText === "?" || labelText === "unknown" || labelText === "unassigned";
+  const tooltip = isStarred ? "Starred" : isTrash ? "Trash" : isUnassigned ? "Unassigned" : rawLabel;
+  const className = cls("systemRailItem", (isStarred || isTrash || isUnassigned) ? "iconShortcut" : "", isStarred ? "starShortcut" : "", isTrash ? "trashShortcut" : "", isUnassigned ? "unknownShortcut" : "");
 
   return (
-    <button type="button" className={isTrash ? "systemRailItem iconShortcut trashShortcut" : isUnassigned ? "systemRailItem iconShortcut unknownShortcut" : "systemRailItem"} {...withSettingtip(tooltip)} onClick={function () { props.openGroup(group); }}>
-      <span>{isTrash ? <Trash2 size={13} strokeWidth={2.1} /> : isUnassigned ? <span className="questionMark">?</span> : label}</span>
+    <button type="button" className={className} data-source-id={sourceId} {...withSettingtip(tooltip)} onClick={function () { props.openGroup(group); }}>
+      <span>{isStarred ? "★" : isTrash ? <Trash2 size={13} strokeWidth={2.15} /> : isUnassigned ? <span className="questionMark">?</span> : rawLabel}</span>
       <em>{safeArray(group.items).length}</em>
     </button>
   );
@@ -3044,15 +3044,14 @@ function MusicUtilityIcon(props) {
   return (
     <span className="musicUtilityIcon" aria-hidden="true" style={{ width: size, height: size }}>
       <svg viewBox="0 0 28 28" focusable="false">
-        <path className="musicNoteStem" d="M17.8 6.2v12.05" />
-        <path className="musicNoteFlag" d="M17.8 6.2c2.45.38 4.22 1.05 5.3 2.02v3.08c-1.18-.9-2.95-1.52-5.3-1.88" />
-        <ellipse className="musicNoteHead" cx="12.25" cy="19.15" rx="4.15" ry="2.7" transform="rotate(-18 12.25 19.15)" />
-        <path className="musicNoteCut" d="M10.1 19.4c1.25-.5 2.55-.66 3.9-.44" />
-        <path className="musicNoteSpark" d="M22.45 4.55l.48 1.3 1.3.48-1.3.48-.48 1.3-.48-1.3-1.3-.48 1.3-.48.48-1.3Z" />
+        <path className="musicNoteStem" d="M17.9 6.15v12.25" />
+        <path className="musicNoteFlag" d="M17.9 6.15c2.25.18 4.12.78 5.62 1.78v3.06c-1.55-.92-3.42-1.48-5.62-1.68" />
+        <ellipse className="musicNoteHead" cx="12.35" cy="19.1" rx="4.15" ry="2.68" transform="rotate(-18 12.35 19.1)" />
       </svg>
     </span>
   );
 }
+
 
 export default function App() {
   const [uploadNotice, setUploadNotice] = useState("");

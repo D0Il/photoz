@@ -1,24 +1,23 @@
 import React from "react";
 
 export function PhotozAlbumDockIcon(props) {
-  const size = props.size || 28;
+  const size = props.size || 30;
   return (
     <svg className="photozDockIcon photozDockBook" aria-hidden="true" viewBox="0 0 32 32" focusable="false" width={size} height={size}>
-      <path className="bookShadow" d="M5.2 23.3c3.8-.82 7.1-.12 10.8 2.1 3.7-2.22 7-2.92 10.8-2.1" />
-      <path className="bookCover left" d="M5.3 7.8c3.8-.68 7.1.15 10.7 2.48v14.18c-3.45-2.08-7.04-2.72-10.7-1.84V7.8Z" />
-      <path className="bookCover right" d="M26.7 7.8c-3.8-.68-7.1.15-10.7 2.48v14.18c3.45-2.08 7.04-2.72 10.7-1.84V7.8Z" />
-      <path className="bookPage leftPage" d="M7.65 10.15c2.65-.18 5.02.38 7.14 1.66" />
-      <path className="bookPage leftPage" d="M7.65 13.25c2.28-.14 4.55.36 6.82 1.48" />
-      <path className="bookPage rightPage" d="M17.22 11.8c2.35-1.18 4.72-1.74 7.13-1.65" />
-      <path className="bookPage rightPage" d="M17.52 14.74c2.14-1.05 4.42-1.55 6.83-1.49" />
-      <path className="bookFlipPage" d="M16 10.44c2.02-1.04 3.86-1.44 5.53-1.22v12.02c-1.7-.1-3.55.44-5.53 1.62V10.44Z" />
-      <path className="bookSpine" d="M16 10.15v14.88" />
+      <path className="bookShadow" d="M5.2 23.35c3.78-.82 7.2-.08 10.8 2.08 3.6-2.16 7.02-2.9 10.8-2.08" />
+      <path className="bookCover left" d="M5.4 8.05c3.85-.76 7.24.08 10.6 2.32v14.1c-3.34-2.04-6.9-2.62-10.6-1.76V8.05Z" />
+      <path className="bookCover right" d="M26.6 8.05c-3.85-.76-7.24.08-10.6 2.32v14.1c3.34-2.04 6.9-2.62 10.6-1.76V8.05Z" />
+      <path className="bookPageLayer layerOne" d="M7.7 10.75c2.5-.2 4.82.3 6.95 1.52" />
+      <path className="bookPageLayer layerTwo" d="M7.7 13.85c2.25-.17 4.48.32 6.7 1.46" />
+      <path className="bookPageLayer layerThree" d="M17.35 12.25c2.22-1.16 4.54-1.66 6.95-1.5" />
+      <path className="bookPageLayer layerFour" d="M17.62 15.18c2.02-1.03 4.25-1.48 6.68-1.36" />
+      <path className="bookSpine" d="M16 10.2v14.85" />
     </svg>
   );
 }
 
 export function PhotozMirrorDockIcon(props) {
-  const size = props.size || 28;
+  const size = props.size || 30;
   return (
     <svg className="photozDockIcon photozDockEye" aria-hidden="true" viewBox="0 0 32 32" focusable="false" width={size} height={size}>
       <path className="lash" d="M7.85 11.1 6.25 8.75" />
@@ -26,17 +25,21 @@ export function PhotozMirrorDockIcon(props) {
       <path className="lash" d="M16 9.1V6.2" />
       <path className="lash" d="M20.7 9.55l.65-2.6" />
       <path className="lash" d="M24.15 11.1l1.6-2.35" />
-      <path className="eyeTop" d="M4.85 16c2.78-4.82 6.48-7.04 11.15-7.04S24.37 11.18 27.15 16" />
-      <path className="eyeBottom" d="M4.85 16c2.78 4.82 6.48 7.04 11.15 7.04S24.37 20.82 27.15 16" />
-      <circle className="irisRing" cx="16" cy="16" r="4.2" />
-      <circle className="iris" cx="16" cy="16" r="2.55" />
-      <circle className="pupilGlint" cx="17.15" cy="14.65" r=".68" />
+      <g className="eyeAperture">
+        <path className="eyeTop" d="M4.85 16c2.78-4.82 6.48-7.04 11.15-7.04S24.37 11.18 27.15 16" />
+        <path className="eyeBottom" d="M4.85 16c2.78 4.82 6.48 7.04 11.15 7.04S24.37 20.82 27.15 16" />
+      </g>
+      <g className="eyePupil">
+        <circle className="irisRing" cx="16" cy="16" r="4.2" />
+        <circle className="iris" cx="16" cy="16" r="2.55" />
+        <circle className="pupilGlint" cx="17.15" cy="14.65" r=".68" />
+      </g>
     </svg>
   );
 }
 
 export function PhotozSearchDockIcon(props) {
-  const size = props.size || 28;
+  const size = props.size || 30;
   return (
     <svg className="photozDockIcon photozDockSearch" aria-hidden="true" viewBox="0 0 32 32" focusable="false" width={size} height={size}>
       <circle className="lensOuter" cx="14" cy="14" r="7.25" />
