@@ -55,8 +55,8 @@ Albums are the real home layer for files. Timeline is only a filtered view.
 Albums and Timeline are merged.
 
 - Albums is the default/main archive page.
-- The top filter switches between: FOLDERS, YEARS, MONTHS, ERAS.
-- FOLDERS is the real home layer.
+- The top filter switches between: ALBUMS, YEARS, MONTHS, ERAS.
+- ALBUMS is the real home layer.
 - YEARS/MONTHS/ERAS are filter views only.
 - Every file must still belong to at least one album.
 
@@ -299,7 +299,7 @@ Added five bulk basics:
 Added five usage/UI basics:
 
 1. Grid size control: compact / normal / large.
-2. Folder search on Albums/Folders.
+2. Folder search on Albums/Albums.
 3. Video-aware tiles using video elements and VIDEO badge.
 4. Metadata toggle in the modal instead of always showing JSON.
 5. Copy media URL button in the modal.
@@ -331,8 +331,8 @@ Added ten more archive basics:
 4. TAGGED search filter.
 5. UNTAGGED search filter.
 6. Album stats: count and total size.
-7. Virtual ALL folder at top of Albums/Folders.
-8. Virtual STARRED folder at top of Albums/Folders.
+7. Virtual ALL folder at top of Albums/Albums.
+8. Virtual STARRED folder at top of Albums/Albums.
 9. Missing-file checker through HEAD requests to media URLs.
 10. Status cleanup action to mark failed/local records for reselection.
 
@@ -366,7 +366,7 @@ Added ten archive-control basics:
 7. Bulk unarchive selected.
 8. Archive badge on tiles.
 9. Archived files excluded from normal ALL virtual folder.
-10. ARCHIVED virtual folder in Albums/Folders.
+10. ARCHIVED virtual folder in Albums/Albums.
 
 
 ## Trash system pass
@@ -539,9 +539,9 @@ Added ten import/performance upgrades:
 4. Skip duplicate uploads by file signature.
 5. Import summary after upload selection.
 6. Large-file warning count.
-7. Folder path preservation display in modal.
+7. Album path preservation display in modal.
 8. TAKEOUT search filter.
-9. Folder path/takeout search boost.
+9. Album path/takeout search boost.
 10. Upload queue pause/resume control.
 
 Note: concurrency/batch settings are exposed for the import workflow UI. The current upload runner remains conservative; deeper parallel upload scheduling can be wired to those settings next.
@@ -575,7 +575,7 @@ Those legacy fields are not destroyed from saved records, but they are no longer
 
 UI cleanup:
 - Search now has primary filters plus MORE.
-- Virtual folders are visually separated from real albums.
+- Virtual albums are visually separated from real albums.
 - Bulk actions are simplified to practical archive actions.
 - Tile badges are reduced.
 - Modal keeps useful details/organize controls and buries legacy metadata.
@@ -590,8 +590,8 @@ Added:
 - TRASH OTHERS action for duplicate groups.
 - Undo foundation for major organization actions.
 - Undo bar for last organization/destructive action.
-- System folder badge for virtual folders.
-- Real album count now excludes system folders.
+- System folder badge for virtual albums.
+- Real album count now excludes system albums.
 - Search placeholder is now photo/archive language instead of database language.
 
 Undo currently covers major index-level changes such as album moves, archive/trash/restore, bulk archive/trash/restore, Mirror moves, and duplicate review trashing.
@@ -672,7 +672,7 @@ Cleaned the remaining product bloat:
 
 Reduced remaining product/admin feel:
 
-- System folders now render as compact shortcut cards instead of full album cards.
+- System albums now render as compact shortcut cards instead of full album cards.
 - Album/photo action clusters are quieter until hover.
 - Modal actions are grouped into a calmer grid.
 - Technical/raw details are visually contained.
@@ -703,5 +703,36 @@ Reduced remaining generic/admin bloat:
 - Legacy rating/label/review/private actions are removed from bulk UI.
 - Modal action copy is shorter and less admin-like.
 - Panels are visually subordinate to albums/photos.
-- System folders are treated as shortcuts.
+- System albums are treated as shortcuts.
 - Content hierarchy now favors albums and media over controls.
+
+
+## Album wording hotfix
+
+Removed user-facing folder language from the product UI.
+
+- Main archive view now displays Albums language.
+- Search copy no longer says albums.
+- Album search/create wording is album-first.
+- Internal compatibility remains for old saved `albums` view values.
+
+
+## Album wording and system shortcut fix
+
+Fixed:
+- Removed user-facing Folder/Folders wording.
+- System items no longer render as album cards.
+- System items now render as compact flat shortcuts above real albums.
+- Real albums remain the only large album cards.
+
+
+## Tools overlay cleanup
+
+Made Tools/View/Import/Queue/Status panels visually lighter:
+
+- Panels are compact trays instead of big dashboard blocks.
+- Tool sections are small rows, not cards.
+- Buttons are quieter and less bubbly.
+- Status stats are subtle, not bubble confetti.
+- Queue/duplicate panels read more like lists.
+- Main albums/photos stay visually dominant.

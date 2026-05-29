@@ -2991,3 +2991,307 @@ pre {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
+/* System shortcuts are not albums */
+.systemFolderStrip {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 2px 0 18px;
+  padding: 0;
+}
+
+.systemFolderStrip .groupCard {
+  display: none !important;
+}
+
+.systemShortcutCard,
+.systemShortcutLink {
+  min-height: 0 !important;
+  height: 32px;
+  width: auto;
+  border-radius: 9px !important;
+  border: 1px solid rgba(255,255,255,.22);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.070), rgba(255,255,255,.018)),
+    rgba(0,0,0,.010);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.18),
+    inset 0 -1px 0 rgba(0,0,0,.050);
+  color: rgba(0,0,0,.48);
+  padding: 0 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  text-align: left;
+  cursor: pointer;
+  backdrop-filter: blur(5px);
+  transform: none !important;
+}
+
+.systemShortcutCard span,
+.systemShortcutLink span {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .07em;
+  color: rgba(0,0,0,.48);
+}
+
+.systemShortcutCard strong,
+.systemShortcutLink strong,
+.systemShortcutLink em {
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: .02em;
+  color: rgba(0,0,0,.40);
+}
+
+.systemShortcutCard:hover,
+.systemShortcutLink:hover {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.105), rgba(255,255,255,.025)),
+    rgba(0,0,0,.016);
+}
+
+.systemFolderBadge {
+  display: none !important;
+}
+
+/* Real albums remain the dominant card system */
+.albumGrid .groupCard {
+  display: block;
+}
+
+
+/* Tool UI cleanup: overlays, not ugly dashboard blocks */
+.shell {
+  position: relative;
+}
+
+.viewPanel,
+.toolsPanel,
+.importPanel,
+.uploadQueuePanel,
+.statusPanel,
+.duplicatePanel,
+.healthPanel {
+  position: relative;
+  width: min(560px, 100%);
+  margin: 2px 0 12px auto;
+  padding: 9px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.26);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.115), rgba(255,255,255,.030) 58%, rgba(0,0,0,.035)),
+    rgba(255,255,255,.020);
+  box-shadow:
+    0 14px 38px rgba(0,0,0,.11),
+    inset 0 1px 0 rgba(255,255,255,.30),
+    inset 0 -1px 0 rgba(0,0,0,.08);
+  backdrop-filter: blur(10px) saturate(1.08);
+}
+
+/* Header line should be quiet */
+.statusPanelTop {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+.statusPanelTop strong {
+  font-size: 12px !important;
+  font-weight: 900;
+  letter-spacing: .03em !important;
+  color: rgba(0,0,0,.56);
+}
+.statusPanelTop button {
+  height: 28px;
+  min-height: 28px;
+  border-radius: 9px;
+  color: rgba(0,0,0,.48);
+  background: rgba(255,255,255,.035);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.20);
+}
+
+/* Tools should be small rows, not cards */
+.toolsPanel {
+  display: grid;
+  gap: 6px;
+}
+.toolSection {
+  display: grid;
+  grid-template-columns: 76px repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  align-items: center;
+  padding: 5px;
+  border-radius: 11px;
+  border: 0;
+  background: rgba(255,255,255,.020);
+  box-shadow: none;
+}
+.toolSection span {
+  font-size: 10px !important;
+  font-weight: 850 !important;
+  letter-spacing: .02em !important;
+  color: rgba(0,0,0,.42) !important;
+  text-transform: none;
+}
+.toolSection button,
+.toolSection .importButton {
+  height: 30px;
+  min-height: 30px;
+  border-radius: 9px !important;
+  border: 1px solid rgba(255,255,255,.24);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.080), rgba(255,255,255,.020)),
+    rgba(0,0,0,.008);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.22),
+    inset 0 -1px 0 rgba(0,0,0,.055);
+  color: rgba(0,0,0,.50);
+  font-size: 10px !important;
+  font-weight: 850;
+  letter-spacing: .02em !important;
+  padding: 0 7px;
+}
+
+/* View panel becomes one compact row */
+.viewPanelGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.viewPanel .sortControl,
+.viewPanel .gridSizeControl,
+.viewPanel .albumSortControl {
+  gap: 5px;
+}
+.viewPanel button,
+.sortControl button,
+.gridSizeControl button,
+.albumSortControl button {
+  height: 29px !important;
+  min-height: 29px !important;
+  border-radius: 9px !important;
+  font-size: 9px !important;
+  letter-spacing: .05em !important;
+  padding-inline: 8px !important;
+}
+
+/* Import/queue panels: calm settings, less blocky */
+.importSettings,
+.primaryImportSettings,
+.advancedImportSettings {
+  gap: 7px;
+}
+.importSettings label span {
+  font-size: 9px !important;
+  letter-spacing: .06em !important;
+  color: rgba(0,0,0,.40) !important;
+}
+.importSettings input,
+.importSettings select {
+  height: 31px !important;
+  min-height: 31px !important;
+  border-radius: 9px !important;
+  font-size: 10px !important;
+  letter-spacing: .03em !important;
+}
+
+.advancedToggle,
+.technicalToggle,
+.statusCleanup {
+  height: 29px !important;
+  min-height: 29px !important;
+  border-radius: 9px !important;
+  font-size: 10px !important;
+  letter-spacing: .03em !important;
+  color: rgba(0,0,0,.48);
+}
+
+/* Status stats should not look like bubble confetti */
+.statusStats {
+  gap: 5px;
+}
+.statusStats span,
+.statusClean,
+.statusIssues,
+.uploadQueueRow,
+.duplicateGroup {
+  border-radius: 10px !important;
+  background: rgba(255,255,255,.028);
+  border-color: rgba(255,255,255,.20);
+}
+.statusStats span {
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 9px !important;
+  letter-spacing: .04em !important;
+  color: rgba(0,0,0,.42);
+}
+
+/* Queue rows: subtle list instead of glass cards */
+.uploadQueueRows {
+  gap: 4px;
+}
+.uploadQueueRow {
+  min-height: 30px;
+  padding: 6px 8px;
+  box-shadow: none;
+}
+.uploadQueueRow span,
+.uploadQueueRow em {
+  font-size: 9px !important;
+  letter-spacing: .03em !important;
+}
+
+/* Duplicate review: list-like */
+.duplicateGroup {
+  padding: 8px;
+  box-shadow: none;
+}
+.duplicateGroupTop {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.duplicateGroupTop span {
+  display: none;
+}
+.duplicateCandidates button {
+  border-radius: 9px !important;
+  padding: 7px 8px;
+}
+
+/* The main content should stay dominant when panels open */
+.has-panel-open .albumGrid,
+.has-panel-open .photoGrid,
+.has-panel-open .memoryGrid {
+  filter: none;
+  opacity: 1;
+}
+
+/* Mobile: panels full width but still compact */
+@media (max-width: 760px) {
+  .viewPanel,
+  .toolsPanel,
+  .importPanel,
+  .uploadQueuePanel,
+  .statusPanel,
+  .duplicatePanel,
+  .healthPanel {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .toolSection {
+    grid-template-columns: 1fr 1fr;
+  }
+  .toolSection span {
+    grid-column: 1 / -1;
+  }
+}

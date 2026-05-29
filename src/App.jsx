@@ -16,7 +16,7 @@ const PAGES = [
   { id: "search", icon: Search },
 ];
 
-const ARCHIVE_VIEWS = ["folders", "years", "months", "eras"];
+const ARCHIVE_VIEWS = ["albums", "years", "months", "eras"];
 const SEARCH_FILTERS = ["all", "photos", "videos", "starred", "mirror", "trash", "me", "tagged", "takeout", "archive", "needs-file"];
 const PRIMARY_SEARCH_FILTERS = ["all", "photos", "videos", "starred", "mirror", "trash"];
 const ADVANCED_SEARCH_FILTERS = ["me", "tagged", "takeout", "archive", "needs-file"];
@@ -27,6 +27,11 @@ const APP_VERSION = "2026.05.29-stabilize-simplify";
 const INDEX_SCHEMA_VERSION = 3;
 const MEDIA_BASE = "/media";
 const MAX_PARALLEL_UPLOADS = 3;
+
+function archiveViewLabel(value) {
+  if (value === "albums" || value === "albums") return "ALBUMS";
+  return up(value);
+}
 
 function filterLabel(value) {
   if (value === "archive") return "HIDDEN";
@@ -1521,7 +1526,7 @@ function ControlBar(props) {
                     props.setArchiveView(view);
                   }}
                 >
-                  {up(view)}
+                  {archiveViewLabel(view)}
                 </button>
               );
             })}
@@ -1544,9 +1549,9 @@ function ControlBar(props) {
 function SystemShortcutCard(props) {
   const group = props.group;
   return (
-    <button type="button" className="systemShortcutCard" onClick={function () { props.openGroup(group); }}>
+    <button type="button" className="systemShortcutLink" onClick={function () { props.openGroup(group); }}>
       <span>{up(group.title)}</span>
-      <strong>{group.items.length}</strong>
+      <em>{group.items.length}</em>
     </button>
   );
 }
@@ -1629,25 +1634,25 @@ function MirrorView(props) {
 }
 
 function AlbumsView(props) {
-  const folders = sortAlbumGroups(virtualAlbumGroups(props.albums, props.memories).concat(albumGroups(props.albums, props.memories)), props.albumSort).filter(function (folder) {
+  const albums = sortAlbumGroups(virtualAlbumGroups(props.albums, props.memories).concat(albumGroups(props.albums, props.memories)), props.albumSort).filter(function (folder) {
     const q = props.albumQuery.trim().toLowerCase();
     return !q || String(folder.title || "").toLowerCase().indexOf(q) !== -1;
   });
-  const archiveGroups = props.archiveView === "folders" ? folders : groupBy(props.archiveView, props.memories);
-  const virtualGroups = props.archiveView === "folders" ? archiveGroups.filter(function (group) { return group.virtual; }) : [];
-  const realGroups = props.archiveView === "folders" ? archiveGroups.filter(function (group) { return !group.virtual; }) : archiveGroups;
-  const isFolders = props.archiveView === "folders";
+  const archiveGroups = props.archiveView === "albums" ? albums : groupBy(props.archiveView, props.memories);
+  const virtualGroups = props.archiveView === "albums" ? archiveGroups.filter(function (group) { return group.virtual; }) : [];
+  const realGroups = props.archiveView === "albums" ? archiveGroups.filter(function (group) { return !group.virtual; }) : archiveGroups;
+  const isAlbums = props.archiveView === "albums";
 
   return (
     <div className="pageScroll">
       <VisibleReporter items={props.memories} reportVisibleIds={props.reportVisibleIds} />
-      {isFolders ? (
+      {isAlbums ? (
         <div className="albumEditor">
           <Pill>{realGroups.length}</Pill>
           <input
             value={props.albumQuery}
             onChange={function (event) { props.setAlbumQuery(event.target.value); }}
-            placeholder="FILTER FOLDERS"
+            placeholder="FIND ALBUM"
           />
           <input
             value={props.draft}
@@ -1659,10 +1664,10 @@ function AlbumsView(props) {
       ) : null}
 
       <div className="archiveLabel">{up(props.archiveView)}</div>
-      <div className={isFolders ? "albumGrid folderView" : props.archiveView === "months" ? "albumGrid filterView" : "timelineStack filterView"}>
+      <div className={isAlbums ? "albumGrid folderView" : props.archiveView === "months" ? "albumGrid filterView" : "timelineStack filterView"}>
         {archiveGroups.map(function (group) {
-          const editing = isFolders && props.editingId === group.sourceId;
-          if (!isFolders) {
+          const editing = isAlbums && props.editingId === group.sourceId;
+          if (!isAlbums) {
             return <SystemShortcutCard key={group.id} group={group} openGroup={props.openGroup} />;
           }
 
@@ -1707,7 +1712,7 @@ function SearchView(props) {
         <input
           value={props.query}
           onChange={function (event) { props.setQuery(event.target.value); }}
-          placeholder="SEARCH PHOTOS, ALBUMS, TAGS, DATES, FOLDERS"
+          placeholder="SEARCH PHOTOS, ALBUMS, TAGS, DATES"
         />
         {active ? <button type="button" onClick={function () { props.setQuery(""); props.setFilter("all"); props.setFromDate(""); props.setToDate(""); props.setMinRating(""); }}>CLEAR</button> : null}
       </div>
@@ -1755,7 +1760,7 @@ function SearchView(props) {
       ) : null}
 
       <div className="searchMeta">
-        <span>SEARCHES FILES, ALBUMS, DATES, TAGS, FOLDERS, MIRROR, ME, AND STATUS.</span>
+        <span>SEARCHES FILES, ALBUMS, DATES, TAGS, ALBUMS, MIRROR, ME, AND STATUS.</span>
       </div>
 
       {!results.length ? <EmptyState title={active ? "NO RESULTS" : "SEARCH"}>{active ? "Nothing matched this search." : "Search files, albums, dates, metadata, ME, Mirror, and upload status."}</EmptyState> : null}
@@ -2126,7 +2131,7 @@ function verifyAlbumAssignmentModel() {
 verifyAlbumAssignmentModel();
 
 export default function App() {
-  const [archiveView, setArchiveView] = useState("folders");
+  const [archiveView, setArchiveView] = useState("albums");
   const [activePage, setActivePage] = useState("albums");
   const [screen, setScreen] = useState("home");
   const [activeGroup, setActiveGroup] = useState(null);
@@ -3273,13 +3278,13 @@ export default function App() {
         <AnimatePresence mode="wait">
           <motion.div key={key} className="screen" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16 }}>
             {screen === "home" ? (
-              <Glass className={"shell grid-" + gridSize}>
+              <Glass className={"shell grid-" + gridSize + (toolsOpen || viewControlsOpen || importPanelOpen || uploadQueueOpen || statusOpen || duplicatesOpen || healthOpen ? " has-panel-open" : "")}>
                 <div className="productHeader">
                   <strong>{activePage === "albums" ? "Albums" : activePage === "mirror" ? "Mirror" : "Search"}</strong>
                   <em>{memories.length} files</em>
                 </div>
                 <ControlBar archive={archive} archiveView={archiveView} setArchiveView={setArchiveView} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} viewControlsOpen={viewControlsOpen} toggleViewControls={function () { setViewControlsOpen(function (value) { return !value; }); }} toolsOpen={toolsOpen} toggleToolsPanel={function () { setToolsOpen(function (value) { return !value; }); }} />
-                <ViewPanel open={viewControlsOpen} close={function () { setViewControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveView === "folders"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize} />
+                <ViewPanel open={viewControlsOpen} close={function () { setViewControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveView === "albums"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize} />
                 <UndoBar snapshot={undoSnapshot} undo={undoLastAction} clear={function () { setUndoSnapshot(null); }} />
                 <ToolsPanel open={toolsOpen} close={function () { setToolsOpen(false); }} toggleImportPanel={function () { setImportPanelOpen(function (value) { return !value; }); }} toggleUploadQueuePanel={function () { setUploadQueueOpen(function (value) { return !value; }); }} toggleStatusPanel={function () { setStatusOpen(function (value) { return !value; }); }} toggleDuplicatePanel={function () { setDuplicatesOpen(function (value) { return !value; }); }} toggleHealthPanel={function () { setHealthOpen(function (value) { return !value; }); }} exportVaultIndex={exportVaultIndex} exportManifestCsv={exportManifestCsv} importVaultIndex={importVaultIndex} />
                 <ImportPanel open={importPanelOpen} close={function () { setImportPanelOpen(false); }} uploadBatchSize={uploadBatchSize} setUploadBatchSize={setUploadBatchSize} uploadConcurrency={uploadConcurrency} setUploadConcurrency={setUploadConcurrency} skipDuplicates={skipDuplicates} setSkipDuplicates={setSkipDuplicates} importSummary={importSummary} />
