@@ -1502,7 +1502,7 @@ function Dock(props) {
           const active = props.active === page.id;
           return (
             <button
-              key={page.id}
+              key={page.id} data-page-id={page.id}
               type="button"
               aria-label={page.id}
               className={cls("dockButton", active && "active")}
@@ -1821,7 +1821,7 @@ function UploadQueuePanel(props) {
         <div className="uploadQueueRows">
           {active.map(function (item) {
             return (
-              <div key={item.id} className={"uploadQueueRow " + item.status}>
+              <div key={item.id} data-page-id={item.id} className={"uploadQueueRow " + item.status}>
                 <span>{up(item.name)}</span>
                 <em>{up(item.status)}</em>
               </div>
@@ -2853,7 +2853,7 @@ function PzToastStack(props) {
     <div className="pzToastStack" aria-live="polite">
       {items.slice(-3).map(function (item) {
         return (
-          <div className={item.type ? "pzToast " + item.type : "pzToast"} key={item.id}>
+          <div className={item.type ? "pzToast " + item.type : "pzToast"} key={item.id} data-page-id={item.id}>
             <strong>{String(item.title || "STATUS").toUpperCase()}</strong>
             {item.message ? <span>{item.message}</span> : null}
           </div>
@@ -2898,7 +2898,7 @@ function PzAlbumEditorPanel(props) {
         <header><strong>ALBUM</strong><button type="button" className="closeButton" onClick={props.onClose}>×</button></header>
         <label><span>TITLE</span><input value={title} onChange={function (event) { setTitle(event.target.value); }} /></label>
         <label><span>DESCRIPTION</span><textarea value={description} onChange={function (event) { setDescription(event.target.value); }} /></label>
-        <label><span>INSIDE</span><select value={parentId} onChange={function (event) { setParentId(event.target.value); }}><option value="">ROOT</option>{movableAlbums.map(function (item) { return <option key={item.id} value={item.id}>{item.title || item.id}</option>; })}</select></label>
+        <label><span>INSIDE</span><select value={parentId} onChange={function (event) { setParentId(event.target.value); }}><option value="">ROOT</option>{movableAlbums.map(function (item) { return <option key={item.id} data-page-id={item.id} value={item.id}>{item.title || item.id}</option>; })}</select></label>
         <button type="button" className={hideFromAll ? "pzWideToggle active" : "pzWideToggle"} onClick={function () { setHideFromAll(function (value) { return !value; }); }}><span>HIDE FROM ALL</span><em>{hideFromAll ? "ON" : "OFF"}</em></button>
         <div className="pzEditorActions">
           <button type="button" onClick={function () { props.onSave(album.id, { title: title.trim() || album.title, description: description.trim(), parentId: parentId || "", hideFromAll }); props.onClose(); }}>SAVE</button>
@@ -3046,10 +3046,10 @@ function withTooltip(label) {
 }
 
 function AnimatedBookDockIcon(props) {
-  const size = props.size || 20;
+  const size = props.size || 22;
   return (
-    <span className="dockBookIcon" aria-hidden="true" style={{ width: size, height: size }}>
-      <svg viewBox="0 0 28 28" focusable="false">
+    <span className="dockIconSymbol dockBookIcon" aria-hidden="true" style={{ width: size, height: size }}>
+      <svg viewBox="0 0 28 28" focusable="false" role="img">
         <path className="bookCover left" d="M4.4 7.2c3.3-.55 6.2.15 9.6 2.1v13.2c-3.2-1.85-6.3-2.35-9.6-1.65V7.2Z" />
         <path className="bookCover right" d="M23.6 7.2c-3.3-.55-6.2.15-9.6 2.1v13.2c3.2-1.85 6.3-2.35 9.6-1.65V7.2Z" />
         <path className="bookSpine" d="M14 9.3v13.3" />
@@ -3065,10 +3065,10 @@ function AnimatedBookDockIcon(props) {
 }
 
 function SparkSearchDockIcon(props) {
-  const size = props.size || 20;
+  const size = props.size || 22;
   return (
-    <span className="dockSearchSparkIcon" aria-hidden="true" style={{ width: size, height: size }}>
-      <svg viewBox="0 0 28 28" focusable="false">
+    <span className="dockIconSymbol dockSearchSparkIcon" aria-hidden="true" style={{ width: size, height: size }}>
+      <svg viewBox="0 0 28 28" focusable="false" role="img">
         <circle className="searchLens" cx="12.1" cy="12.1" r="6.35" />
         <path className="searchHandle" d="M16.9 16.9 22.2 22.2" />
         <path className="searchSpark sparkMain" d="M21.2 4.4l.7 2.0 2.0.7-2.0.7-.7 2.0-.7-2.0-2.0-.7 2.0-.7.7-2.0Z" />
@@ -3081,7 +3081,7 @@ function SparkSearchDockIcon(props) {
 function LashEyeIcon(props) {
   const size = props.size || 18;
   return (
-    <span className="lashEyeIcon" aria-hidden="true" style={{ width: size, height: size }}>
+    <span className="dockIconSymbol lashEyeIcon" aria-hidden="true" style={{ width: size, height: size }}>
       <svg viewBox="0 0 24 24" focusable="false">
         <path className="lashEyeLid top" d="M3.2 12C5.4 7.7 8.4 5.7 12 5.7s6.6 2 8.8 6.3" />
         <path className="lashEyeLid bottom" d="M3.2 12c2.2 4.3 5.2 6.3 8.8 6.3s6.6-2 8.8-6.3" />

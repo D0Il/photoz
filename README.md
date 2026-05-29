@@ -121,3 +121,7 @@ Added:
 - Restored Filter menu as a useful compact control panel: sort, type, source, quality, and view density. Removed the useless ALL/ME/star/video/trash category dump.
 
 - Removed every visible Select control by deleting any button/control that directly toggles selection mode. Long-press and hold-swipe selection remain.
+
+- Forced dock icon visibility at render/CSS level: explicit icon wrapper, SVG sizing, stroke/fill, z-index, and forced PAGES mapping.
+
+- Removed visible page title headers for the three dock pages.
