@@ -11309,3 +11309,174 @@ nav.bottomDock .photozDockIcon svg {
 .refinedFilterMenu {
   overflow: visible;
 }
+
+/* PHOTOZ visual regression stabilization: real render-path selectors only */
+.dockWrap,
+.dock,
+.bottomDock,
+.floatingUtilityRail,
+.utilityRail,
+.topUtilityRail,
+.settingsMenuPanel,
+.filterMenuPanel,
+.refinedFilterMenu {
+  overflow: visible;
+}
+
+.dockWrap {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  top: auto;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 110;
+  width: auto;
+  height: auto;
+  pointer-events: none;
+}
+
+.dock.bottomDock,
+.bottomDock,
+nav.bottomDock {
+  position: relative;
+  left: auto;
+  right: auto;
+  top: auto;
+  bottom: auto;
+  transform: none;
+  z-index: 110;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: auto;
+  min-width: 178px;
+  height: 52px;
+  min-height: 52px;
+  padding: 5px;
+  margin: 0;
+  border-radius: 999px;
+  pointer-events: auto;
+}
+
+.dock.bottomDock button,
+.dock .dockButton,
+.bottomDock button,
+nav.bottomDock button {
+  width: 46px;
+  min-width: 46px;
+  max-width: 46px;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 46px;
+  padding: 0;
+  margin: 0;
+  border-radius: 999px;
+  color: rgba(0,0,0,.72);
+}
+
+.photozDockIcon,
+.dock .photozDockIcon,
+.bottomDock .photozDockIcon,
+nav.bottomDock .photozDockIcon {
+  display: inline-grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  min-width: 23px;
+  min-height: 23px;
+  line-height: 0;
+  opacity: 1;
+  visibility: visible;
+  color: currentColor;
+  position: relative;
+  z-index: 8;
+}
+
+.photozDockIcon svg,
+.dock .photozDockIcon svg,
+.bottomDock .photozDockIcon svg,
+nav.bottomDock .photozDockIcon svg {
+  display: block;
+  width: 23px;
+  height: 23px;
+  min-width: 23px;
+  min-height: 23px;
+  overflow: visible;
+  opacity: 1;
+  visibility: visible;
+}
+
+.utilityFileCount {
+  position: static;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  margin: 0 2px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 850;
+  letter-spacing: .12em;
+  color: rgba(0,0,0,.38);
+  white-space: nowrap;
+  pointer-events: none;
+  flex: 0 0 auto;
+}
+
+.musicUtilityIcon,
+.musicUtilityIcon svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  overflow: visible;
+}
+
+.musicUtilityIcon .musicDisc,
+.musicUtilityIcon .musicGroove {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.55;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.musicUtilityIcon .musicGroove {
+  opacity: .62;
+}
+
+.musicUtilityIcon .musicCore,
+.musicUtilityIcon .musicGlint {
+  fill: currentColor;
+  stroke: none;
+}
+
+.musicUtilityIcon .musicGlint {
+  opacity: .72;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: photozMusicGlint 2.8s ease-in-out infinite;
+}
+
+@keyframes photozMusicGlint {
+  0%, 68%, 100% { transform: scale(.68) rotate(0deg); opacity: .32; }
+  18% { transform: scale(1.06) rotate(14deg); opacity: .86; }
+}
+
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::after {
+  z-index: 9999;
+}

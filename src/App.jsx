@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import { FilterPanel } from "./components/FilterMenu.jsx";
 import { makeUploadPreview, makePendingUploadMemory } from "./components/UploadFlow.jsx";
-import { PhotozAlbumDockIcon, PhotozMirrorDockIcon, PhotozSearchDockIcon, AnimatedBookDockIcon, LashEyeIcon, SparkSearchDockIcon, DockAlbumGlyph, DockMirrorGlyph, DockSearchGlyph } from "./components/DockIcons.jsx";
+import { PhotozAlbumDockIcon, PhotozMirrorDockIcon, PhotozSearchDockIcon } from "./components/DockIcons.jsx";
 const UNASSIGNED_ALBUM_ID = "unassigned";
 const INITIAL_ALBUMS = [
   { id: UNASSIGNED_ALBUM_ID, title: "UNASSIGNED", memoryIds: [] },
@@ -14,9 +14,9 @@ const INITIAL_ALBUMS = [
 ];
 
 const PAGES = [
-  { id: "albums", icon: PhotozAlbumDockIcon },
-  { id: "mirror", icon: PhotozMirrorDockIcon },
-  { id: "search", icon: PhotozSearchDockIcon },
+  { id: "albums", label: "PHOTO ALBUM", Icon: PhotozAlbumDockIcon },
+  { id: "mirror", label: "MIRROR", Icon: PhotozMirrorDockIcon },
+  { id: "search", label: "SEARCH", Icon: PhotozSearchDockIcon },
 ];
 
 const ARCHIVE_FILTERS = ["albums", "years", "months", "eras"];
@@ -1500,21 +1500,23 @@ function PhotoCard(props) {
 function Dock(props) {
   return (
     <div className="dockWrap">
-      <Glass className="dock">
+      <Glass className="dock bottomDock">
         {PAGES.map(function (page) {
-          const Icon = page.icon;
+          const Icon = page.Icon;
           const active = props.active === page.id;
           return (
-            <button title={page.id === "albums" ? "PHOTO ALBUM" : page.id === "mirror" ? "MIRROR" : "SEARCH"} aria-label={page.id === "albums" ? "PHOTO ALBUM" : page.id === "mirror" ? "MIRROR" : "SEARCH"} data-tooltip={page.id === "albums" ? "PHOTO ALBUM" : page.id === "mirror" ? "MIRROR" : "SEARCH"}
+            <button
               key={page.id}
               type="button"
-              aria-label={page.id}
+              title={page.label}
+              aria-label={page.label}
+              data-tooltip={page.label}
               className={cls("dockButton", active && "active")}
               onClick={function () {
                 props.setActive(page.id);
               }}
             >
-              <Icon size={19} strokeWidth={active ? 2.4 : 1.9} />
+              <Icon size={23} />
             </button>
           );
         })}
@@ -1862,7 +1864,6 @@ function ControlBar(props) {
             })}
           </div>
         ) : null}
-        <Pill>{props.count}</Pill>
         {props.sync !== "saved" ? <Pill>{up(props.sync)}</Pill> : null}
       </div>
     </div>
@@ -1937,7 +1938,7 @@ function MirrorFilter(props) {
           className={props.mirrorAllMode ? "active" : ""}
           onClick={function () { props.setMirrorAllMode(function (value) { return !value; }); }}
         >
-          <LashEyeIcon size={14} />
+          <PhotozMirrorDockIcon size={14} />
           <span>All</span>
           <em>{total}</em>
         </button>
@@ -3002,12 +3003,11 @@ function MusicUtilityIcon(props) {
   return (
     <span className="musicUtilityIcon" aria-hidden="true" style={{ width: size, height: size }}>
       <svg viewBox="0 0 28 28" focusable="false">
-        <path className="musicStem" d="M11.2 18.1V7.6l8.7-1.75v10.45" />
-        <path className="musicBeam" d="M11.2 7.6 19.9 5.85" />
-        <circle className="musicNote" cx="8.6" cy="19.25" r="3.05" />
-        <circle className="musicNote" cx="17.3" cy="17.45" r="3.05" />
-        <path className="musicWave waveA" d="M4.4 10.7c1.05-1.05 1.05-2.25 0-3.3" />
-        <path className="musicWave waveB" d="M23.4 9.2c.72.72.72 1.55 0 2.28" />
+        <path className="musicDisc" d="M14 24.2c5.63 0 10.2-4.57 10.2-10.2S19.63 3.8 14 3.8 3.8 8.37 3.8 14 8.37 24.2 14 24.2Z" />
+        <path className="musicGroove outer" d="M8.7 14a5.3 5.3 0 0 1 10.6 0" />
+        <path className="musicGroove inner" d="M10.95 14a3.05 3.05 0 0 1 6.1 0" />
+        <circle className="musicCore" cx="14" cy="14" r="1.65" />
+        <path className="musicGlint" d="M18.45 7.25l.44 1.18 1.18.44-1.18.44-.44 1.18-.44-1.18-1.18-.44 1.18-.44.44-1.18Z" />
       </svg>
     </span>
   );
@@ -4342,13 +4342,10 @@ async function handleUpload(eventOrFiles) {
           <motion.div key={key} className="screen" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16 }}>
             {screen === "home" ? (
               <Glass className={"shell grid-" + gridSize + (settingsOpen || filterControlsOpen || importPanelOpen || uploadQueueOpen || statusOpen || duplicatesOpen || healthOpen ? " has-panel-open" : "")}>
-                <div className="productHeader">
-                  <em>{memories.length} files</em>
-                </div>
                 <ControlBar activePage={activePage} archive={archive} archiveFilter={archiveFilter} setArchiveFilter={setArchiveFilter} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} filterControlsOpen={filterControlsOpen} toggleFilterControls={function () { setFilterControlsOpen(function (value) { return !value; }); }} settingsOpen={settingsOpen} toggleSettingsPanel={function () { setSettingsOpen(function (value) { return !value; }); }} />
                 <div className="floatingUtilityRail">
                   <AmbientMusicControl />
-        <span className="utilityFileCount">{safeArray(memories).length} FILES</span>
+                  <span className="utilityFileCount">{safeArray(memories).length} FILES</span>
                   <button type="button" aria-label="Filter" title="Filter" data-tooltip="Filter" className={filterControlsOpen ? "utilityRailButton iconUtilityButton active" : "utilityRailButton iconUtilityButton"} onClick={function () { setSettingsOpen(false); setFilterControlsOpen(function (value) { return !value; }); }}><SlidersHorizontal size={14} strokeWidth={2.1} /></button>
                   <button type="button" aria-label="Settings" title="Settings" data-tooltip="Settings" className={settingsOpen ? "utilityRailButton cogUtilityButton iconUtilityButton active" : "utilityRailButton cogUtilityButton iconUtilityButton"} onClick={function () { setFilterControlsOpen(false); setSettingsOpen(function (value) { return !value; }); }}>⚙</button>
                 </div>

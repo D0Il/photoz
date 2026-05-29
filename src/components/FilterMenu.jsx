@@ -1,5 +1,4 @@
 import React from "react";
-import { SlidersHorizontal } from "lucide-react";
 
 function withTooltip(label) {
   const value = String(label || "").trim();
