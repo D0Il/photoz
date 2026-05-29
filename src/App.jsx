@@ -3,6 +3,9 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {ChevronLeft, Eye, Images, Search, Upload, X, Trash2, CircleHelp, SlidersHorizontal, CircleCheck, Music2, Volume2, VolumeX, LockKeyhole, UnlockKeyhole, FolderPen, ShieldCheck, Film, Download, PanelRightOpen, ArchiveRestore, Save, AlertTriangle, UploadCloud, Play, Clock3, HardDrive, Sparkles, Maximize2, CalendarDays, RotateCcw, Undo2, Settings, FolderUp, FileDown, Wrench, Star, Image, UserRound} from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
+import { FilterPanel } from "./components/FilterMenu.jsx";
+import { makeUploadPreview, makePendingUploadMemory } from "./components/UploadFlow.jsx";
+import { PhotozAlbumDockIcon, PhotozMirrorDockIcon, PhotozSearchDockIcon } from "./components/DockIcons.jsx";
 const UNASSIGNED_ALBUM_ID = "unassigned";
 const INITIAL_ALBUMS = [
   { id: UNASSIGNED_ALBUM_ID, title: "UNASSIGNED", memoryIds: [] },
@@ -1502,7 +1505,7 @@ function Dock(props) {
           const Icon = page.icon;
           const active = props.active === page.id;
           return (
-            <button
+            <button title={page.id === "albums" ? "PHOTO ALBUM" : page.id === "mirror" ? "MIRROR" : "SEARCH"} aria-label={page.id === "albums" ? "PHOTO ALBUM" : page.id === "mirror" ? "MIRROR" : "SEARCH"} data-tooltip={page.id === "albums" ? "PHOTO ALBUM" : page.id === "mirror" ? "MIRROR" : "SEARCH"}
               key={page.id}
               type="button"
               aria-label={page.id}
@@ -1559,84 +1562,13 @@ function GridSizeControl(props) {
   );
 }
 
-function FilterPanel(props) {
-  if (!props.open) return null;
 
-  const sortMode = props.sortMode || "newest";
-  const setSortMode = props.setSortMode || function () {};
-  const filterType = props.filterType || "all";
-  const setFilterType = props.setFilterType || function () {};
-  const filterSource = props.filterSource || "all";
-  const setFilterSource = props.setFilterSource || function () {};
-  const filterQuality = props.filterQuality || "any";
-  const setFilterQuality = props.setFilterQuality || function () {};
-  const viewDensity = props.viewDensity || "normal";
-  const setViewDensity = props.setViewDensity || function () {};
-
-  return (
-    <div className="floatingPanel filterPopover filterMenuPanel refinedFilterMenu" role="menu" aria-label="FILTER">
-      <div className="filterMenuHeader">
-        <SlidersHorizontal size={14} strokeWidth={2.1} />
-        <strong>FILTER</strong>
-      </div>
-
-      <section className="filterMenuSection">
-        <span>SORT</span>
-        <div className="segmentedFilterRow">
-          <button type="button" className={sortMode === "newest" ? "active" : ""} onClick={function () { setSortMode("newest"); }} {...withTooltip("Newest first")}>NEWEST</button>
-          <button type="button" className={sortMode === "oldest" ? "active" : ""} onClick={function () { setSortMode("oldest"); }} {...withTooltip("Oldest first")}>OLDEST</button>
-          <button type="button" className={sortMode === "title" ? "active" : ""} onClick={function () { setSortMode("title"); }} {...withTooltip("Title")}>TITLE</button>
-        </div>
-      </section>
-
-      <section className="filterMenuSection">
-        <span>TYPE</span>
-        <div className="segmentedFilterRow">
-          <button type="button" className={filterType === "all" ? "active" : ""} onClick={function () { setFilterType("all"); }} {...withTooltip("Any file type")}>ANY</button>
-          <button type="button" className={filterType === "photos" ? "active" : ""} onClick={function () { setFilterType("photos"); }} {...withTooltip("Photos only")}>PHOTOS</button>
-          <button type="button" className={filterType === "videos" ? "active" : ""} onClick={function () { setFilterType("videos"); }} {...withTooltip("Videos only")}>VIDEOS</button>
-        </div>
-      </section>
-
-      <section className="filterMenuSection">
-        <span>SOURCE</span>
-        <div className="segmentedFilterRow">
-          <button type="button" className={filterSource === "all" ? "active" : ""} onClick={function () { setFilterSource("all"); }} {...withTooltip("Any source")}>ANY</button>
-          <button type="button" className={filterSource === "takeout" ? "active" : ""} onClick={function () { setFilterSource("takeout"); }} {...withTooltip("Google Takeout")}>TAKEOUT</button>
-          <button type="button" className={filterSource === "needs-file" ? "active" : ""} onClick={function () { setFilterSource("needs-file"); }} {...withTooltip("Needs file")}>MISSING</button>
-        </div>
-      </section>
-
-      <section className="filterMenuSection">
-        <span>QUALITY</span>
-        <div className="segmentedFilterRow">
-          <button type="button" className={filterQuality === "any" ? "active" : ""} onClick={function () { setFilterQuality("any"); }} {...withTooltip("Any quality")}>ANY</button>
-          <button type="button" className={filterQuality === "rated" ? "active" : ""} onClick={function () { setFilterQuality("rated"); setSortMode("rating"); }} {...withTooltip("Rated")}>RATED</button>
-          <button type="button" className={sortMode === "largest" ? "active" : ""} onClick={function () { setSortMode("largest"); }} {...withTooltip("Largest files")}>LARGE</button>
-        </div>
-      </section>
-
-      <section className="filterMenuSection">
-        <span>VIEW</span>
-        <div className="segmentedFilterRow">
-          <button type="button" className={viewDensity === "compact" ? "active" : ""} onClick={function () { setViewDensity("compact"); }} {...withTooltip("Compact grid")}>TIGHT</button>
-          <button type="button" className={viewDensity === "normal" ? "active" : ""} onClick={function () { setViewDensity("normal"); }} {...withTooltip("Normal grid")}>NORMAL</button>
-          <button type="button" className={viewDensity === "large" ? "active" : ""} onClick={function () { setViewDensity("large"); }} {...withTooltip("Large grid")}>LARGE</button>
-        </div>
-      </section>
-    </div>
-  );
-}
 
 function SettingsPanel(props) {
   if (!props.open) return null;
 
   return (
     <div className="floatingPanel settingsPopover settingsMenuPanel" role="menu" aria-label="SETTINGS">
-      <div className="settingsMenuHeader">
-        <Settings size={14} strokeWidth={2.1} />
-        <strong></strong>
-      </div>
 
       <div className="settingsMenuGroup">
         <span>IMPORT</span>
@@ -2645,7 +2577,7 @@ function AmbientMusicControl() {
         onClick={function () { setEnabled(function (value) { return !value; }); }}
       >
         <span className="ambientGlyph">
-          <Music2 size={13} strokeWidth={2.05} />
+          <MusicUtilityIcon size={18} />
         </span>
       </button>
       {youtubeSrc ? (
@@ -3046,134 +2978,39 @@ function withTooltip(label) {
   return value ? { title: value, "data-tooltip": value, "aria-label": value } : {};
 }
 
-function AnimatedBookDockIcon(props) {
-  const size = props.size || 20;
-  return (
-    <span className="dockBookIcon" aria-hidden="true" style={{ width: size, height: size }}>
-      <svg viewBox="0 0 28 28" focusable="false">
-        <path className="bookCover left" d="M4.4 7.2c3.3-.55 6.2.15 9.6 2.1v13.2c-3.2-1.85-6.3-2.35-9.6-1.65V7.2Z" />
-        <path className="bookCover right" d="M23.6 7.2c-3.3-.55-6.2.15-9.6 2.1v13.2c3.2-1.85 6.3-2.35 9.6-1.65V7.2Z" />
-        <path className="bookSpine" d="M14 9.3v13.3" />
-        <path className="bookPage pageA" d="M14 9.6c2.4-1.35 4.8-1.95 7.1-1.7v11.4c-2.25-.28-4.65.28-7.1 1.7V9.6Z" />
-        <path className="bookPage pageB" d="M14 9.6c2.4-1.35 4.8-1.95 7.1-1.7v11.4c-2.25-.28-4.65.28-7.1 1.7V9.6Z" />
-        <path className="bookLine leftLine" d="M7 11.3c1.7-.15 3.2.15 4.8.85" />
-        <path className="bookLine leftLine2" d="M7 14.2c1.55-.12 3 .12 4.7.75" />
-        <path className="bookLine rightLine" d="M16.2 12.15c1.6-.7 3.1-1 4.8-.85" />
-        <path className="bookLine rightLine2" d="M16.3 14.95c1.7-.63 3.15-.87 4.7-.75" />
-      </svg>
-    </span>
-  );
-}
 
-function SparkSearchDockIcon(props) {
-  const size = props.size || 20;
-  return (
-    <span className="dockSearchSparkIcon" aria-hidden="true" style={{ width: size, height: size }}>
-      <svg viewBox="0 0 28 28" focusable="false">
-        <circle className="searchLens" cx="12.1" cy="12.1" r="6.35" />
-        <path className="searchHandle" d="M16.9 16.9 22.2 22.2" />
-        <path className="searchSpark sparkMain" d="M21.2 4.4l.7 2.0 2.0.7-2.0.7-.7 2.0-.7-2.0-2.0-.7 2.0-.7.7-2.0Z" />
-        <path className="searchSpark sparkSmall" d="M6.0 3.5l.45 1.25 1.25.45-1.25.45L6 6.9l-.45-1.25-1.25-.45 1.25-.45L6 3.5Z" />
-      </svg>
-    </span>
-  );
-}
 
-function LashEyeIcon(props) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function MusicUtilityIcon(props) {
   const size = props.size || 18;
   return (
-    <span className="lashEyeIcon" aria-hidden="true" style={{ width: size, height: size }}>
-      <svg viewBox="0 0 24 24" focusable="false">
-        <path className="lashEyeLid top" d="M3.2 12C5.4 7.7 8.4 5.7 12 5.7s6.6 2 8.8 6.3" />
-        <path className="lashEyeLid bottom" d="M3.2 12c2.2 4.3 5.2 6.3 8.8 6.3s6.6-2 8.8-6.3" />
-        <path className="lash lash1" d="M6.2 8.2 4.9 6.5" />
-        <path className="lash lash2" d="M9.0 6.8 8.4 4.8" />
-        <path className="lash lash3" d="M12 6.3V4.1" />
-        <path className="lash lash4" d="M15.0 6.8l.6-2.0" />
-        <path className="lash lash5" d="M17.8 8.2l1.3-1.7" />
-        <circle className="lashEyeIris" cx="12" cy="12" r="2.45" />
-        <circle className="lashEyeSpark" cx="11.15" cy="11.05" r=".55" />
-      </svg>
-    </span>
-  );
-}
-
-
-function PhotozAlbumDockIcon(props) {
-  const size = props.size || 22;
-  return (
-    <span className="photozDockIcon photozDockBook" aria-hidden="true" style={{ width: size, height: size }}>
+    <span className="musicUtilityIcon" aria-hidden="true" style={{ width: size, height: size }}>
       <svg viewBox="0 0 28 28" focusable="false">
-        <path className="bookCover" d="M4.8 7.3c3.25-.52 6.1.16 9.2 2.02v12.9c-3-1.72-6-2.25-9.2-1.55V7.3Z" />
-        <path className="bookCover" d="M23.2 7.3c-3.25-.52-6.1.16-9.2 2.02v12.9c3-1.72 6-2.25 9.2-1.55V7.3Z" />
-        <path className="bookPage" d="M14 9.45c2.35-1.24 4.58-1.78 6.75-1.55v11.12c-2.08-.23-4.35.31-6.75 1.66V9.45Z" />
-        <path className="bookLine" d="M14 9.4v13" />
-        <path className="bookLine" d="M7.25 11.45c1.5-.12 2.95.12 4.45.76" />
-        <path className="bookLine" d="M16.3 12.2c1.55-.66 3-.92 4.45-.75" />
+        <path className="musicStem" d="M11.2 18.1V7.6l8.7-1.75v10.45" />
+        <path className="musicBeam" d="M11.2 7.6 19.9 5.85" />
+        <circle className="musicNote" cx="8.6" cy="19.25" r="3.05" />
+        <circle className="musicNote" cx="17.3" cy="17.45" r="3.05" />
+        <path className="musicWave waveA" d="M4.4 10.7c1.05-1.05 1.05-2.25 0-3.3" />
+        <path className="musicWave waveB" d="M23.4 9.2c.72.72.72 1.55 0 2.28" />
       </svg>
     </span>
   );
-}
-
-function PhotozMirrorDockIcon(props) {
-  const size = props.size || 22;
-  return (
-    <span className="photozDockIcon photozDockEye" aria-hidden="true" style={{ width: size, height: size }}>
-      <svg viewBox="0 0 28 28" focusable="false">
-        <path className="eyeTop" d="M4.3 14c2.45-4.15 5.65-6.04 9.7-6.04S21.25 9.85 23.7 14" />
-        <path className="eyeBottom" d="M4.3 14c2.45 4.15 5.65 6.04 9.7 6.04s7.25-1.89 9.7-6.04" />
-        <path className="lash" d="M8.25 9.35 6.85 7.25" />
-        <path className="lash" d="M11.2 8.16 10.7 5.9" />
-        <path className="lash" d="M14 7.86V5.45" />
-        <path className="lash" d="M16.8 8.16l.5-2.26" />
-        <path className="lash" d="M19.75 9.35l1.4-2.1" />
-        <circle className="iris" cx="14" cy="14" r="2.55" />
-      </svg>
-    </span>
-  );
-}
-
-function PhotozSearchDockIcon(props) {
-  const size = props.size || 22;
-  return (
-    <span className="photozDockIcon photozDockSearch" aria-hidden="true" style={{ width: size, height: size }}>
-      <svg viewBox="0 0 28 28" focusable="false">
-        <circle className="lens" cx="12.2" cy="12.2" r="6.25" />
-        <path className="handle" d="M16.9 16.9 22.4 22.4" />
-        <path className="spark big" d="M21.25 4.45l.68 1.95 1.95.68-1.95.68-.68 1.95-.68-1.95-1.95-.68 1.95-.68.68-1.95Z" />
-        <path className="spark small" d="M6.2 4.35l.45 1.22 1.22.45-1.22.45L6.2 7.7l-.45-1.23-1.22-.45 1.22-.45.45-1.22Z" />
-      </svg>
-    </span>
-  );
-}
-
-
-function makeUploadPreview(file) {
-  if (!file) return "";
-  try {
-    return URL.createObjectURL(file);
-  } catch (error) {
-    return "";
-  }
-}
-
-function makePendingUploadMemory(file, index) {
-  const id = "pending-" + Date.now() + "-" + index + "-" + Math.random().toString(36).slice(2);
-  const url = makeUploadPreview(file);
-  return {
-    id,
-    title: file && file.name ? file.name : "UPLOADING",
-    name: file && file.name ? file.name : "UPLOADING",
-    fileName: file && file.name ? file.name : "UPLOADING",
-    kind: file && file.type && file.type.startsWith("video/") ? "video" : "photo",
-    mimeType: file && file.type ? file.type : "",
-    size: file && file.size ? file.size : 0,
-    url,
-    previewUrl: url,
-    storageUrl: url,
-    date: new Date().toISOString(),
-    uploadPending: true,
-  };
 }
 
 export default function App() {
@@ -4511,6 +4348,7 @@ async function handleUpload(eventOrFiles) {
                 <ControlBar activePage={activePage} archive={archive} archiveFilter={archiveFilter} setArchiveFilter={setArchiveFilter} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} filterControlsOpen={filterControlsOpen} toggleFilterControls={function () { setFilterControlsOpen(function (value) { return !value; }); }} settingsOpen={settingsOpen} toggleSettingsPanel={function () { setSettingsOpen(function (value) { return !value; }); }} />
                 <div className="floatingUtilityRail">
                   <AmbientMusicControl />
+        <span className="utilityFileCount">{safeArray(memories).length} FILES</span>
                   <button type="button" aria-label="Filter" title="Filter" data-tooltip="Filter" className={filterControlsOpen ? "utilityRailButton iconUtilityButton active" : "utilityRailButton iconUtilityButton"} onClick={function () { setSettingsOpen(false); setFilterControlsOpen(function (value) { return !value; }); }}><SlidersHorizontal size={14} strokeWidth={2.1} /></button>
                   <button type="button" aria-label="Settings" title="Settings" data-tooltip="Settings" className={settingsOpen ? "utilityRailButton cogUtilityButton iconUtilityButton active" : "utilityRailButton cogUtilityButton iconUtilityButton"} onClick={function () { setFilterControlsOpen(false); setSettingsOpen(function (value) { return !value; }); }}>⚙</button>
                 </div>

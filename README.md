@@ -128,3 +128,27 @@ Added:
 
 - Fixed upload-feedback runtime TDZ crash by removing displayMemories before memories initialization; pending uploads now merge inline at render time.
 - Changed album tab labels to singular: PHOTO ALBUM, YEAR, MONTH, ERA.
+
+
+## Stabilization pass
+
+This build stops the small-patch loop and adds guardrails:
+- Filter menu moved into `src/components/FilterMenu.jsx`
+- Dock icon components moved into `src/components/DockIcons.jsx` when present
+- Upload helper functions moved into `src/components/UploadFlow.jsx` when present
+- dead title/header render paths removed or hidden
+- duplicate Select controls removed/hidden
+- dangerous broad override CSS blocks removed
+- `npm run validate` added
+- Playwright smoke test scaffold added with `npm run smoke`
+
+Validation expected before deploy:
+```bash
+npm run build
+npm run validate
+npx wrangler deploy --dry-run
+```
+
+- Fixed regression: 0 FILES is now beside the music/utility controls as plain text, and dock animated symbols are restored with explicit icon components/CSS.
+
+- Cleaned music/settings/filter/tooltip regressions: polished music icon, removed redundant menu headers, restored dock tooltips, and raised tooltip layering above glass UI.

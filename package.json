@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "node scripts/write-access-code.mjs && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "validate": "node scripts/validate-photoz.mjs",
+    "smoke": "playwright test"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^6.0.2",

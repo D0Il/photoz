@@ -10819,147 +10819,6 @@ button[data-tooltip="Long-press files"] {
 }
 
 
-/* RESTORED DOCK AND FILE COUNT */
-.bottomDock,
-nav.bottomDock {
-  position: fixed;
-  left: 50%;
-  right: auto;
-  top: auto;
-  bottom: 18px;
-  transform: translateX(-50%);
-  z-index: 90;
-  display: inline-flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: auto;
-  min-width: 178px;
-  height: 52px;
-  min-height: 52px;
-  padding: 5px;
-  margin: 0;
-  border-radius: 999px;
-  overflow: visible;
-}
-
-.bottomDock button,
-nav.bottomDock button {
-  width: 46px;
-  min-width: 46px;
-  max-width: 46px;
-  height: 40px;
-  min-height: 40px;
-  max-height: 40px;
-  display: inline-grid;
-  place-items: center;
-  flex: 0 0 46px;
-  padding: 0;
-  margin: 0;
-  border-radius: 999px;
-  color: rgba(0,0,0,.72);
-}
-
-.photozDockIcon,
-.bottomDock .photozDockIcon,
-nav.bottomDock .photozDockIcon {
-  display: inline-grid;
-  place-items: center;
-  width: 23px;
-  height: 23px;
-  min-width: 23px;
-  min-height: 23px;
-  line-height: 0;
-  opacity: 1;
-  visibility: visible;
-  color: currentColor;
-  position: relative;
-  z-index: 4;
-}
-
-.photozDockIcon svg,
-.bottomDock .photozDockIcon svg,
-nav.bottomDock .photozDockIcon svg {
-  display: block;
-  width: 23px;
-  height: 23px;
-  min-width: 23px;
-  min-height: 23px;
-  overflow: visible;
-}
-
-.photozDockIcon path,
-.photozDockIcon circle {
-  vector-effect: non-scaling-stroke;
-}
-
-.photozDockBook .bookCover,
-.photozDockBook .bookPage {
-  fill: rgba(255,255,255,.16);
-  stroke: currentColor;
-  stroke-width: 1.75;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.photozDockBook .bookLine {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.35;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.photozDockBook .bookPage {
-  transform-box: fill-box;
-  transform-origin: left center;
-  animation: photozBookPageFlip 3.6s ease-in-out infinite;
-}
-
-.photozDockEye path {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.65;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.photozDockEye .iris,
-.photozDockSearch .spark {
-  fill: currentColor;
-  stroke: none;
-}
-
-.photozDockEye .eyeTop {
-  transform-origin: 14px 14px;
-  animation: photozEyeTopBlink 5.2s ease-in-out infinite;
-}
-
-.photozDockEye .eyeBottom {
-  transform-origin: 14px 14px;
-  animation: photozEyeBottomBlink 5.2s ease-in-out infinite;
-}
-
-.photozDockSearch .lens,
-.photozDockSearch .handle {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.85;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.photozDockSearch .spark {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: photozSearchSpark 2.7s ease-in-out infinite;
-}
-
-.photozDockSearch .small {
-  animation-delay: .36s;
-}
-
 /* page title header hidden; tab labels are not targeted */
 .pageTitle,
 .pageHeader h1,
@@ -10982,32 +10841,6 @@ nav.bottomDock .photozDockIcon svg {
   margin: 0;
   padding: 0;
   overflow: hidden;
-}
-
-/* existing file count stays top-right plain text, not pill, not moved into controls */
-.fileCount,
-.filesCount,
-.libraryCount,
-.totalFiles,
-.headerCount,
-.topCount {
-  position: absolute;
-  top: 38px;
-  right: 188px;
-  z-index: 60;
-  display: block;
-  height: auto;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  border-radius: 0;
-  font-size: 8px;
-  line-height: 1;
-  font-weight: 850;
-  letter-spacing: .12em;
-  color: rgba(0,0,0,.34);
-  white-space: nowrap;
 }
 
 @keyframes photozBookPageFlip {
@@ -11091,4 +10924,398 @@ nav.bottomDock .photozDockIcon svg {
 
 .photoCard:has(.pendingUploadBadge) {
   opacity: .86;
+}
+
+
+
+/* COUNT BESIDE MUSIC AND DOCK SYMBOL FIX */
+.pageTitle,
+.pageHeader h1,
+.pageHeader > h1,
+.heroTitle,
+.viewTitle,
+.screenTitle,
+.titleBlock,
+.titleCluster,
+.mainPageTitle,
+.appChrome > h1,
+.appChrome h1:first-child,
+.pageScroll > h1:first-child,
+.glass > h1:first-child,
+[data-page-title="true"] {
+  display: none;
+  visibility: hidden;
+  height: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.pzStateBanner,
+.selectButton,
+button.selectButton,
+[data-role="select-button"],
+[data-action="select"],
+button[aria-label="Select"],
+button[title="Select"],
+button[data-tooltip="Select"] {
+  display: none;
+}
+
+.utilityFileCount {
+  position: static;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  margin: 0 2px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 850;
+  letter-spacing: .12em;
+  color: rgba(0,0,0,.38);
+  white-space: nowrap;
+  pointer-events: none;
+  flex: 0 0 auto;
+}
+
+.floatingUtilityRail .utilityFileCount,
+.utilityRail .utilityFileCount,
+.topUtilityRail .utilityFileCount {
+  align-self: center;
+}
+
+.libraryFileCount,
+.albumFileCount,
+.albumFileCountText,
+.fileCount,
+.filesCount,
+.libraryCount,
+.totalFiles,
+.headerCount,
+.topCount {
+  position: static;
+  inset: auto;
+  right: auto;
+  top: auto;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.bottomDock,
+nav.bottomDock {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  top: auto;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 90;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: auto;
+  min-width: 178px;
+  height: 52px;
+  min-height: 52px;
+  padding: 5px;
+  margin: 0;
+  border-radius: 999px;
+  overflow: visible;
+}
+
+.bottomDock button,
+nav.bottomDock button {
+  width: 46px;
+  min-width: 46px;
+  max-width: 46px;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 46px;
+  padding: 0;
+  margin: 0;
+  border-radius: 999px;
+  color: rgba(0,0,0,.72);
+}
+
+.photozDockIcon,
+.bottomDock .photozDockIcon,
+nav.bottomDock .photozDockIcon {
+  display: inline-grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  min-width: 23px;
+  min-height: 23px;
+  line-height: 0;
+  opacity: 1;
+  visibility: visible;
+  color: currentColor;
+  position: relative;
+  z-index: 8;
+}
+
+.photozDockIcon svg,
+.bottomDock .photozDockIcon svg,
+nav.bottomDock .photozDockIcon svg {
+  display: block;
+  width: 23px;
+  height: 23px;
+  min-width: 23px;
+  min-height: 23px;
+  overflow: visible;
+  opacity: 1;
+  visibility: visible;
+}
+
+.photozDockIcon path,
+.photozDockIcon circle {
+  vector-effect: non-scaling-stroke;
+}
+
+.photozDockBook .bookCover,
+.photozDockBook .bookPage {
+  fill: rgba(255,255,255,.16);
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.photozDockBook .bookLine {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.photozDockBook .bookPage {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: photozBookPageFlip 3.6s ease-in-out infinite;
+}
+
+.photozDockEye path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.65;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.photozDockEye .iris,
+.photozDockSearch .spark {
+  fill: currentColor;
+  stroke: none;
+}
+
+.photozDockEye .eyeTop {
+  transform-origin: 14px 14px;
+  animation: photozEyeTopBlink 5.2s ease-in-out infinite;
+}
+
+.photozDockEye .eyeBottom {
+  transform-origin: 14px 14px;
+  animation: photozEyeBottomBlink 5.2s ease-in-out infinite;
+}
+
+.photozDockSearch .lens,
+.photozDockSearch .handle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.photozDockSearch .spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: photozSearchSpark 2.7s ease-in-out infinite;
+}
+
+.photozDockSearch .small {
+  animation-delay: .36s;
+}
+
+@keyframes photozBookPageFlip {
+  0%, 25%, 100% { transform: perspective(54px) rotateY(0deg); opacity: .9; }
+  48% { transform: perspective(54px) rotateY(-120deg); opacity: .48; }
+  68% { transform: perspective(54px) rotateY(0deg); opacity: .9; }
+}
+
+@keyframes photozEyeTopBlink {
+  0%, 88%, 100% { transform: translateY(0) scaleY(1); }
+  92%, 94% { transform: translateY(3px) scaleY(.2); }
+}
+
+@keyframes photozEyeBottomBlink {
+  0%, 88%, 100% { transform: translateY(0) scaleY(1); }
+  92%, 94% { transform: translateY(-3px) scaleY(.2); }
+}
+
+@keyframes photozSearchSpark {
+  0%, 65%, 100% { transform: scale(.6) rotate(0deg); opacity: .24; }
+  14% { transform: scale(1.08) rotate(12deg); opacity: .95; }
+  30% { transform: scale(.82) rotate(24deg); opacity: .55; }
+}
+
+
+/* MUSIC MENU TOOLTIP POLISH */
+.musicUtilityIcon {
+  display: inline-grid;
+  place-items: center;
+  color: currentColor;
+  line-height: 0;
+}
+
+.musicUtilityIcon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.musicUtilityIcon path,
+.musicUtilityIcon circle {
+  vector-effect: non-scaling-stroke;
+}
+
+.musicUtilityIcon .musicStem,
+.musicUtilityIcon .musicBeam {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.musicUtilityIcon .musicNote {
+  fill: rgba(255,255,255,.12);
+  stroke: currentColor;
+  stroke-width: 1.65;
+}
+
+.musicUtilityIcon .musicWave {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  opacity: .58;
+  animation: musicUtilityWave 2.8s ease-in-out infinite;
+}
+
+.musicUtilityIcon .waveB {
+  animation-delay: .38s;
+}
+
+@keyframes musicUtilityWave {
+  0%, 70%, 100% { transform: translateX(0); opacity: .28; }
+  18% { transform: translateX(.7px); opacity: .78; }
+  34% { transform: translateX(0); opacity: .44; }
+}
+
+/* redundant menu headers removed; keep menu content tight */
+.settingsMenuHeader,
+.filterMenuHeader {
+  display: none;
+}
+
+.settingsMenuPanel,
+.filterMenuPanel,
+.refinedFilterMenu {
+  padding-top: 10px;
+}
+
+/* tooltips must float above glass panels, dock, utility rail, menus */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: fixed;
+  z-index: 9999;
+  left: var(--tooltip-x, auto);
+  top: var(--tooltip-y, auto);
+  transform: translate(-50%, -100%);
+  min-width: max-content;
+  max-width: 180px;
+  height: 24px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 7px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: .12em;
+  color: rgba(0,0,0,.62);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.20), rgba(255,255,255,.075)),
+    rgba(255,255,255,.060);
+  border: 1px solid rgba(255,255,255,.32);
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.10),
+    inset 0 1px 0 rgba(255,255,255,.30);
+  backdrop-filter: blur(18px) saturate(1.1);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::after {
+  display: inline-flex;
+}
+
+/* Local fallback for browsers that ignore fixed pseudo positioning well enough */
+.bottomDock [data-tooltip]::after {
+  left: 50%;
+  top: -8px;
+  position: absolute;
+  z-index: 9999;
+}
+
+.floatingUtilityRail [data-tooltip]::after,
+.utilityRail [data-tooltip]::after,
+.topUtilityRail [data-tooltip]::after {
+  left: 50%;
+  top: -8px;
+  position: absolute;
+  z-index: 9999;
+}
+
+.settingsMenuPanel [data-tooltip]::after,
+.filterMenuPanel [data-tooltip]::after,
+.refinedFilterMenu [data-tooltip]::after {
+  left: 50%;
+  top: -6px;
+  position: absolute;
+  z-index: 9999;
+}
+
+.bottomDock,
+.floatingUtilityRail,
+.utilityRail,
+.topUtilityRail,
+.settingsMenuPanel,
+.filterMenuPanel,
+.refinedFilterMenu {
+  overflow: visible;
 }
