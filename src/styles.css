@@ -9735,3 +9735,14 @@ button:active,
   25% { transform: translateX(-5px); }
   60% { transform: translateX(4px); }
 }
+
+
+.passwordErrorText {
+  min-height: 12px;
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 850;
+  letter-spacing: .14em;
+  color: rgba(0,0,0,.46);
+  text-align: center;
+}

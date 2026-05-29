@@ -52,4 +52,4 @@ The Worker guards `/api/index`, `/api/load-index`, `/api/backup-index`, `/api/sa
 
 ## Password gate
 
-The entry gate validates through `/api/unlock` against a Cloudflare Worker secret/env var. Supported names: `PHOTOZ_PASSWORD`, `PHOTOZ_ACCESS_PASSWORD`, `ACCESS_PASSWORD`, or `PASSWORD`.
+The entry gate validates through `/api/unlock` against the Cloudflare Worker secret/env var named `PHOTOZ_ACCESS_CODE`. The value is trimmed before matching and is never exposed in frontend code.

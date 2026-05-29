@@ -2532,7 +2532,7 @@ function AmbientMusicControl() {
 
 function PasswordGate(props) {
   const [draft, setDraft] = useState("");
-  const [error, setError] = useState(false);
+  const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function unlock(event) {
@@ -2540,7 +2540,7 @@ function PasswordGate(props) {
     if (!draft || busy) return;
 
     setBusy(true);
-    setError(false);
+    setError("");
 
     try {
       const response = await fetch("/api/unlock", {
@@ -2554,9 +2554,14 @@ function PasswordGate(props) {
         props.onUnlock();
         return;
       }
+      if (result && result.error === "PHOTOZ_ACCESS_CODE_NOT_CONFIGURED") {
+        setError("CONFIG");
+        setBusy(false);
+        return;
+      }
     } catch (error) {}
 
-    setError(true);
+    setError("INVALID");
     setDraft("");
     setBusy(false);
     if (typeof playUiTick === "function") playUiTick("soft");
@@ -2575,11 +2580,16 @@ function PasswordGate(props) {
             autoFocus
             type="password"
             value={draft}
-            onChange={function (event) { setDraft(event.target.value); setError(false); }}
+            onChange={function (event) { setDraft(event.target.value); setError(""); }}
             placeholder="PASSWORD"
-            aria-label="PHOTOZ password"
+            aria-label="PHOTOZ access code"
           />
         </label>
+        {error ? (
+          <div className="passwordErrorText">
+            {error === "CONFIG" ? "ACCESS CODE NOT SET" : "WRONG CODE"}
+          </div>
+        ) : null}
         <button type="submit" disabled={busy} data-tooltip="Unlock" title="Unlock" aria-label="Unlock">
           <UnlockKeyhole size={14} strokeWidth={2.1} />
         </button>
