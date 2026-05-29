@@ -626,3 +626,29 @@ Fixed Cloudflare/Vite build failures:
 - removed stray `</AccessGate>` closing tag in `App.jsx`
 
 Verified locally with `npm run build`.
+
+
+## Hard visual declutter pass
+
+Reduced visible clutter:
+
+- Sort/grid/album sort moved behind a single VIEW button.
+- Top bar is now SELECT / VIEW / TOOLS / UPLOAD.
+- Search shows only primary filters first.
+- Search advanced filters stay behind MORE.
+- Date/rating advanced search only appears when MORE is open.
+- Bulk bar is reduced to count, destination, MOVE, TRASH, MORE, CLEAR.
+- Extra bulk actions stay inside MORE.
+- Metadata-style badges remain hidden.
+
+
+## Shape system cleanup
+
+Adjusted the visual language so the UI is glass, not bubbles:
+
+- Main surfaces are rounded glass panes.
+- Cards are softened rectangles.
+- Buttons and inputs are rectangular glass controls.
+- Only true chips/badges remain pill-shaped.
+- Reduced puffy shadows/padding on controls.
+- Kept the glass depth/highlights while making the product feel less toy-like.

@@ -17,7 +17,7 @@ const PAGES = [
 ];
 
 const ARCHIVE_VIEWS = ["folders", "years", "months", "eras"];
-const SEARCH_FILTERS = ["all", "photos", "videos", "starred", "mirror", "me", "tagged", "takeout", "archive", "trash", "needs-file"];
+const SEARCH_FILTERS = ["all", "photos", "videos", "starred", "mirror", "trash", "me", "tagged", "takeout", "archive", "needs-file"];
 const PRIMARY_SEARCH_FILTERS = ["all", "photos", "videos", "starred", "mirror", "trash"];
 const ADVANCED_SEARCH_FILTERS = ["me", "tagged", "takeout", "archive", "needs-file"];
 const SORT_OPTIONS = ["newest", "oldest", "title", "status", "largest", "smallest", "rating"];
@@ -1187,6 +1187,24 @@ function GridSizeControl(props) {
   );
 }
 
+function ViewPanel(props) {
+  if (!props.open) return null;
+
+  return (
+    <div className="viewPanel">
+      <div className="statusPanelTop">
+        <strong>VIEW</strong>
+        <button type="button" onClick={props.close}>CLOSE</button>
+      </div>
+      <div className="viewPanelGrid">
+        <SortControl sortMode={props.sortMode} setSortMode={props.setSortMode} />
+        <AlbumSortControl show={props.showAlbumSort} albumSort={props.albumSort} setAlbumSort={props.setAlbumSort} />
+        <GridSizeControl gridSize={props.gridSize} setGridSize={props.setGridSize} />
+      </div>
+    </div>
+  );
+}
+
 function ToolsPanel(props) {
   if (!props.open) return null;
 
@@ -1413,16 +1431,12 @@ function BulkBar(props) {
   return (
     <div className="bulkBar simplifiedBulk">
       <Pill>{count}</Pill>
-      <button type="button" onClick={props.selectAll}>ALL</button>
-      <button type="button" onClick={props.selectVisible}>VIEW</button>
-      <button type="button" onClick={props.invertSelection}>INVERT</button>
       <select value={props.bulkAlbum} onChange={function (event) { props.setBulkAlbum(event.target.value); }}>
         {assignableAlbums(props.albums).map(function (album) {
           return <option key={album.id} value={album.id}>{album.title}</option>;
         })}
       </select>
       <button type="button" disabled={!count} onClick={props.bulkMoveToAlbum}>MOVE</button>
-      <button type="button" disabled={!count} onClick={props.bulkApplyTags}>TAG</button>
       <button type="button" disabled={!count} onClick={props.bulkDelete}>TRASH</button>
       <button type="button" className={props.bulkMoreOpen ? "active" : ""} onClick={props.toggleBulkMore}>MORE</button>
       <button type="button" onClick={props.clearSelection}>CLEAR</button>
@@ -1430,6 +1444,9 @@ function BulkBar(props) {
       {props.bulkMoreOpen ? (
         <div className="bulkMore">
           <input value={props.bulkText} onChange={function (event) { props.setBulkText(event.target.value); }} placeholder="TAGS / ERA / CAPTION / LOCATION / EVENT" />
+          <button type="button" onClick={props.selectAll}>SELECT ALL</button>
+          <button type="button" onClick={props.selectVisible}>SELECT VIEW</button>
+          <button type="button" onClick={props.invertSelection}>INVERT</button>
           <button type="button" disabled={!count} onClick={props.bulkAddToAlbum}>ADD TO ALBUM</button>
           <button type="button" disabled={!count} onClick={props.bulkStar}>STAR</button>
           <button type="button" disabled={!count} onClick={props.bulkUnstar}>UNSTAR</button>
@@ -1480,6 +1497,7 @@ function ControlBar(props) {
       </div>
       <div className="rightControls">
         <button type="button" className={props.selectionMode ? "selectModeButton active" : "selectModeButton"} onClick={props.toggleSelectionMode}>{props.selectionMode ? "DONE" : "SELECT"}</button>
+        <button type="button" className={props.viewControlsOpen ? "selectModeButton active" : "selectModeButton"} onClick={props.toggleViewControls}>VIEW</button>
         <button type="button" className={props.toolsOpen ? "selectModeButton active" : "selectModeButton"} onClick={props.toggleToolsPanel}>TOOLS</button>
         <UploadButton onUpload={props.onUpload} />
         <UploadButton onUpload={props.onUpload} folder />
@@ -1877,6 +1895,12 @@ function verifyWorkflowCleanupModel() {
 }
 verifyWorkflowCleanupModel();
 
+function verifyHardDeclutterModel() {
+  console.assert(PRIMARY_SEARCH_FILTERS.length === 6, "Primary search filters are reduced");
+  console.assert(typeof ViewPanel === "function", "View controls panel exists");
+}
+verifyHardDeclutterModel();
+
 function verifyDebloatCleanupModel() {
   console.assert(PRIMARY_SEARCH_FILTERS.length < SEARCH_FILTERS.length, "Search filters grouped");
   console.assert(ADVANCED_SEARCH_FILTERS.indexOf("takeout") !== -1, "Advanced filters include takeout");
@@ -2068,6 +2092,7 @@ export default function App() {
   const [uploadQueueOpen, setUploadQueueOpen] = useState(false);
   const [uploadQueue, setUploadQueue] = useState([]);
   const uploadFileRefs = useRef({});
+  const [viewControlsOpen, setViewControlsOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
   const [duplicatesOpen, setDuplicatesOpen] = useState(false);
@@ -3183,8 +3208,8 @@ export default function App() {
           <motion.div key={key} className="screen" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16 }}>
             {screen === "home" ? (
               <Glass className={"shell grid-" + gridSize}>
-                <ControlBar archive={archive} archiveView={archiveView} setArchiveView={setArchiveView} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} toolsOpen={toolsOpen} toggleToolsPanel={function () { setToolsOpen(function (value) { return !value; }); }} />
-                <div className="controlMiniRow"><SortControl sortMode={sortMode} setSortMode={setSortMode} /><AlbumSortControl show={activePage === "albums" && archiveView === "folders"} albumSort={albumSort} setAlbumSort={setAlbumSort} /><GridSizeControl gridSize={gridSize} setGridSize={setGridSize} /></div>
+                <ControlBar archive={archive} archiveView={archiveView} setArchiveView={setArchiveView} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} viewControlsOpen={viewControlsOpen} toggleViewControls={function () { setViewControlsOpen(function (value) { return !value; }); }} toolsOpen={toolsOpen} toggleToolsPanel={function () { setToolsOpen(function (value) { return !value; }); }} />
+                <ViewPanel open={viewControlsOpen} close={function () { setViewControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveView === "folders"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize} />
                 <UndoBar snapshot={undoSnapshot} undo={undoLastAction} clear={function () { setUndoSnapshot(null); }} />
                 <ToolsPanel open={toolsOpen} close={function () { setToolsOpen(false); }} toggleImportPanel={function () { setImportPanelOpen(function (value) { return !value; }); }} toggleUploadQueuePanel={function () { setUploadQueueOpen(function (value) { return !value; }); }} toggleStatusPanel={function () { setStatusOpen(function (value) { return !value; }); }} toggleDuplicatePanel={function () { setDuplicatesOpen(function (value) { return !value; }); }} toggleHealthPanel={function () { setHealthOpen(function (value) { return !value; }); }} exportVaultIndex={exportVaultIndex} exportManifestCsv={exportManifestCsv} importVaultIndex={importVaultIndex} />
                 <ImportPanel open={importPanelOpen} close={function () { setImportPanelOpen(false); }} uploadBatchSize={uploadBatchSize} setUploadBatchSize={setUploadBatchSize} uploadConcurrency={uploadConcurrency} setUploadConcurrency={setUploadConcurrency} skipDuplicates={skipDuplicates} setSkipDuplicates={setSkipDuplicates} importSummary={importSummary} />
