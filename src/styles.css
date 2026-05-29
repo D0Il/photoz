@@ -8661,3 +8661,113 @@ body:has(.selectUtilityButton.active) .bulkBar,
 .searchPage .librarySearchFilters button[data-filter="me"] {
   display: none;
 }
+
+
+/* No Hidden album/shortcut concept */
+.systemRailItem[data-source-id="virtual-archived"],
+.systemRailItem[data-source-id="archive"],
+.systemRailItem[data-id="virtual-archived"] {
+  display: none;
+}
+
+
+/* Albums page should not have global media-type shortcut folders */
+.systemRailItem[data-source-id="virtual-videos"],
+.systemRailItem[data-source-id="videos"],
+.systemRailItem[data-id="virtual-videos"] {
+  display: none;
+}
+
+
+/* Albums shortcut label polish: icon labels should feel intentional */
+.systemRailItem span {
+  min-width: 12px;
+  text-align: center;
+}
+
+.systemRailItem span:first-child {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.systemRailItem em {
+  margin-left: 2px;
+}
+
+
+/* Shortcut icons: no emoji */
+.systemRailItem.iconShortcut span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.systemRailItem.iconShortcut svg {
+  width: 13px;
+  height: 13px;
+  display: block;
+  color: rgba(0,0,0,.58);
+}
+
+.systemRailItem .questionMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 900;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: rgba(0,0,0,.58);
+}
+
+
+/* Search bar fit fix: input should fill the glass bubble, not sit tiny inside it */
+.searchPage .searchBar,
+.searchPage .librarySearchBar {
+  width: min(620px, 100%);
+  min-height: 42px;
+  height: 42px;
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border-radius: 16px;
+  box-sizing: border-box;
+}
+
+.searchPage .searchBar svg,
+.searchPage .librarySearchBar svg {
+  width: 15px;
+  height: 15px;
+  justify-self: center;
+}
+
+.searchPage .searchBar input,
+.searchPage .librarySearchBar input {
+  width: 100%;
+  height: 32px;
+  min-height: 32px;
+  box-sizing: border-box;
+  border-radius: 11px;
+  padding: 0 10px;
+  margin: 0;
+  font-size: 11px;
+  line-height: 32px;
+  background: rgba(255,255,255,.045);
+}
+
+.searchPage .searchBar .pill,
+.searchPage .librarySearchBar .pill {
+  display: none;
+}
+
+/* If the search bar has old 3-column/full variants, force this cleaner shape */
+.searchPage .searchBarFull {
+  grid-template-columns: 18px 1fr auto;
+}
+
+.searchPage .searchBarFull input {
+  height: 32px;
+}

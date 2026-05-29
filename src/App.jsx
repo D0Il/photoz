@@ -1,6 +1,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, Eye, Images, Search, Upload, X } from "lucide-react";
+import {ChevronLeft, Eye, Images, Search, Upload, X, Trash2, CircleHelp} from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 const UNASSIGNED_ALBUM_ID = "unassigned";
@@ -83,7 +83,7 @@ function systemShortcutLabel(value) {
   const text = String(value || "").toLowerCase();
   if (text === "starred" || text === "star") return "★";
   if (text === "all") return "All";
-  if (text === "archive" || text === "archived") return "Hidden";
+  if (text === "archive" || text === "archived") return "Archive";
   if (text === "trash" || text === "trashed") return "Trash";
   if (text === "unassigned") return "Unassigned";
   if (text === "mirror") return "Mirror";
@@ -97,7 +97,7 @@ function archiveViewLabel(value) {
 
 function filterLabel(value) {
   if (value === "starred") return "★";
-  if (value === "archive") return "Hidden";
+  if (value === "archive") return "Archive";
   if (value === "needs-file") return "Reselect";
   return up(value);
 }
@@ -105,11 +105,11 @@ function filterLabel(value) {
 function cleanSystemLabel(value) {
   const text = String(value || "").toLowerCase();
   if (text === "starred" || text === "star" || text === "★" || text === "virtual-starred") return "★";
-  if (text === "archived" || text === "archive" || text === "hidden" || text === "virtual-archived") return "Hidden";
   if (text === "trash" || text === "trashed" || text === "virtual-trash") return "Trash";
+  if (text === "unassigned" || text === "virtual-unassigned") return "?";
   if (text === "all" || text === "virtual-all") return "All";
-  if (text === "unassigned" || text === "virtual-unassigned") return "Unassigned";
   if (text === "videos" || text === "virtual-videos") return "Videos";
+  if (text === "archived" || text === "archive" || text === "virtual-archived") return "Archive";
   return up(value);
 }
 
@@ -427,7 +427,7 @@ function isSystemAlbumGroup(group) {
     id === "unassigned" || id === "virtual-unassigned" ||
     id === "videos" || id === "virtual-videos" ||
     title === "all" || title === "star" || title === "starred" || title === "archive" ||
-    title === "archived" || title === "hidden" || title === "trash" ||
+    title === "archived" || title === "trash" ||
     title === "unassigned" || title === "videos" || title === "★";
 }
 
@@ -435,8 +435,6 @@ function virtualAlbumGroups(albums, memories) {
   albums = safeArray(albums).map(normalizeAlbumRecord);
   memories = safeArray(memories).map(normalizeMemoryRecord);
 
-  const all = visibleAllMemories(memories, albums);
-  const archived = newest(memories.filter(function (memory) { return Boolean(memory.archived) && !memory.trashed; }));
   const trash = newest(memories.filter(function (memory) { return Boolean(memory.trashed); }));
   const starredAlbum = albums.find(function (album) { return album.id === "star"; });
   const starredItems = starredAlbum ? newest(albumMemoryIds(starredAlbum).map(function (id) {
@@ -446,14 +444,11 @@ function virtualAlbumGroups(albums, memories) {
   const unassigned = unassignedAlbum ? newest(albumMemoryIds(unassignedAlbum).map(function (id) {
     return memories.find(function (memory) { return memory.id === id && !memory.trashed && !memoryExcludedFromAll(memory, albums); });
   }).filter(Boolean)) : [];
-  const videos = all.filter(function (memory) { return memory.kind === "video"; });
 
   return [
     { id: "virtual-starred", sourceId: "star", title: "STARRED", items: starredItems, sort: starredItems[0] ? starredItems[0].sort : 0, virtual: true },
-    { id: "virtual-archived", sourceId: "virtual-archived", title: "HIDDEN", items: archived, sort: archived[0] ? archived[0].sort : 0, virtual: true },
     { id: "virtual-trash", sourceId: "virtual-trash", title: "TRASH", items: trash, sort: trash[0] ? trash[0].sort : 0, virtual: true },
     { id: "virtual-unassigned", sourceId: UNASSIGNED_ALBUM_ID, title: "UNASSIGNED", items: unassigned, sort: unassigned[0] ? unassigned[0].sort : 0, virtual: true },
-    { id: "virtual-videos", sourceId: "virtual-videos", title: "VIDEOS", items: videos, sort: videos[0] ? videos[0].sort : 0, virtual: true },
   ];
 }
 
@@ -1699,9 +1694,14 @@ function ControlBar(props) {
 
 function SystemShortcutCard(props) {
   const group = props.group;
+  const sourceId = String((group && (group.sourceId || group.id)) || "").toLowerCase();
+  const label = cleanSystemLabel(group.title || group.id);
+  const isTrash = sourceId === "virtual-trash" || sourceId === "trash" || sourceId === "trashed";
+  const isUnassigned = sourceId === "unassigned" || sourceId === "virtual-unassigned";
+
   return (
-    <button type="button" className="systemRailItem" onClick={function () { props.openGroup(group); }}>
-      <span>{cleanSystemLabel(group.title || group.id)}</span>
+    <button type="button" className={isTrash ? "systemRailItem iconShortcut trashShortcut" : isUnassigned ? "systemRailItem iconShortcut unknownShortcut" : "systemRailItem"} onClick={function () { props.openGroup(group); }}>
+      <span>{isTrash ? <Trash2 size={13} strokeWidth={2.1} /> : isUnassigned ? <span className="questionMark">?</span> : label}</span>
       <em>{group.items.length}</em>
     </button>
   );
@@ -1745,7 +1745,7 @@ function GroupCard(props) {
         <strong>{up(group.title)}</strong>
         {group.description ? <small className="groupDescription">{up(group.description)}</small> : null}
         <span>{group.items.length + (group.childCount || 0)}</span>
-        {group.excludeFromAll ? <em>Hidden from All</em> : <em>{formatBytes(albumSizeBytes(group.items))}</em>}
+        {group.excludeFromAll ? <em>Excluded from All</em> : <em>{formatBytes(albumSizeBytes(group.items))}</em>}
       </div>
     </button>
   );
