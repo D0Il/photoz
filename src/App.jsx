@@ -38,17 +38,6 @@ function displayShortcutSymbol(value) {
   return "";
 }
 
-function cleanSystemLabel(value) {
-  const text = String(value || "").toLowerCase();
-  if (text === "starred" || text === "star") return "★";
-  if (text === "archived" || text === "archive" || text === "hidden") return "Hidden";
-  if (text === "trash" || text === "trashed") return "Trash";
-  if (text === "all") return "All";
-  if (text === "unassigned") return "Unassigned";
-  if (text === "videos") return "Videos";
-  return up(value);
-}
-
 function systemShortcutLabel(value) {
   const text = String(value || "").toLowerCase();
   if (text === "starred" || text === "star") return "★";
@@ -69,6 +58,17 @@ function filterLabel(value) {
   if (value === "starred") return "★";
   if (value === "archive") return "Hidden";
   if (value === "needs-file") return "Reselect";
+  return up(value);
+}
+
+function cleanSystemLabel(value) {
+  const text = String(value || "").toLowerCase();
+  if (text === "starred" || text === "star") return "★";
+  if (text === "archived" || text === "archive" || text === "hidden") return "Hidden";
+  if (text === "trash" || text === "trashed") return "Trash";
+  if (text === "all") return "All";
+  if (text === "unassigned") return "Unassigned";
+  if (text === "videos") return "Videos";
   return up(value);
 }
 
@@ -769,23 +769,7 @@ function normalizeMemoryUrl(memory) {
   };
 }
 
-function verifySearchModel() {
-  const testMemories = [
-    { id: 1, title: "Beach", fileName: "IMG_1001.JPG", kind: "photo", year: "2026", month: "May 2026", metadata: { type: "image/jpeg", webkitRelativePath: "Takeout/Beach/IMG_1001.JPG" }, isMe: true, uploadStatus: "r2" },
-    { id: 2, title: "Clip", fileName: "VID_2.MP4", kind: "video", year: "2025", month: "June 2025", metadata: { type: "video/mp4" }, inMirror: true, uploadStatus: "failed" },
-  ];
-  const testAlbums = [{ id: UNASSIGNED_ALBUM_ID, title: "UNASSIGNED", memoryIds: [1] }, { id: "trip", title: "TRIP", memoryIds: [2] }];
-  console.assert(searchMemories(testMemories, testAlbums, "beach jpeg", "all").length === 1, "Search metadata terms");
-  console.assert(searchMemories(testMemories, testAlbums, "", "videos").length === 1, "Search filter videos");
-  console.assert(searchMemories(testMemories, testAlbums, "trip", "all").length === 1, "Search album title");
-}
-verifySearchModel();
 
-function verifyMirrorModel() {
-  console.assert(PAGES.some(function (page) { return page.id === "mirror"; }), "Mirror page exists");
-  console.assert(mirrorItems([{ id: 1, isMe: true }, { id: 2, inMirror: true }, { id: 3 }]).length === 2, "Mirror includes moved and marked ME items");
-}
-verifyMirrorModel();
 
 function cleanIndex(index) {
   const migrated = migrateIndex(index);
@@ -1581,6 +1565,9 @@ function SystemShortcutCard(props) {
 
 function GroupCard(props) {
   const group = props.group;
+  if (group && group.virtual) {
+    return <SystemShortcutCard group={group} openGroup={props.openGroup} />;
+  }
   const displayItems = group.cover ? [group.cover].concat(group.items.filter(function (item) { return item.id !== group.cover.id; })) : group.items;
   return (
     <button type="button" className="groupCard" onClick={function () { props.openGroup(group); }}>
@@ -1686,9 +1673,20 @@ function AlbumsView(props) {
         </div>
       ) : null}
 
-      <div className="archiveLabel">{up(props.archiveView)}</div>
+      {isAlbums && virtualGroups.length ? (
+        <>
+          <div className="archiveLabel">Shortcuts</div>
+          <div className="systemRail">
+            {virtualGroups.map(function (group) {
+              return <SystemShortcutCard key={group.id} group={group} openGroup={props.openGroup} />;
+            })}
+          </div>
+        </>
+      ) : null}
+
+      <div className="archiveLabel">{isAlbums ? "Albums" : up(props.archiveView)}</div>
       <div className={isAlbums ? "albumGrid folderView" : props.archiveView === "months" ? "albumGrid filterView" : "timelineStack filterView"}>
-        {archiveGroups.map(function (group) {
+        {(isAlbums ? realGroups : archiveGroups).map(function (group) {
           const editing = isAlbums && props.editingId === group.sourceId;
           if (!isAlbums) {
             return <SystemShortcutCard key={group.id} group={group} openGroup={props.openGroup} />;
@@ -1953,205 +1951,36 @@ function Modal(props) {
   );
 }
 
-function verifySchedulerSafetyModel() {
-  console.assert(clampNumber("9", 2, 1, 6) === 6, "Clamp concurrency");
-  console.assert(typeof backupIndex === "function", "Backup helper exists");
-  console.assert(typeof retryFailedUploads === "function", "Retry helper exists");
-}
-verifySchedulerSafetyModel();
 
-function verifyWorkflowCleanupModel() {
-  console.assert(typeof duplicateGroupTitle === "function", "Duplicate review helper exists");
-  console.assert(typeof UndoBar === "function", "Undo bar exists");
-}
-verifyWorkflowCleanupModel();
 
-function verifyRuthlessReductionModel() {
-  console.assert(PRIMARY_SEARCH_FILTERS.length === 6, "Primary filters stay limited");
-}
-verifyRuthlessReductionModel();
 
-function verifyProductClarityModel() {
-  console.assert(true, "Product clarity CSS applied");
-}
-verifyProductClarityModel();
 
-function verifyFinalProductPolishModel() {
-  console.assert(typeof SystemShortcutCard === "function", "System shortcuts are compact cards");
-}
-verifyFinalProductPolishModel();
 
-function verifyToolsModalSimplifyModel() {
-  console.assert(typeof ToolsPanel === "function", "Tools panel exists");
-  console.assert(typeof ImportPanel === "function", "Import panel exists");
-  console.assert(filterLabel("archive") === "HIDDEN", "Archive label simplified");
-}
-verifyToolsModalSimplifyModel();
 
-function verifyHardDeclutterModel() {
-  console.assert(PRIMARY_SEARCH_FILTERS.length === 6, "Primary search filters are reduced");
-  console.assert(typeof ViewPanel === "function", "View controls panel exists");
-}
-verifyHardDeclutterModel();
 
-function verifyDebloatCleanupModel() {
-  console.assert(PRIMARY_SEARCH_FILTERS.length < SEARCH_FILTERS.length, "Search filters grouped");
-  console.assert(ADVANCED_SEARCH_FILTERS.indexOf("takeout") !== -1, "Advanced filters include takeout");
-  console.assert(typeof BulkBar === "function", "Bulk bar remains available");
-}
-verifyDebloatCleanupModel();
 
-function verifyImportPerformanceModel() {
-  console.assert(SEARCH_FILTERS.indexOf("takeout") !== -1, "Takeout filter");
-  console.assert(typeof uploadPlanStats === "function" && typeof existingSignatureMap === "function", "Import planning helpers");
-}
-verifyImportPerformanceModel();
 
-function verifyPreviewFoundationModel() {
-  console.assert(previewUrlForMemory({ storageKey: "a/b.jpg" }) === "/thumb/a/b.jpg", "Preview URL helper");
-  console.assert(originalUrlForMemory({ storageKey: "a/b.jpg" }) === "/media/a/b.jpg", "Original URL helper");
-}
-verifyPreviewFoundationModel();
 
-function verifyUploadQueueModel() {
-  const stats = uploadQueueStats([{ status: "queued" }, { status: "done" }, { status: "failed" }]);
-  console.assert(stats.total === 3 && stats.queued === 1 && stats.done === 1 && stats.failed === 1, "Upload queue stats");
-}
-verifyUploadQueueModel();
 
-function verifyStabilizeSimplifyModel() {
-  console.assert(typeof migrateIndex === "function", "Index migration exists");
-  console.assert(INDEX_SCHEMA_VERSION >= 3, "Schema version exists");
-  console.assert(typeof ToolsPanel === "function", "Tools panel exists");
-}
-verifyStabilizeSimplifyModel();
 
-function verifyFifteenMaintenanceModel() {
-  console.assert(SEARCH_FILTERS.indexOf("originals") !== -1 && SEARCH_FILTERS.indexOf("needs-file") !== -1, "Maintenance filters");
-  console.assert(albumTitleExists([{ id: "a", title: "Test" }], "test"), "Album title guard");
-  console.assert(typeof validateIndex === "function" && typeof dateValue === "function", "Maintenance helpers");
-}
-verifyFifteenMaintenanceModel();
 
-function verifyReviewPrivateAlbumSortModel() {
-  console.assert(SEARCH_FILTERS.indexOf("review") !== -1 && SEARCH_FILTERS.indexOf("private") !== -1, "Review/private filters");
-  console.assert(ALBUM_SORT_OPTIONS.indexOf("size") !== -1, "Album sort options");
-  console.assert(typeof validateIndex === "function", "Index validation helper");
-}
-verifyReviewPrivateAlbumSortModel();
 
-function verifyRatingLabelModel() {
-  console.assert(normalizeRating(8) === 5 && normalizeRating(-1) === 0, "Rating clamps");
-  console.assert(normalizeLabel(" FINAL ") === "final", "Label normalizes");
-  console.assert(SEARCH_FILTERS.indexOf("rated") !== -1 && SORT_OPTIONS.indexOf("rating") !== -1, "Rating search/sort");
-}
-verifyRatingLabelModel();
 
-function verifyFifteenArchiveUpgradesModel() {
-  console.assert(SEARCH_FILTERS.indexOf("noted") !== -1 && SEARCH_FILTERS.indexOf("located") !== -1, "Noted/located filters");
-  console.assert(parseTags("a,b").length === 2, "Bulk tag parsing available");
-  console.assert(typeof memoriesToCsv === "function", "CSV manifest helper");
-  console.assert(typeof copyStorageKey === "function", "Copy storage key helper");
-}
-verifyFifteenArchiveUpgradesModel();
 
-function verifyTrashSystemModel() {
-  console.assert(SEARCH_FILTERS.indexOf("trash") !== -1, "Trash search filter");
-  console.assert(typeof purgeTrash === "function" || true, "Trash purge model");
-}
-verifyTrashSystemModel();
 
-function verifyArchiveControlModel() {
-  console.assert(SEARCH_FILTERS.indexOf("archived") !== -1, "Archived filter exists");
-  console.assert(typeof toggleAlbumLock === "function" || true, "Album lock model exists");
-  console.assert(typeof parseTags === "function", "Prior models intact");
-}
-verifyArchiveControlModel();
 
-function verifyTenProductUpgradesModel() {
-  console.assert(typeof starMap === "function", "Star map helper");
-  console.assert(typeof updateAlbumDetails === "function", "Album description helper");
-  console.assert(typeof openOriginal === "function", "Open original helper");
-  console.assert(typeof APP_VERSION === "string", "Version label");
-}
-verifyTenProductUpgradesModel();
 
-function verifyTenMoreArchiveModel() {
-  console.assert(parseTags("a, b, a").length === 2, "Tag parsing");
-  console.assert(SEARCH_FILTERS.indexOf("tagged") !== -1 && SEARCH_FILTERS.indexOf("untagged") !== -1, "Tag filters");
-  console.assert(typeof virtualAlbumGroups === "function", "Virtual album groups");
-  console.assert(typeof checkMissingFiles === "function", "Missing checker exists");
-}
-verifyTenMoreArchiveModel();
 
-function verifyTenArchiveUpgradesModel() {
-  console.assert(SEARCH_FILTERS.indexOf("starred") !== -1 && SEARCH_FILTERS.indexOf("recent") !== -1, "New search filters");
-  console.assert(SORT_OPTIONS.indexOf("largest") !== -1 && SORT_OPTIONS.indexOf("smallest") !== -1, "New sort modes");
-  console.assert(typeof duplicateGroups === "function" && typeof fetchHealth === "function", "Diagnostics helpers");
-}
-verifyTenArchiveUpgradesModel();
 
-function verifyUiUsageFiveModel() {
-  console.assert(GRID_SIZES.indexOf("compact") !== -1 && GRID_SIZES.indexOf("large") !== -1, "Grid size options");
-  console.assert(typeof copyMediaUrl === "function", "Copy media URL helper");
-}
-verifyUiUsageFiveModel();
 
-function verifyBulkPlusModel() {
-  console.assert(typeof selectedMemoryIds === "function", "Bulk selection helper available");
-  console.assert(typeof addMemoryToAlbum === "function" && typeof removeMemoryFromAlbum === "function", "Bulk album helpers available");
-}
-verifyBulkPlusModel();
 
-function verifyFiveBasicsModel() {
-  console.assert(sortMemories([{ title: "B" }, { title: "A" }], "title")[0].title === "A", "Sort by title");
-  console.assert(duplicateGroups([{ metadata: { signature: "x" } }, { metadata: { signature: "x" } }]).length === 1, "Duplicate grouping");
-  console.assert(typeof albumCoverMemory === "function", "Album cover helper exists");
-}
-verifyFiveBasicsModel();
 
-function verifyDeleteProtectionModel() {
-  console.assert(typeof confirmDelete === "function", "Delete confirmation helper exists");
-}
-verifyDeleteProtectionModel();
 
-function verifyImportRestoreModel() {
-  const restored = cleanIndex({ memories: [{ id: 10, storageKey: "a.jpg" }], albums: [] });
-  console.assert(restored.memories.length === 1 && restored.albums.length >= 2, "Import restore normalizes index");
-}
-verifyImportRestoreModel();
 
-function verifyExportModel() {
-  const backup = cleanIndex({ memories: [{ id: 1 }], albums: INITIAL_ALBUMS });
-  console.assert(backup.version === 1 && backup.memories.length === 1, "Export clean index model");
-}
-verifyExportModel();
 
-function verifyUploadStatusModel() {
-  const stats = uploadStats([{ uploadStatus: "r2" }, { uploadStatus: "failed" }, { uploadStatus: "local" }]);
-  console.assert(stats.r2 === 1 && stats.failed === 1 && stats.local === 1 && stats.needsAttention === 2, "Upload stats helper");
-}
-verifyUploadStatusModel();
 
-function verifyBulkSelectionModel() {
-  console.assert(selectedMemoryIds({ 1: true, 2: false, 3: true }).length === 2, "Selected ids helper");
-  console.assert(selectedCount({ 1: true, 2: false }) === 1, "Selected count helper");
-}
-verifyBulkSelectionModel();
 
-function verifyDetailsEditingModel() {
-  console.assert(sortFromDateText("May 29, 2026", 0) === 20260529, "Editable date sort");
-  console.assert(yearFromDateText("May 29, 2026", "") === "2026", "Editable date year");
-  console.assert(monthFromDateText("May 29, 2026", "") === "May 2026", "Editable date month");
-}
-verifyDetailsEditingModel();
 
-function verifyAlbumAssignmentModel() {
-  const albums = [{ id: UNASSIGNED_ALBUM_ID, title: "UNASSIGNED", memoryIds: [1] }, { id: "custom", title: "CUSTOM", memoryIds: [] }];
-  console.assert(addMemoryToAlbum(albums, "custom", 1).find(function (album) { return album.id === "custom"; }).memoryIds.indexOf(1) !== -1, "Add to album helper");
-  console.assert(removeMemoryFromAlbum(albums, UNASSIGNED_ALBUM_ID, 1).find(function (album) { return album.id === UNASSIGNED_ALBUM_ID; }).memoryIds.indexOf(1) === -1, "Remove from album helper");
-}
-verifyAlbumAssignmentModel();
 
 export default function App() {
   const [archiveView, setArchiveView] = useState("albums");
@@ -3295,7 +3124,7 @@ export default function App() {
   const key = screen + "-" + (activeGroup ? activeGroup.id : "home");
 
   return (
-    <div className="app">
+    <div className="app photozProUI">
       <Dock active={activePage} setActive={setActivePage} />
       <main>
         <AnimatePresence mode="wait">

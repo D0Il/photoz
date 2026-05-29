@@ -763,34 +763,13 @@ Polished PHOTOZ as an album-first private photo archive:
 - Legacy metadata clutter remains hidden.
 
 
-## Screenshot exact UI fix
+## Preserved design / clean CSS consolidation
 
-Fixed the actual visible issue from the screenshot:
+This build starts from the best-looking visual design and consolidates it instead of replacing it with a random simplified stylesheet.
 
-- System shortcuts no longer render through album cards.
-- System shortcuts now use a separate compact rail component.
-- The system row uses flat utility buttons.
-- Starred displays as `★`.
-- Old system-card visuals are killed with hard CSS guards.
-
-
-## Source CSS cleanup
-
-Replaced the layered stylesheet with one clean source-level stylesheet.
-
-- Removed the override pile.
-- Removed `!important` usage.
-- System shortcuts are a separate rail, not album cards.
-- Tools/View are clean dropdown panels.
-- Album cards, photo cards, modal, toolbar, and panels each have one canonical style.
-
-
-## Complete UI restore after CSS cleanup
-
-Fixed the broken visual state caused by the too-small stylesheet:
-
-- Native file inputs are hidden again.
-- Bottom navigation is styled and fixed to bottom center.
-- Toolbar, album editor, search, panels, albums, photos, modal, and utility rows are covered.
-- System shortcuts remain a separate rail, not album cards.
-- Still has zero `!important` rules.
+- Preserves the premium glass/album-card design language.
+- Removes `!important` priority flags.
+- Removes shipped console assertion tests.
+- Splits system shortcuts out of the album grid at source level.
+- Hides native file inputs.
+- Keeps actual rendered-class coverage for dock, albumTile, groupGrid, photoOverlay, modalCard, etc.

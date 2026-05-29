@@ -211,6 +211,9 @@ async function handleBackupIndex(request, env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/favicon.ico") {
+      return new Response("", { status: 204 });
+    }
 
     if (url.pathname === "/api/access") {
       return handleAccess(request, env);
