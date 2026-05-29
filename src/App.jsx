@@ -1,6 +1,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {ChevronLeft, Eye, Images, Search, Upload, X, Trash2, CircleHelp, SlidersHorizontal, CircleCheck, Music2, Volume2, VolumeX, LockKeyhole, UnlockKeyhole, FolderPen, ShieldCheck, Film, Download, PanelRightOpen, ArchiveRestore, Save, AlertTriangle, UploadCloud, Play, Clock3, HardDrive, Sparkles, Maximize2, CalendarDays, RotateCcw, Undo2} from "lucide-react";
+import {ChevronLeft, Eye, Images, Search, Upload, X, Trash2, CircleHelp, SlidersHorizontal, CircleCheck, Music2, Volume2, VolumeX, LockKeyhole, UnlockKeyhole, FolderPen, ShieldCheck, Film, Download, PanelRightOpen, ArchiveRestore, Save, AlertTriangle, UploadCloud, Play, Clock3, HardDrive, Sparkles, Maximize2, CalendarDays, RotateCcw, Undo2, Settings, FolderUp, FileDown, Wrench, Star, Image, UserRound} from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 const UNASSIGNED_ALBUM_ID = "unassigned";
@@ -11,12 +11,12 @@ const INITIAL_ALBUMS = [
 ];
 
 const PAGES = [
-  { id: "albums", icon: Images },
-  { id: "mirror", icon: Eye },
-  { id: "search", icon: Search },
+  { id: "albums", icon: AnimatedBookDockIcon },
+  { id: "mirror", icon: LashEyeIcon },
+  { id: "search", icon: SparkSearchDockIcon },
 ];
 
-const ARCHIVE_VIEWS = ["albums", "years", "months", "eras"];
+const ARCHIVE_FILTERS = ["albums", "years", "months", "eras"];
 const SEARCH_FILTERS = ["all", "photos", "videos", "tagged", "takeout", "archive", "needs-file"];
 const PRIMARY_SEARCH_FILTERS = ["all", "photos", "videos"];
 const ADVANCED_SEARCH_FILTERS = ["me", "tagged", "takeout", "archive", "needs-file"];
@@ -36,7 +36,7 @@ function tooltipForText(value) {
   return text.replace(/\s+/g, " ");
 }
 
-function withTooltip(label) {
+function withSettingtip(label) {
   return {
     title: tooltipForText(label),
     "aria-label": tooltipForText(label),
@@ -79,7 +79,7 @@ function installUiInteractionSounds() {
   document.addEventListener("pointerdown", function (event) {
     const target = event.target && event.target.closest ? event.target.closest("button, [role='button'], input, select, textarea, a") : null;
     if (!target || target.disabled || target.getAttribute("aria-disabled") === "true") return;
-    const panelTrigger = target.closest(".floatingUtilityRail, .dock, .systemRail, .toolsDropdown, .settingsPopover, .viewPanel, .viewDropdown");
+    const panelTrigger = target.closest(".floatingUtilityRail, .dock, .systemRail, .settingsDropdown, .settingsPopover, .filterPanel, .filterDropdown");
     playUiTick(panelTrigger ? "panel" : "soft");
   }, { passive: true });
 }
@@ -147,8 +147,8 @@ function systemShortcutLabel(value) {
   return up(value);
 }
 
-function archiveViewLabel(value) {
-  if (value === "albums" || value === "albums") return "ALBUMS";
+function archiveFilterLabel(value) {
+  if (value === "albums" || value === "albums") return "PHOTO ALBUMS";
   return up(value);
 }
 
@@ -1317,7 +1317,7 @@ function UploadButton(props) {
   const label = props.folder ? "Folder" : "Upload";
   return (
     <>
-      <button type="button" className="uploadButton" {...withTooltip(props.folder ? "Upload folder" : "Upload files")} onClick={function () { inputRef.current && inputRef.current.click(); }}>
+      <button type="button" className="uploadButton" {...withSettingtip(props.folder ? "Upload folder" : "Upload files")} onClick={function () { inputRef.current && inputRef.current.click(); }}>
         <Upload size={14} />
         <span>{label}</span>
       </button>
@@ -1340,7 +1340,7 @@ function ImportBackupButton(props) {
   const inputRef = useRef(null);
   return (
     <>
-      <button type="button" className="importButton" {...withTooltip("Import backup file")} onClick={function () { inputRef.current && inputRef.current.click(); }}>Import file</button>
+      <button type="button" className="importButton" {...withSettingtip("Import backup file")} onClick={function () { inputRef.current && inputRef.current.click(); }}>Import file</button>
       <input
         ref={inputRef}
         type="file"
@@ -1359,24 +1359,117 @@ function PhotoCard(props) {
   const memory = normalizeMemoryRecord(props.memory);
   const source = memory.previewUrl || memory.storageUrl || memory.url;
   const video = pzIsVideo(memory);
+  const pressTimerRef = useRef(null);
+  const longPressRef = useRef(false);
+  const dragSelectingRef = useRef(false);
+  const selectedDuringDragRef = useRef({});
+
+  function clearPressTimer() {
+    if (pressTimerRef.current) {
+      window.clearTimeout(pressTimerRef.current);
+      pressTimerRef.current = null;
+    }
+  }
+
+  function selectMemory(targetMemory) {
+    if (!targetMemory || !targetMemory.id) return;
+    if (selectedDuringDragRef.current[targetMemory.id]) return;
+    selectedDuringDragRef.current[targetMemory.id] = true;
+    props.onDragSelect ? props.onDragSelect(targetMemory) : props.onLongSelect && props.onLongSelect(targetMemory);
+  }
+
+  function selectFromPoint(clientX, clientY) {
+    const element = document.elementFromPoint(clientX, clientY);
+    const card = element && element.closest ? element.closest("[data-memory-id]") : null;
+    if (!card) return;
+    const id = card.getAttribute("data-memory-id");
+    if (!id) return;
+    const targetMemory = { id };
+    selectMemory(targetMemory);
+  }
+
+  function endDragSelection() {
+    clearPressTimer();
+    if (dragSelectingRef.current) {
+      dragSelectingRef.current = false;
+      window.removeEventListener("pointermove", handleWindowPointerMove);
+      window.removeEventListener("pointerup", endDragSelection);
+      window.removeEventListener("pointercancel", endDragSelection);
+      window.removeEventListener("blur", endDragSelection);
+      setTimeout(function () {
+        selectedDuringDragRef.current = {};
+      }, 0);
+    }
+  }
+
+  function handleWindowPointerMove(event) {
+    if (!dragSelectingRef.current) return;
+    event.preventDefault();
+    selectFromPoint(event.clientX, event.clientY);
+  }
+
+  function beginPress(event) {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    longPressRef.current = false;
+    dragSelectingRef.current = false;
+    selectedDuringDragRef.current = {};
+    clearPressTimer();
+    pressTimerRef.current = window.setTimeout(function () {
+      longPressRef.current = true;
+      dragSelectingRef.current = true;
+      if (navigator.vibrate) {
+        try { navigator.vibrate(12); } catch (error) {}
+      }
+      selectMemory(memory);
+      window.addEventListener("pointermove", handleWindowPointerMove, { passive: false });
+      window.addEventListener("pointerup", endDragSelection);
+      window.addEventListener("pointercancel", endDragSelection);
+      window.addEventListener("blur", endDragSelection);
+    }, 420);
+  }
+
+  function cancelPress() {
+    if (!dragSelectingRef.current) clearPressTimer();
+  }
+
+  function activate(event) {
+    clearPressTimer();
+
+    if (longPressRef.current) {
+      event.preventDefault();
+      longPressRef.current = false;
+      return;
+    }
+
+    if (props.selectionMode) {
+      props.toggleSelected && props.toggleSelected(memory.id);
+      return;
+    }
+
+    if (video && props.onPlayVideo) {
+      props.onPlayVideo(memory);
+      return;
+    }
+
+    props.onClick && props.onClick(memory, event);
+  }
 
   return (
     <article
       className={props.selected ? "photoCard selected" : video ? "photoCard videoCard" : "photoCard"}
-      onClick={function (event) {
-        if (props.selectionMode) {
-          props.toggleSelected && props.toggleSelected(memory.id);
-          return;
-        }
-        if (video && props.onPlayVideo) {
-          props.onPlayVideo(memory);
-          return;
-        }
-        props.onClick && props.onClick(memory, event);
+      data-memory-id={memory.id}
+      onPointerDown={beginPress}
+      onPointerUp={cancelPress}
+      onPointerCancel={cancelPress}
+      onPointerLeave={cancelPress}
+      onContextMenu={function (event) {
+        event.preventDefault();
+        props.onLongSelect && props.onLongSelect(memory);
       }}
+      onClick={activate}
     >
       <div className="photoThumb">
-        {video ? <video src={source} muted playsInline preload="metadata" /> : <img src={source} alt="" loading="lazy" />}
+        {video ? <video src={source} muted playsInline preload="metadata" /> : <img src={source} alt="" loading="lazy" draggable="false" />}
         {video ? (
           <>
             <span className="pzVideoPlayPlate"><Play size={14} fill="currentColor" /></span>
@@ -1384,6 +1477,7 @@ function PhotoCard(props) {
           </>
         ) : null}
         {props.isStarred || memory.starred ? <span className="starBadge">★</span> : null}
+        {props.selectionMode ? <span className={props.selected ? "selectionDot active" : "selectionDot"} /> : null}
       </div>
       {props.showText ? (
         <div className="photoMeta">
@@ -1464,80 +1558,97 @@ function GridSizeControl(props) {
   );
 }
 
-function ViewPanel(props) {
+function FilterPanel(props) {
   if (!props.open) return null;
 
+  const filter = props.searchFilter || props.filter || "all";
+  const setFilter = props.setSearchFilter || props.setFilter || function () {};
+  const filters = [
+    { id: "all", label: "ALL", icon: <Image size={13} /> },
+    { id: "me", label: "ME", icon: <UserRound size={13} /> },
+    { id: "starred", label: "★", icon: <Star size={13} /> },
+    { id: "videos", label: "VIDEO", icon: <Film size={13} /> },
+    { id: "trash", label: "TRASH", icon: <Trash2 size={13} /> },
+  ];
+
   return (
-    <div className="floatingPanel viewPanel" role="menu" aria-label="FILTER">
-      <div className="panelSection">
-        <div className="panelLabel">SORT</div>
-        <div className="segmentedPanelGrid">
-          {SORT_OPTIONS.map(function (option) {
-            return (
-              <button type="button" key={option} {...withTooltip("Sort: " + up(option))} className={props.sortMode === option ? "active" : ""} onClick={function () { props.setSortMode(option); }}>
-                {up(option)}
-              </button>
-            );
-          })}
-        </div>
+    <div className="floatingPanel filterPopover filterMenuPanel" role="menu" aria-label="FILTER">
+      <div className="filterMenuHeader">
+        <SlidersHorizontal size={14} strokeWidth={2.1} />
+        <strong>FILTER</strong>
       </div>
 
-      {props.showAlbumSort ? (
-        <div className="panelSection">
-          <div className="panelLabel">ALBUMS</div>
-          <div className="segmentedPanelGrid">
-            {ALBUM_SORT_OPTIONS.map(function (option) {
-              return (
-                <button type="button" key={option} {...withTooltip("Album sort: " + up(option))} className={props.albumSort === option ? "active" : ""} onClick={function () { props.setAlbumSort(option); }}>
-                  {up(option)}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
+      <div className="filterChipGrid">
+        {filters.map(function (item) {
+          return (
+            <button
+              type="button"
+              key={item.id}
+              className={filter === item.id ? "active" : ""}
+              onClick={function () { setFilter(item.id); }}
+              {...withTooltip(item.label === "★" ? "Starred" : item.label)}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </div>
 
-      <div className="panelSection">
-        <div className="panelLabel">GRID</div>
-        <div className="segmentedPanelGrid three">
-          {GRID_SIZES.map(function (size) {
-            return (
-              <button type="button" key={size} {...withTooltip("Grid size: " + up(size))} className={props.gridSize === size ? "active" : ""} onClick={function () { props.setGridSize(size); }}>
-                {up(size)}
-              </button>
-            );
-          })}
-        </div>
+      <div className="filterSortRow">
+        <button type="button" {...withTooltip("Newest first")} className={props.sortMode === "newest" ? "active" : ""} onClick={function () { props.setSortMode && props.setSortMode("newest"); }}>NEW</button>
+        <button type="button" {...withTooltip("Oldest first")} className={props.sortMode === "oldest" ? "active" : ""} onClick={function () { props.setSortMode && props.setSortMode("oldest"); }}>OLD</button>
+        <button type="button" {...withTooltip("Reset filter")} onClick={function () { setFilter("all"); }}>
+          <RotateCcw size={12} />
+        </button>
       </div>
     </div>
   );
 }
 
-function ToolsPanel(props) {
+function SettingsPanel(props) {
   if (!props.open) return null;
 
   return (
-    <div className="floatingPanel settingsPopover" role="menu" aria-label="TOOLS">
-      <div className="panelSection primary">
-        <UploadButton onUpload={props.onUpload} />
-        <UploadButton onUpload={props.onUpload} folder />
+    <div className="floatingPanel settingsPopover settingsMenuPanel" role="menu" aria-label="SETTINGS">
+      <div className="settingsMenuHeader">
+        <Settings size={14} strokeWidth={2.1} />
+        <strong></strong>
       </div>
 
-      <div className="panelSection">
-        <button type="button" {...withTooltip("Upload queue")} onClick={props.toggleUploadReviewPanel || props.toggleUploadQueuePanel}>
-          <UploadCloud size={13} /> Upload queue
-        </button>
-        <button type="button" {...withTooltip("Import backup")} onClick={props.toggleImportPanel}>Import backup</button>
-        <button type="button" {...withTooltip("Review duplicates")} onClick={props.toggleDuplicatePanel}>Duplicates</button>
-        <button type="button" {...withTooltip("Find missing files")} onClick={props.toggleStatusPanel}>Missing files</button>
-        <button type="button" {...withTooltip("Repair library")} onClick={props.toggleHealthPanel}>Repair library</button>
+      <div className="settingsMenuGroup">
+        <span>IMPORT</span>
+        <div className="settingsMenuGrid">
+          <UploadButton onUpload={props.onUpload} />
+          <UploadButton onUpload={props.onUpload} folder />
+          <button type="button" {...withTooltip("Upload queue")} onClick={props.toggleUploadRefilterPanel || props.toggleUploadQueuePanel}>
+            <UploadCloud size={13} /> Queue
+          </button>
+        </div>
       </div>
 
-      <div className="panelSection secondary">
-        <button type="button" {...withTooltip("Open upload queue")} onClick={props.toggleUploadQueuePanel}>System queue</button>
-        <button type="button" {...withTooltip("Export backup index")} onClick={props.exportVaultIndex}>Backup index</button>
-        <button type="button" {...withTooltip("Export file list")} onClick={props.exportManifestCsv}>Export list</button>
-        <ImportBackupButton onImport={props.importVaultIndex} />
+      <div className="settingsMenuGroup">
+        <span>LIBRARY</span>
+        <div className="settingsMenuGrid">
+          <button type="button" {...withTooltip("Import backup")} onClick={props.toggleImportPanel}>
+            <ArchiveRestore size={13} /> Import
+          </button>
+          <button type="button" {...withTooltip("Export backup index")} onClick={props.exportVaultIndex}>
+            <FileDown size={13} /> Backup
+          </button>
+          <button type="button" {...withTooltip("Export file list")} onClick={props.exportManifestCsv}>
+            <FileDown size={13} /> List
+          </button>
+        </div>
+      </div>
+
+      <div className="settingsMenuGroup">
+        <span>MAINTENANCE</span>
+        <div className="settingsMenuGrid">
+          <button type="button" {...withTooltip("Refilter duplicates")} onClick={props.toggleDuplicatePanel}>Duplicates</button>
+          <button type="button" {...withTooltip("Find missing files")} onClick={props.toggleStatusPanel}>Missing</button>
+          <button type="button" {...withTooltip("Repair library")} onClick={props.toggleHealthPanel}>Repair</button>
+        </div>
       </div>
     </div>
   );
@@ -1577,7 +1688,7 @@ function DuplicatePanel(props) {
   });
 
   return (
-    <div className="duplicatePanel duplicateReviewPanel">
+    <div className="duplicatePanel duplicateRefilterPanel">
       <div className="statusPanelTop">
         <strong>DUPLICATES</strong>
         <button type="button" onClick={props.close}>Close</button>
@@ -1597,7 +1708,7 @@ function DuplicatePanel(props) {
               {cleanGroup.map(function (memory, itemIndex) {
                 return (
                   <button key={memory.id} type="button" className={itemIndex === 0 ? "keeperCandidate" : ""} onClick={function () { props.openMemory(memory); }}>
-                    <b>{itemIndex === 0 ? "KEEP" : "REVIEW"}</b>
+                    <b>{itemIndex === 0 ? "KEEP" : "REFILTER"}</b>
                     <span>{up(memory.title)}</span>
                     <em>{memory.metadata && memory.metadata.webkitRelativePath ? memory.metadata.webkitRelativePath : memory.fileName}</em>
                   </button>
@@ -1781,17 +1892,17 @@ function ControlBar(props) {
       <div className="leftControls">
         {props.archive ? (
           <div className="modeBar">
-            {ARCHIVE_VIEWS.map(function (view) {
+            {ARCHIVE_FILTERS.map(function (filter) {
               return (
                 <button
-                  key={view}
+                  key={filter}
                   type="button"
-                  className={props.archiveView === view ? "selected" : ""}
+                  className={props.archiveFilter === filter ? "selected" : ""}
                   onClick={function () {
-                    props.setArchiveView(view);
+                    props.setArchiveFilter(filter);
                   }}
                 >
-                  {archiveViewLabel(view)}
+                  {archiveFilterLabel(filter)}
                 </button>
               );
             })}
@@ -1813,7 +1924,7 @@ function SystemShortcutCard(props) {
   const tooltip = isTrash ? "Trash" : isUnassigned ? "Unassigned" : label === "★" ? "Starred" : label;
 
   return (
-    <button type="button" className={isTrash ? "systemRailItem iconShortcut trashShortcut" : isUnassigned ? "systemRailItem iconShortcut unknownShortcut" : "systemRailItem"} {...withTooltip(tooltip)} onClick={function () { props.openGroup(group); }}>
+    <button type="button" className={isTrash ? "systemRailItem iconShortcut trashShortcut" : isUnassigned ? "systemRailItem iconShortcut unknownShortcut" : "systemRailItem"} {...withSettingtip(tooltip)} onClick={function () { props.openGroup(group); }}>
       <span>{isTrash ? <Trash2 size={13} strokeWidth={2.1} /> : isUnassigned ? <span className="questionMark">?</span> : label}</span>
       <em>{safeArray(group.items).length}</em>
     </button>
@@ -1854,7 +1965,7 @@ function mirrorFeaturedMemories(memories, albums) {
 }
 
 
-function MirrorView(props) {
+function MirrorFilter(props) {
   const allMemories = safeArray(props.memories).map(normalizeMemoryRecord);
   const allAlbums = safeArray(props.albums).map(normalizeAlbumRecord);
   const allMirror = mirrorAllMemories(allMemories);
@@ -1868,11 +1979,11 @@ function MirrorView(props) {
       <div className="mirrorModeRail">
         <button
           type="button"
-          {...withTooltip("Show all ME files")}
+          {...withSettingtip("Show all ME files")}
           className={props.mirrorAllMode ? "active" : ""}
           onClick={function () { props.setMirrorAllMode(function (value) { return !value; }); }}
         >
-          <Eye size={14} />
+          <LashEyeIcon size={14} />
           <span>All</span>
           <em>{total}</em>
         </button>
@@ -1891,12 +2002,15 @@ function MirrorView(props) {
                 selectionMode={props.selectionMode}
                 selected={props.selectedIds && props.selectedIds[memory.id]}
                 toggleSelected={props.toggleSelected}
+                setSelectionMode={props.setSelectionMode}
                 isStarred={props.starredIds && props.starredIds[memory.id]}
                 onDelete={props.deleteMemory}
                 onClick={function () { props.openMemory(memory); }}
               
                 onEdit={props.onEditMemory || function () {}}
-                onPlayVideo={props.onPlayVideo || function () {}}/>
+                onPlayVideo={props.onPlayVideo || function () {}}
+                onLongSelect={function (memory) { (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); if (fn) fn(memory.id); }}
+                onDragSelect={function (memory) { const lookup = (typeof selectedIds !== "undefined" ? selectedIds : (typeof props !== "undefined" ? props.selectedIds : {})); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); if (fn && (!lookup || !lookup[memory.id])) fn(memory.id); }}/>
             );
           })}
         </div>
@@ -1905,7 +2019,7 @@ function MirrorView(props) {
   );
 }
 
-function AlbumsView(props) {
+function AlbumsFilter(props) {
   const q = props.albumQuery.trim().toLowerCase();
   const albums = sortAlbumGroups(
     virtualAlbumGroups(safeArray(props.albums), safeArray(props.memories)).concat(
@@ -1915,8 +2029,8 @@ function AlbumsView(props) {
   ).filter(function (folder) {
     return !q || String(folder.title || "").toLowerCase().indexOf(q) !== -1;
   });
-  const archiveGroups = props.archiveView === "albums" ? albums : groupBy(props.archiveView, safeArray(props.memories));
-  const virtualGroups = props.archiveView === "albums" && !props.currentAlbumId ? safeArray(archiveGroups).filter(isSystemAlbumGroup) : [];
+  const archiveGroups = props.archiveFilter === "albums" ? albums : groupBy(props.archiveFilter, safeArray(props.memories));
+  const virtualGroups = props.archiveFilter === "albums" && !props.currentAlbumId ? safeArray(archiveGroups).filter(isSystemAlbumGroup) : [];
   const seenVirtualLabels = {};
   const dedupedVirtualGroups = safeArray(virtualGroups).filter(function (group) {
     const label = cleanSystemLabel(group.title || group.id);
@@ -1924,8 +2038,8 @@ function AlbumsView(props) {
     seenVirtualLabels[label] = true;
     return true;
   });
-  const realGroups = props.archiveView === "albums" ? safeArray(archiveGroups).filter(function (group) { return !isSystemAlbumGroup(group); }) : archiveGroups;
-  const isAlbums = props.archiveView === "albums";
+  const realGroups = props.archiveFilter === "albums" ? safeArray(archiveGroups).filter(function (group) { return !isSystemAlbumGroup(group); }) : archiveGroups;
+  const isAlbums = props.archiveFilter === "albums";
   const currentAlbum = props.currentAlbumId ? albumById(props.albums, props.currentAlbumId) : null;
   const currentPhotos = currentAlbum ? directAlbumMemories(props.albums, props.memories, props.currentAlbumId) : [];
 
@@ -1943,7 +2057,7 @@ function AlbumsView(props) {
           </label>
           {!props.albumCreateOpen ? (
             <button type="button" className="newAlbumTrigger" onClick={function () { props.setAlbumCreateOpen(true); }}>
-              {props.currentAlbumId ? "+ Nested album" : "+ New album"}
+              {props.currentAlbumId ? "+ Nested album" : "+"}
             </button>
           ) : null}
           {props.albumCreateOpen ? (
@@ -1979,8 +2093,8 @@ function AlbumsView(props) {
         </div>
       ) : null}
 
-      {!isAlbums ? <div className="archiveLabel">{up(props.archiveView)}</div> : currentAlbum ? <div className="archiveLabel">INSIDE ALBUM</div> : null}
-      <div className={isAlbums ? "albumGrid folderView" : props.archiveView === "months" ? "albumGrid filterView" : "timelineStack filterView"}>
+      {!isAlbums ? <div className="archiveLabel">{up(props.archiveFilter)}</div> : currentAlbum ? <div className="archiveLabel">INSIDE ALBUM</div> : null}
+      <div className={isAlbums ? "albumGrid folderFilter" : props.archiveFilter === "months" ? "albumGrid filterFilter" : "timelineStack filterFilter"}>
         {safeArray(isAlbums ? realGroups : archiveGroups).map(function (group) {
           const editing = isAlbums && props.editingId === group.sourceId;
           if (!isAlbums) {
@@ -2023,7 +2137,9 @@ function AlbumsView(props) {
               {safeArray(currentPhotos).map(function (memory) {
                 return <PhotoCard key={memory.id} memory={memory} showText selectionMode={props.selectionMode} selected={props.selectedIds && props.selectedIds[memory.id]} toggleSelected={props.toggleSelected} isStarred={props.starredIds && props.starredIds[memory.id]} onDelete={props.deleteMemory} onClick={function () { props.openMemory(memory); }} 
                 onEdit={props.onEditMemory || function () {}}
-                onPlayVideo={props.onPlayVideo || function () {}}/>;
+                onPlayVideo={props.onPlayVideo || function () {}}
+                onLongSelect={function (memory) { (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); if (fn) fn(memory.id); }}
+                onDragSelect={function (memory) { const lookup = (typeof selectedIds !== "undefined" ? selectedIds : (typeof props !== "undefined" ? props.selectedIds : {})); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); if (fn && (!lookup || !lookup[memory.id])) fn(memory.id); }}/>;
               })}
             </div>
           ) : null}
@@ -2069,7 +2185,7 @@ function matchesSearchQuery(memory, query, albums) {
 
 
 
-function SearchView(props) {
+function SearchFilter(props) {
   const query = String(props.query || "").trim();
   const rawFilter = props.searchFilter || props.filter || "all";
   const activeSearchFilter = PRIMARY_SEARCH_FILTERS.indexOf(rawFilter) !== -1 ? rawFilter : "all";
@@ -2103,7 +2219,7 @@ function SearchView(props) {
             <button
               type="button"
               key={filter}
-              {...withTooltip(filter === "all" ? "All files" : up(filter))}
+              {...withSettingtip(filter === "all" ? "All files" : up(filter))}
               className={activeSearchFilter === filter ? "active" : ""}
               onClick={function () { setFilter(filter); }}
             >
@@ -2126,12 +2242,15 @@ function SearchView(props) {
                 selectionMode={props.selectionMode}
                 selected={props.selectedIds && props.selectedIds[memory.id]}
                 toggleSelected={props.toggleSelected}
+                setSelectionMode={props.setSelectionMode}
                 isStarred={props.starredIds && props.starredIds[memory.id]}
                 onDelete={props.deleteMemory}
                 onClick={function () { props.openMemory(memory); }}
                 onEdit={props.onEditMemory}
                 onPlayVideo={props.onPlayVideo}
-              />
+              
+                onLongSelect={function (memory) { (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); if (fn) fn(memory.id); }}
+                onDragSelect={function (memory) { const lookup = (typeof selectedIds !== "undefined" ? selectedIds : (typeof props !== "undefined" ? props.selectedIds : {})); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); if (fn && (!lookup || !lookup[memory.id])) fn(memory.id); }}/>
             );
           })}
         </div>
@@ -2140,9 +2259,9 @@ function SearchView(props) {
   );
 }
 
-function GroupView(props) {
+function GroupFilter(props) {
   return (
-    <Glass className="groupView">
+    <Glass className="groupFilter">
       <VisibleReporter items={props.group.items} reportVisibleIds={props.reportVisibleIds} />
       <div className="groupTop">
         <button type="button" onClick={props.back}><ChevronLeft size={16} /> BACK</button>
@@ -2159,12 +2278,15 @@ function GroupView(props) {
               selectionMode={props.selectionMode}
               selected={props.selectedIds && props.selectedIds[memory.id]}
               toggleSelected={props.toggleSelected}
+              setSelectionMode={props.setSelectionMode}
               isStarred={props.starredIds && props.starredIds[memory.id]}
               onDelete={props.deleteMemory}
               onClick={function () { props.openMemory(memory); }}
               onEdit={props.onEditMemory}
               onPlayVideo={props.onPlayVideo}
-            />
+            
+                onLongSelect={function (memory) { (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); if (fn) fn(memory.id); }}
+                onDragSelect={function (memory) { const lookup = (typeof selectedIds !== "undefined" ? selectedIds : (typeof props !== "undefined" ? props.selectedIds : {})); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); if (fn && (!lookup || !lookup[memory.id])) fn(memory.id); }}/>
           );
         })}
       </div>
@@ -2234,7 +2356,9 @@ function Modal(props) {
 
           <PhotoCard memory={{ ...props.memory, previewUrl: props.memory.storageUrl }} className="modalPhoto" isStarred={props.isStarred} 
                 onEdit={props.onEditMemory || function () {}}
-                onPlayVideo={props.onPlayVideo || function () {}}/>
+                onPlayVideo={props.onPlayVideo || function () {}}
+                onLongSelect={function (memory) { (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); if (fn) fn(memory.id); }}
+                onDragSelect={function (memory) { const lookup = (typeof selectedIds !== "undefined" ? selectedIds : (typeof props !== "undefined" ? props.selectedIds : {})); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); if (fn && (!lookup || !lookup[memory.id])) fn(memory.id); }}/>
 
           <button type="button" className="technicalToggle" onClick={function () { setShowTechnical(function (value) { return !value; }); }}>
             {showTechnical ? "HIDE FILE DETAILS" : "FILE DETAILS"}
@@ -2289,7 +2413,7 @@ function Modal(props) {
           <div className="modalSectionTitle">ORGANIZE</div>
           <div className="albumAssignPanel">
             <div>
-              <strong>ALBUMS</strong>
+              <strong>PHOTO ALBUMS</strong>
               <span>{currentAlbums.length ? currentAlbums.map(function (album) { return album.title; }).join(" / ") : "NONE"}</span>
             </div>
             <div className="albumAssignControls">
@@ -2718,21 +2842,7 @@ function PzToastStack(props) {
   );
 }
 
-function PzBackupStrip(props) {
-  const state = props.state || {};
-  return (
-    <div className="pzConfidenceStrip">
-      <button type="button" title="Saved state" data-tooltip="Saved" onClick={props.onMarkSaved}>
-        <ShieldCheck size={13} />
-        <span>{state.lastSavedAt ? "SAVED " + new Date(state.lastSavedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "READY"}</span>
-      </button>
-      <button type="button" title="Mark backup" data-tooltip="Backup" onClick={props.onMarkBackup}>
-        <ArchiveRestore size={13} />
-        <span>{state.lastBackupAt ? "BACKUP " + new Date(state.lastBackupAt).toLocaleDateString() : "BACKUP"}</span>
-      </button>
-    </div>
-  );
-}
+
 
 function PzStateBanner(props) {
   if (props.loading) return <div className="pzStateBanner"><UploadCloud size={13} /><span>LOADING</span></div>;
@@ -2824,7 +2934,7 @@ function PzFileDetailEditor(props) {
           <button type="button" className={draft.starred ? "active" : ""} onClick={function () { setField("starred", !draft.starred); }}>★</button>
           <button type="button" className={draft.isMe ? "active" : ""} onClick={function () { setField("isMe", !draft.isMe); }}>ME</button>
           <button type="button" className={draft.private ? "active" : ""} onClick={function () { setField("private", !draft.private); }}>PRIVATE</button>
-          <button type="button" className={draft.review ? "active" : ""} onClick={function () { setField("review", !draft.review); }}>REVIEW</button>
+          <button type="button" className={draft.review ? "active" : ""} onClick={function () { setField("review", !draft.review); }}>REFILTER</button>
         </div>
         <div className="pzEditorActions pzDetailActions">
           <button type="button" onClick={function () { props.onSave(memory.id, draft); props.onClose(); }}>SAVE</button>
@@ -2840,14 +2950,14 @@ function PzFileDetailEditor(props) {
   );
 }
 
-function PzUploadReviewPanel(props) {
+function PzUploadRefilterPanel(props) {
   const queue = safeArray(props.queue);
   if (!props.open) return null;
   const failed = queue.filter(function (item) { return item.status === "FAILED"; }).length;
   const done = queue.filter(function (item) { return item.status === "DONE"; }).length;
 
   return (
-    <div className="floatingPanel pzUploadReviewPanel">
+    <div className="floatingPanel pzUploadRefilterPanel">
       <div className="panelSection">
         <div className="panelLabel">UPLOAD</div>
         <div className="pzQueueSummary">
@@ -2906,11 +3016,65 @@ function PzVideoPlaybackModal(props) {
   );
 }
 
+
+
+function AnimatedBookDockIcon(props) {
+  const size = props.size || 20;
+  return (
+    <span className="dockBookIcon" aria-hidden="true" style={{ width: size, height: size }}>
+      <svg viewBox="0 0 28 28" focusable="false">
+        <path className="bookCover left" d="M4.4 7.2c3.3-.55 6.2.15 9.6 2.1v13.2c-3.2-1.85-6.3-2.35-9.6-1.65V7.2Z" />
+        <path className="bookCover right" d="M23.6 7.2c-3.3-.55-6.2.15-9.6 2.1v13.2c3.2-1.85 6.3-2.35 9.6-1.65V7.2Z" />
+        <path className="bookSpine" d="M14 9.3v13.3" />
+        <path className="bookPage pageA" d="M14 9.6c2.4-1.35 4.8-1.95 7.1-1.7v11.4c-2.25-.28-4.65.28-7.1 1.7V9.6Z" />
+        <path className="bookPage pageB" d="M14 9.6c2.4-1.35 4.8-1.95 7.1-1.7v11.4c-2.25-.28-4.65.28-7.1 1.7V9.6Z" />
+        <path className="bookLine leftLine" d="M7 11.3c1.7-.15 3.2.15 4.8.85" />
+        <path className="bookLine leftLine2" d="M7 14.2c1.55-.12 3 .12 4.7.75" />
+        <path className="bookLine rightLine" d="M16.2 12.15c1.6-.7 3.1-1 4.8-.85" />
+        <path className="bookLine rightLine2" d="M16.3 14.95c1.7-.63 3.15-.87 4.7-.75" />
+      </svg>
+    </span>
+  );
+}
+
+function SparkSearchDockIcon(props) {
+  const size = props.size || 20;
+  return (
+    <span className="dockSearchSparkIcon" aria-hidden="true" style={{ width: size, height: size }}>
+      <svg viewBox="0 0 28 28" focusable="false">
+        <circle className="searchLens" cx="12.1" cy="12.1" r="6.35" />
+        <path className="searchHandle" d="M16.9 16.9 22.2 22.2" />
+        <path className="searchSpark sparkMain" d="M21.2 4.4l.7 2.0 2.0.7-2.0.7-.7 2.0-.7-2.0-2.0-.7 2.0-.7.7-2.0Z" />
+        <path className="searchSpark sparkSmall" d="M6.0 3.5l.45 1.25 1.25.45-1.25.45L6 6.9l-.45-1.25-1.25-.45 1.25-.45L6 3.5Z" />
+      </svg>
+    </span>
+  );
+}
+
+function LashEyeIcon(props) {
+  const size = props.size || 18;
+  return (
+    <span className="lashEyeIcon" aria-hidden="true" style={{ width: size, height: size }}>
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path className="lashEyeLid top" d="M3.2 12C5.4 7.7 8.4 5.7 12 5.7s6.6 2 8.8 6.3" />
+        <path className="lashEyeLid bottom" d="M3.2 12c2.2 4.3 5.2 6.3 8.8 6.3s6.6-2 8.8-6.3" />
+        <path className="lash lash1" d="M6.2 8.2 4.9 6.5" />
+        <path className="lash lash2" d="M9.0 6.8 8.4 4.8" />
+        <path className="lash lash3" d="M12 6.3V4.1" />
+        <path className="lash lash4" d="M15.0 6.8l.6-2.0" />
+        <path className="lash lash5" d="M17.8 8.2l1.3-1.7" />
+        <circle className="lashEyeIris" cx="12" cy="12" r="2.45" />
+        <circle className="lashEyeSpark" cx="11.15" cy="11.05" r=".55" />
+      </svg>
+    </span>
+  );
+}
+
 export default function App() {
   const [pzAlbumEditorId, setPzAlbumEditorId] = useState(null);
   const [pzDetailEditorId, setPzDetailEditorId] = useState(null);
   const [pzVideoPlayerId, setPzVideoPlayerId] = useState(null);
-  const [pzUploadReviewOpen, setPzUploadReviewOpen] = useState(false);
+  const [pzUploadRefilterOpen, setPzUploadRefilterOpen] = useState(false);
   const [pzUploadQueue, setPzUploadQueue] = useState([]);
   const [pzBackupState, setPzBackupState] = useState({ lastSavedAt: "", lastBackupAt: "" });
   const [pzLibraryError, setPzLibraryError] = useState("");
@@ -2983,15 +3147,9 @@ export default function App() {
     pzPushToast("RESTORED", "File restored.", "success");
   }
 
-  function pzMarkSaved() {
-    setPzBackupState(function (state) { return { ...state, lastSavedAt: pzNowIso() }; });
-    pzPushToast("SAVED", "Library marked saved at " + pzActionStamp() + ".", "success");
-  }
+  
 
-  function pzMarkBackup() {
-    setPzBackupState(function (state) { return { ...state, lastBackupAt: pzNowIso() }; });
-    pzPushToast("BACKUP", "Backup timestamp updated.", "success");
-  }
+  
 
   function pzRetryFailedUploads() {
     setPzUploadQueue(function (items) {
@@ -3003,7 +3161,7 @@ export default function App() {
     setPzUploadQueue(function (items) { return safeArray(items).filter(function (item) { return item.status !== "DONE"; }); });
   }
 
-  const [archiveView, setArchiveView] = useState("albums");
+  const [archiveFilter, setArchiveFilter] = useState("albums");
   const [activePage, setActivePage] = useState("albums");
     const [mirrorAllMode, setMirrorAllMode] = useState(false);
 const [screen, setScreen] = useState("home");
@@ -3041,8 +3199,8 @@ const [screen, setScreen] = useState("home");
   const [uploadQueueOpen, setUploadQueueOpen] = useState(false);
   const [uploadQueue, setUploadQueue] = useState([]);
   const uploadFileRefs = useRef({});
-  const [viewControlsOpen, setViewControlsOpen] = useState(false);
-  const [toolsOpen, setToolsOpen] = useState(false);
+  const [filterControlsOpen, setFilterControlsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
   const [duplicatesOpen, setDuplicatesOpen] = useState(false);
   const [sortMode, setSortMode] = useState("newest");
@@ -3527,7 +3685,7 @@ const [albumSort, setAlbumSort] = useState("recent");
     persist(nextMemories, albums);
   }
 
-  function bulkMarkReview() {
+  function bulkMarkRefilter() {
     const ids = selectedMemoryIds(selectedIds);
     const nextMemories = memories.map(function (memory) {
       return ids.indexOf(memory.id) !== -1 ? { ...memory, review: true } : memory;
@@ -3536,7 +3694,7 @@ const [albumSort, setAlbumSort] = useState("recent");
     persist(nextMemories, albums);
   }
 
-  function bulkClearReview() {
+  function bulkClearRefilter() {
     const ids = selectedMemoryIds(selectedIds);
     const nextMemories = memories.map(function (memory) {
       return ids.indexOf(memory.id) !== -1 ? { ...memory, review: false } : memory;
@@ -3814,7 +3972,7 @@ const [albumSort, setAlbumSort] = useState("recent");
     persist(nextMemories, albums);
   }
 
-  function toggleReview(memory) {
+  function toggleRefilter(memory) {
     if (!memory) return;
     const nextMemories = memories.map(function (item) {
       return item.id === memory.id ? { ...item, review: !Boolean(item.review) } : item;
@@ -4190,40 +4348,41 @@ const [albumSort, setAlbumSort] = useState("recent");
         <AnimatePresence mode="wait">
           <motion.div key={key} className="screen" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16 }}>
             {screen === "home" ? (
-              <Glass className={"shell grid-" + gridSize + (toolsOpen || viewControlsOpen || importPanelOpen || uploadQueueOpen || statusOpen || duplicatesOpen || healthOpen ? " has-panel-open" : "")}>
+              <Glass className={"shell grid-" + gridSize + (settingsOpen || filterControlsOpen || importPanelOpen || uploadQueueOpen || statusOpen || duplicatesOpen || healthOpen ? " has-panel-open" : "")}>
                 <div className="productHeader">
-                  <strong className="actualPageTitle">{activePage === "albums" ? "ALBUMS" : activePage === "mirror" ? "MIRROR" : "SEARCH"}</strong>
+                  <strong className="actualPageTitle">{activePage === "albums" ? "PHOTO ALBUMS" : activePage === "mirror" ? "MIRROR" : "SEARCH"}</strong>
                   <em>{memories.length} files</em>
                 </div>
-                <ControlBar activePage={activePage} archive={archive} archiveView={archiveView} setArchiveView={setArchiveView} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} viewControlsOpen={viewControlsOpen} toggleViewControls={function () { setViewControlsOpen(function (value) { return !value; }); }} toolsOpen={toolsOpen} toggleToolsPanel={function () { setToolsOpen(function (value) { return !value; }); }} />
+                <ControlBar activePage={activePage} archive={archive} archiveFilter={archiveFilter} setArchiveFilter={setArchiveFilter} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} filterControlsOpen={filterControlsOpen} toggleFilterControls={function () { setFilterControlsOpen(function (value) { return !value; }); }} settingsOpen={settingsOpen} toggleSettingsPanel={function () { setSettingsOpen(function (value) { return !value; }); }} />
                 <div className="floatingUtilityRail">
                   <AmbientMusicControl />
-                  <button type="button" aria-label="Filter" title="Filter" data-tooltip="Filter" className={viewControlsOpen ? "utilityRailButton iconUtilityButton active" : "utilityRailButton iconUtilityButton"} onClick={function () { setToolsOpen(false); setViewControlsOpen(function (value) { return !value; }); }}><SlidersHorizontal size={14} strokeWidth={2.1} /></button>
-                  <button type="button" aria-label={selectionMode ? "Done selecting" : "Select"} title={selectionMode ? "Done" : "Select"} data-tooltip={selectionMode ? "Done" : "Select"} className={selectionMode ? "utilityRailButton selectUtilityButton iconUtilityButton active" : "utilityRailButton selectUtilityButton iconUtilityButton"} onClick={function () { setSelectionMode(function (value) { return !value; }); }}><CircleCheck size={14} strokeWidth={2.1} /></button>
-                  <button type="button" aria-label="Tools" title="Tools" data-tooltip="Tools" className={toolsOpen ? "utilityRailButton cogUtilityButton iconUtilityButton active" : "utilityRailButton cogUtilityButton iconUtilityButton"} onClick={function () { setViewControlsOpen(false); setToolsOpen(function (value) { return !value; }); }}>⚙</button>
+                  <button type="button" aria-label="Filter" title="Filter" data-tooltip="Filter" className={filterControlsOpen ? "utilityRailButton iconUtilityButton active" : "utilityRailButton iconUtilityButton"} onClick={function () { setSettingsOpen(false); setFilterControlsOpen(function (value) { return !value; }); }}><SlidersHorizontal size={14} strokeWidth={2.1} /></button>
+                  <button type="button" aria-label={selectionMode ? "Done selecting" : ""} title={selectionMode ? "Done" : ""} data-tooltip={selectionMode ? "Done" : ""} className={selectionMode ? "utilityRailButton selectUtilityButton iconUtilityButton active" : "utilityRailButton selectUtilityButton iconUtilityButton"} onClick={function () { setSelectionMode(function (value) { return !value; }); }}><CircleCheck size={14} strokeWidth={2.1} /></button>
+                  <button type="button" aria-label="Settings" title="Settings" data-tooltip="Settings" className={settingsOpen ? "utilityRailButton cogUtilityButton iconUtilityButton active" : "utilityRailButton cogUtilityButton iconUtilityButton"} onClick={function () { setFilterControlsOpen(false); setSettingsOpen(function (value) { return !value; }); }}>⚙</button>
                 </div>
-                <ViewPanel open={viewControlsOpen} close={function () { setViewControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveView === "albums"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize} />
+                <FilterPanel open={filterControlsOpen} close={function () { setFilterControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveFilter === "albums"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize} 
+                searchFilter={searchFilter}
+                setSearchFilter={setSearchFilter}/>
                 <UndoBar snapshot={undoSnapshot} undo={undoLastAction} clear={function () { setUndoSnapshot(null); }} />
-                <ToolsPanel onUpload={handleUpload} open={toolsOpen} close={function () { setToolsOpen(false); }} toggleImportPanel={function () { setImportPanelOpen(function (value) { return !value; }); }} toggleUploadQueuePanel={function () { setUploadQueueOpen(function (value) { return !value; }); }} toggleStatusPanel={function () { setStatusOpen(function (value) { return !value; }); }} toggleDuplicatePanel={function () { setDuplicatesOpen(function (value) { return !value; }); }} toggleHealthPanel={function () { setHealthOpen(function (value) { return !value; }); }} exportVaultIndex={exportVaultIndex} exportManifestCsv={exportManifestCsv} importVaultIndex={importVaultIndex} 
-                toggleUploadReviewPanel={function () { setPzUploadReviewOpen(function (value) { return !value; }); }}/>
+                <SettingsPanel onUpload={handleUpload} open={settingsOpen} close={function () { setSettingsOpen(false); }} toggleImportPanel={function () { setImportPanelOpen(function (value) { return !value; }); }} toggleUploadQueuePanel={function () { setUploadQueueOpen(function (value) { return !value; }); }} toggleStatusPanel={function () { setStatusOpen(function (value) { return !value; }); }} toggleDuplicatePanel={function () { setDuplicatesOpen(function (value) { return !value; }); }} toggleHealthPanel={function () { setHealthOpen(function (value) { return !value; }); }} exportVaultIndex={exportVaultIndex} exportManifestCsv={exportManifestCsv} importVaultIndex={importVaultIndex} 
+                toggleUploadRefilterPanel={function () { setPzUploadRefilterOpen(function (value) { return !value; }); }}/>
                 <ImportPanel open={importPanelOpen} close={function () { setImportPanelOpen(false); }} uploadBatchSize={uploadBatchSize} setUploadBatchSize={setUploadBatchSize} uploadConcurrency={uploadConcurrency} setUploadConcurrency={setUploadConcurrency} skipDuplicates={skipDuplicates} setSkipDuplicates={setSkipDuplicates} importSummary={importSummary} />
                 <UploadQueuePanel open={uploadQueueOpen} queue={uploadQueue} paused={uploadPaused} togglePause={function () { setUploadPaused(function (value) { return !value; }); }} retryFailed={retryFailedUploads} close={function () { setUploadQueueOpen(false); }} clearFinished={function () { setUploadQueue(function (items) { return items.filter(function (item) { return item.status === "queued" || item.status === "uploading"; }); }); }} />
                 <StatusPanel open={statusOpen} memories={memories} close={function () { setStatusOpen(false); }} retryUpload={retryUpload} clearLocalFailedStatus={clearLocalFailedStatus} purgeTrash={purgeTrash} />
                 <DuplicatePanel open={duplicatesOpen} memories={memories} close={function () { setDuplicatesOpen(false); }} openMemory={setActiveMemory} trashDuplicateOthers={trashDuplicateOthers} />
                 <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} repairIndex={repairIndex} />
-                <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { setBulkMoreOpen(function (value) { return !value; }); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkReview={bulkMarkReview} bulkClearReview={bulkClearReview} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDelete={bulkDelete} clearSelection={clearSelection} />
-                {activePage === "albums" ? <AlbumsView currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateOpen} archiveView={archiveView} memories={memories} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
-                {activePage === "mirror" ? <MirrorView mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={memories} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
-                {activePage === "search" ? <SearchView memories={memories} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={setAdvancedSearchOpen} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { setPzVideoPlayerId(memory.id); }} /> : null}
+                <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { setBulkMoreOpen(function (value) { return !value; }); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkRefilter={bulkMarkRefilter} bulkClearRefilter={bulkClearRefilter} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDelete={bulkDelete} clearSelection={clearSelection} />
+                {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateOpen} archiveFilter={archiveFilter} memories={memories} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
+                {activePage === "mirror" ? <MirrorFilter mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={memories} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
+                {activePage === "search" ? <SearchFilter memories={memories} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={setAdvancedSearchOpen} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { setPzVideoPlayerId(memory.id); }} /> : null}
               </Glass>
             ) : null}
-            {screen === "group" && activeGroup ? <GroupView group={activeGroup} back={goHome} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { setPzVideoPlayerId(memory.id); }} /> : null}
+            {screen === "group" && activeGroup ? <GroupFilter group={activeGroup} back={goHome} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { setPzVideoPlayerId(memory.id); }} /> : null}
           </motion.div>
         </AnimatePresence>
       </main>
-      <Modal memory={activeMemory} close={function () { setActiveMemory(null); }} deleteMemory={deleteMemory} restoreMemory={restoreMemory} toggleMeFlag={toggleMeFlag} toggleMirror={toggleMirror} toggleArchive={toggleArchive} toggleReview={toggleReview} togglePrivate={togglePrivate} albums={albums} addToAlbum={addToAlbum} moveToAlbum={moveToAlbum} removeFromAlbum={removeFromAlbum} updateMemoryDetails={updateMemoryDetails} downloadOriginal={downloadOriginal} openOriginal={openOriginal} copyMediaUrl={copyMediaUrl} copyStorageKey={copyStorageKey} toggleStar={toggleStar} isStarred={activeMemory ? albumHasMemory(albums, "star", activeMemory.id) : false} setAlbumCover={setAlbumCover} clearAlbumCover={clearAlbumCover} />
+      <Modal memory={activeMemory} close={function () { setActiveMemory(null); }} deleteMemory={deleteMemory} restoreMemory={restoreMemory} toggleMeFlag={toggleMeFlag} toggleMirror={toggleMirror} toggleArchive={toggleArchive} toggleRefilter={toggleRefilter} togglePrivate={togglePrivate} albums={albums} addToAlbum={addToAlbum} moveToAlbum={moveToAlbum} removeFromAlbum={removeFromAlbum} updateMemoryDetails={updateMemoryDetails} downloadOriginal={downloadOriginal} openOriginal={openOriginal} copyMediaUrl={copyMediaUrl} copyStorageKey={copyStorageKey} toggleStar={toggleStar} isStarred={activeMemory ? albumHasMemory(albums, "star", activeMemory.id) : false} setAlbumCover={setAlbumCover} clearAlbumCover={clearAlbumCover} />
       <PzStateBanner loading={pzLibraryLoading} saving={saving} error={pzLibraryError} />
-      <PzBackupStrip state={pzBackupState} onMarkSaved={pzMarkSaved} onMarkBackup={pzMarkBackup} />
       <PzToastStack items={pzToasts} />
       <PzAlbumEditorPanel
         open={Boolean(pzActiveAlbumEditor)}
@@ -4250,12 +4409,12 @@ const [albumSort, setAlbumSort] = useState("recent");
         onEdit={function (memory) { setPzVideoPlayerId(null); setPzDetailEditorId(memory.id); }}
         onDownload={pzDownloadMemory}
       />
-      <PzUploadReviewPanel
-        open={pzUploadReviewOpen}
+      <PzUploadRefilterPanel
+        open={pzUploadRefilterOpen}
         queue={pzUploadQueue}
         onRetryFailed={pzRetryFailedUploads}
         onClearComplete={pzClearCompleteUploads}
-        onClose={function () { setPzUploadReviewOpen(false); }}
+        onClose={function () { setPzUploadRefilterOpen(false); }}
       />
 
     </div>

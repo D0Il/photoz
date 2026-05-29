@@ -9725,35 +9725,6 @@ button:active,
 
 
 /* HUGE PRODUCT PASS: album editor, detail editor, upload state, backup confidence, videos, QA */
-.pzConfidenceStrip {
-  position: fixed;
-  left: 18px;
-  bottom: 18px;
-  z-index: 62;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.24);
-  background: linear-gradient(180deg, rgba(255,255,255,.100), rgba(255,255,255,.028)), rgba(255,255,255,.030);
-  box-shadow: 0 14px 34px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.22);
-  backdrop-filter: blur(14px) saturate(1.08);
-}
-
-.pzConfidenceStrip div {
-  height: 24px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0 8px;
-  border-radius: 999px;
-  color: rgba(0,0,0,.46);
-  font-size: 8px;
-  line-height: 1;
-  font-weight: 850;
-  letter-spacing: .09em;
-}
 
 .pzStateBanner {
   position: fixed;
@@ -10084,12 +10055,6 @@ button:active,
 }
 
 @media (max-width: 760px) {
-  .pzConfidenceStrip {
-    left: 12px;
-    bottom: 88px;
-    max-width: calc(100vw - 24px);
-    overflow: auto;
-  }
 
   .pzToastStack {
     right: 12px;
@@ -10278,21 +10243,6 @@ button:active,
 
 
 /* CONTINUED WORKFLOW PASS */
-.pzConfidenceStrip button {
-  height: 24px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0 8px;
-  border-radius: 999px;
-  border: 0;
-  background: transparent;
-  color: rgba(0,0,0,.46);
-  font-size: 8px;
-  line-height: 1;
-  font-weight: 850;
-  letter-spacing: .09em;
-}
 
 .pzQueueSummary {
   display: grid;
@@ -10361,5 +10311,1114 @@ button:active,
 
   .pzQueueSummary {
     grid-template-columns: 1fr;
+  }
+}
+
+
+/* LONG-PRESS SELECTION */
+.photoCard {
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.photoCard .photoThumb img,
+.photoCard .photoThumb video {
+  -webkit-user-drag: none;
+}
+
+.selectionDot {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.48);
+  background: rgba(0,0,0,.18);
+  box-shadow:
+    0 6px 18px rgba(0,0,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.22);
+  backdrop-filter: blur(10px);
+}
+
+.selectionDot.active {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,.90) 0 3px, transparent 4px),
+    rgba(0,0,0,.56);
+  border-color: rgba(255,255,255,.76);
+}
+
+.photoCard.selected {
+  transform: translateY(-1px) scale(.985);
+  box-shadow:
+    0 16px 36px rgba(0,0,0,.13),
+    inset 0 0 0 1px rgba(255,255,255,.38);
+}
+
+button.selectButton,
+.selectButton,
+[data-role="select-button"] {
+  display: none;
+}
+
+
+/* HOLD + SWIPE SELECTION */
+.photoGrid.selectionDragging,
+.photoCard {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.photoCard {
+  touch-action: none;
+}
+
+.photoCard.selected .photoThumb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 2px rgba(255,255,255,.58),
+    inset 0 0 0 999px rgba(255,255,255,.035);
+  pointer-events: none;
+}
+
+
+/* SETTINGS + FILTER MENU OPTIMIZATION */
+.settingsMenuPanel,
+.filterMenuPanel {
+  width: min(310px, calc(100vw - 28px));
+  padding: 10px;
+  display: grid;
+  gap: 9px;
+}
+
+.settingsMenuHeader,
+.filterMenuHeader {
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 5px;
+  color: rgba(0,0,0,.58);
+}
+
+.settingsMenuHeader strong,
+.filterMenuHeader strong {
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: .16em;
+}
+
+.settingsMenuGroup {
+  display: grid;
+  gap: 6px;
+}
+
+.settingsMenuGroup > span {
+  padding: 0 5px;
+  font-size: 7px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: .16em;
+  color: rgba(0,0,0,.30);
+}
+
+.settingsMenuGrid,
+.filterChipGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 6px;
+}
+
+.settingsMenuGrid button,
+.filterChipGrid button,
+.filterSortRow button {
+  min-height: 34px;
+  border-radius: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 8px;
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 850;
+  letter-spacing: .08em;
+}
+
+.filterChipGrid button.active,
+.filterSortRow button.active {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.055)),
+    rgba(255,255,255,.04);
+  border-color: rgba(255,255,255,.38);
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.07),
+    inset 0 1px 0 rgba(255,255,255,.24);
+}
+
+.filterSortRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 42px;
+  gap: 6px;
+}
+
+@media (max-width: 560px) {
+  .settingsMenuGrid,
+  .filterChipGrid {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+}
+
+
+/* LASHED EYE SYMBOL */
+.lashEyeIcon {
+  display: inline-grid;
+  place-items: center;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.lashEyeIcon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+.lashEyeIcon .lashEyeLid,
+.lashEyeIcon .lash,
+.lashEyeIcon .lashEyeIris,
+.lashEyeIcon .lashEyeSpark {
+  vector-effect: non-scaling-stroke;
+}
+
+.lashEyeIcon .lashEyeLid,
+.lashEyeIcon .lash {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lashEyeIcon .lash {
+  stroke-width: 1.45;
+  opacity: .82;
+  transform-origin: 12px 12px;
+}
+
+.lashEyeIcon .lashEyeIris {
+  fill: currentColor;
+  opacity: .72;
+  transform-origin: 12px 12px;
+}
+
+.lashEyeIcon .lashEyeSpark {
+  fill: rgba(255,255,255,.78);
+  transform-origin: 12px 12px;
+}
+
+.lashEyeIcon .top {
+  transform-origin: 12px 12px;
+  animation: lashEyeTopBlink 5.6s ease-in-out infinite;
+}
+
+.lashEyeIcon .bottom {
+  transform-origin: 12px 12px;
+  animation: lashEyeBottomBlink 5.6s ease-in-out infinite;
+}
+
+.lashEyeIcon .lashEyeIris,
+.lashEyeIcon .lashEyeSpark {
+  animation: lashEyePupilBlink 5.6s ease-in-out infinite;
+}
+
+.lashEyeIcon .lash {
+  animation: lashEyeLashBlink 5.6s ease-in-out infinite;
+}
+
+button:hover .lashEyeIcon .top,
+button:hover .lashEyeIcon .bottom,
+button:hover .lashEyeIcon .lash,
+button:hover .lashEyeIcon .lashEyeIris,
+button:hover .lashEyeIcon .lashEyeSpark {
+  animation-duration: 3.2s;
+}
+
+@keyframes lashEyeTopBlink {
+  0%, 88%, 100% { transform: translateY(0) scaleY(1); }
+  92%, 94% { transform: translateY(3.05px) scaleY(.16); }
+}
+
+@keyframes lashEyeBottomBlink {
+  0%, 88%, 100% { transform: translateY(0) scaleY(1); }
+  92%, 94% { transform: translateY(-3.05px) scaleY(.16); }
+}
+
+@keyframes lashEyePupilBlink {
+  0%, 88%, 100% { transform: scaleY(1); opacity: .72; }
+  92%, 94% { transform: scaleY(.05); opacity: .04; }
+}
+
+@keyframes lashEyeLashBlink {
+  0%, 88%, 100% { transform: translateY(0); opacity: .82; }
+  92%, 94% { transform: translateY(2px); opacity: .42; }
+}
+
+
+/* DOCK ICONS: animated albums book + sparkling search */
+.dockBookIcon,
+.dockSearchSparkIcon {
+  display: inline-grid;
+  place-items: center;
+  position: relative;
+  flex: 0 0 auto;
+  color: currentColor;
+}
+
+.dockBookIcon svg,
+.dockSearchSparkIcon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+.dockBookIcon path,
+.dockSearchSparkIcon path,
+.dockSearchSparkIcon circle {
+  vector-effect: non-scaling-stroke;
+}
+
+.dockBookIcon .bookCover {
+  fill: rgba(255,255,255,.055);
+  stroke: currentColor;
+  stroke-width: 1.55;
+  stroke-linejoin: round;
+}
+
+.dockBookIcon .bookSpine,
+.dockBookIcon .bookLine {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .74;
+}
+
+.dockBookIcon .bookPage {
+  fill: rgba(255,255,255,.075);
+  stroke: currentColor;
+  stroke-width: 1.28;
+  stroke-linejoin: round;
+  transform-box: fill-box;
+  transform-origin: left center;
+  opacity: .82;
+}
+
+.dockBookIcon .pageA {
+  animation: dockBookPageFlipA 3.8s cubic-bezier(.25,.75,.2,1) infinite;
+}
+
+.dockBookIcon .pageB {
+  animation: dockBookPageFlipB 3.8s cubic-bezier(.25,.75,.2,1) infinite;
+  animation-delay: .22s;
+}
+
+.dockBookIcon .rightLine,
+.dockBookIcon .rightLine2 {
+  animation: dockBookLineDrift 3.8s ease-in-out infinite;
+}
+
+button:hover .dockBookIcon .pageA,
+button:hover .dockBookIcon .pageB {
+  animation-duration: 2.4s;
+}
+
+@keyframes dockBookPageFlipA {
+  0%, 22%, 100% { transform: perspective(52px) rotateY(0deg) translateX(0); opacity: .80; }
+  42% { transform: perspective(52px) rotateY(-72deg) translateX(-.7px); opacity: .98; }
+  58% { transform: perspective(52px) rotateY(-148deg) translateX(-1.15px); opacity: .42; }
+  72% { transform: perspective(52px) rotateY(0deg) translateX(0); opacity: .84; }
+}
+
+@keyframes dockBookPageFlipB {
+  0%, 28%, 100% { transform: perspective(52px) rotateY(0deg) translateX(0); opacity: .54; }
+  48% { transform: perspective(52px) rotateY(-84deg) translateX(-.85px); opacity: .90; }
+  64% { transform: perspective(52px) rotateY(-152deg) translateX(-1.15px); opacity: .34; }
+  78% { transform: perspective(52px) rotateY(0deg) translateX(0); opacity: .62; }
+}
+
+@keyframes dockBookLineDrift {
+  0%, 100% { opacity: .70; transform: translateX(0); }
+  50% { opacity: .38; transform: translateX(-.7px); }
+}
+
+.dockSearchSparkIcon .searchLens,
+.dockSearchSparkIcon .searchHandle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dockSearchSparkIcon .searchSpark {
+  fill: currentColor;
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: .72;
+}
+
+.dockSearchSparkIcon .sparkMain {
+  animation: searchSparkPulse 2.6s ease-in-out infinite;
+}
+
+.dockSearchSparkIcon .sparkSmall {
+  animation: searchSparkPulseSmall 2.6s ease-in-out infinite;
+  animation-delay: .42s;
+}
+
+button:hover .dockSearchSparkIcon .sparkMain,
+button:hover .dockSearchSparkIcon .sparkSmall {
+  animation-duration: 1.45s;
+}
+
+@keyframes searchSparkPulse {
+  0%, 64%, 100% { transform: scale(.55) rotate(0deg); opacity: .20; }
+  14% { transform: scale(1.08) rotate(12deg); opacity: .92; }
+  28% { transform: scale(.78) rotate(24deg); opacity: .45; }
+}
+
+@keyframes searchSparkPulseSmall {
+  0%, 70%, 100% { transform: scale(.5) rotate(0deg); opacity: .16; }
+  18% { transform: scale(1.0) rotate(-16deg); opacity: .76; }
+  34% { transform: scale(.7) rotate(-28deg); opacity: .36; }
+}
+
+
+/* GLOBAL GLASS MOTION PASS */
+:root {
+  --glass-sheen-x: -38%;
+  --glass-sheen-opacity: .30;
+}
+
+.appShell::before,
+.glass::before,
+.appChrome::before,
+.floatingPanel::before,
+.settingsPopover::before,
+.filterPopover::before,
+.pzEditorSheet::before,
+.pzVideoCinemaPanel::before,
+.passwordCard::before,
+.bottomDock::before,
+.floatingUtilityRail::before,
+.selectTray::before,
+.albumControlsRow::before,
+.searchBar::before,
+.librarySearchBar::before,
+button::before,
+.pill::before,
+.photoCard::before,
+.groupCard::before,
+.emptyState::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      112deg,
+      transparent 0%,
+      transparent 34%,
+      rgba(255,255,255,.105) 44%,
+      rgba(255,255,255,.030) 51%,
+      transparent 64%,
+      transparent 100%
+    );
+  transform: translateX(var(--glass-sheen-x)) skewX(-12deg);
+  opacity: 0;
+  mix-blend-mode: screen;
+  animation: photozGlassSheen 9.5s cubic-bezier(.25,.8,.2,1) infinite;
+}
+
+.glass,
+.appChrome,
+.floatingPanel,
+.settingsPopover,
+.filterPopover,
+.pzEditorSheet,
+.pzVideoCinemaPanel,
+.passwordCard,
+.bottomDock,
+.floatingUtilityRail,
+.selectTray,
+.albumControlsRow,
+.searchBar,
+.librarySearchBar,
+button,
+.pill,
+.photoCard,
+.groupCard,
+.emptyState {
+  position: relative;
+  isolation: isolate;
+}
+
+.bottomDock::after,
+.floatingUtilityRail::after,
+.floatingPanel::after,
+.settingsPopover::after,
+.filterPopover::after,
+.pzEditorSheet::after,
+.passwordCard::after,
+.glass::after,
+.photoCard::after,
+.groupCard::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255,255,255,.12), transparent 32%),
+    radial-gradient(circle at 86% 12%, rgba(255,255,255,.070), transparent 30%),
+    linear-gradient(180deg, rgba(255,255,255,.045), transparent 48%);
+  opacity: .42;
+  transform: translate3d(0, 0, 0);
+  animation: photozGlassBreath 7.5s ease-in-out infinite;
+}
+
+button::before,
+.pill::before,
+.searchBar::before,
+.librarySearchBar::before {
+  animation-duration: 7.2s;
+  background:
+    linear-gradient(
+      110deg,
+      transparent 0%,
+      transparent 28%,
+      rgba(255,255,255,.13) 44%,
+      rgba(255,255,255,.045) 52%,
+      transparent 66%,
+      transparent 100%
+    );
+}
+
+.photoCard::before,
+.groupCard::before {
+  animation-duration: 10.8s;
+  opacity: 0;
+}
+
+.photoCard:hover::before,
+.groupCard:hover::before,
+button:hover::before,
+.bottomDock:hover::before,
+.floatingUtilityRail:hover::before {
+  animation-duration: 3.2s;
+}
+
+.photoCard:hover::after,
+.groupCard:hover::after,
+button:hover::after {
+  opacity: .55;
+}
+
+@keyframes photozGlassSheen {
+  0%, 12% {
+    opacity: 0;
+    transform: translateX(-58%) skewX(-12deg);
+  }
+  20% {
+    opacity: var(--glass-sheen-opacity);
+  }
+  38% {
+    opacity: .09;
+    transform: translateX(62%) skewX(-12deg);
+  }
+  48%, 100% {
+    opacity: 0;
+    transform: translateX(78%) skewX(-12deg);
+  }
+}
+
+@keyframes photozGlassBreath {
+  0%, 100% {
+    opacity: .34;
+    transform: translate3d(0,0,0) scale(1);
+    filter: saturate(1);
+  }
+  50% {
+    opacity: .52;
+    transform: translate3d(.4px,-.4px,0) scale(1.002);
+    filter: saturate(1.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .appShell::before,
+  .glass::before,
+  .appChrome::before,
+  .floatingPanel::before,
+  .settingsPopover::before,
+  .filterPopover::before,
+  .pzEditorSheet::before,
+  .pzVideoCinemaPanel::before,
+  .passwordCard::before,
+  .bottomDock::before,
+  .floatingUtilityRail::before,
+  .selectTray::before,
+  .albumControlsRow::before,
+  .searchBar::before,
+  .librarySearchBar::before,
+  button::before,
+  .pill::before,
+  .photoCard::before,
+  .groupCard::before,
+  .emptyState::before,
+  .bottomDock::after,
+  .floatingUtilityRail::after,
+  .floatingPanel::after,
+  .settingsPopover::after,
+  .filterPopover::after,
+  .pzEditorSheet::after,
+  .passwordCard::after,
+  .glass::after,
+  .photoCard::after,
+  .groupCard::after {
+    animation: none;
+  }
+}
+
+
+/* GLASS DEPTH AND ALBUM SEARCH WIDTH PASS */
+.albumControlsRow {
+  width: fit-content;
+  max-width: min(520px, calc(100vw - 72px));
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.albumControlsRow .albumSearchOnly,
+.albumSearchOnly {
+  width: clamp(150px, 17vw, 255px);
+  min-width: 150px;
+  max-width: 255px;
+  flex: 0 0 auto;
+}
+
+.albumControlsRow .albumSearchOnly input,
+.albumSearchOnly input {
+  width: 100%;
+}
+
+.newAlbumTrigger {
+  width: 38px;
+  min-width: 38px;
+  padding-inline: 0;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.glass,
+.appChrome,
+.floatingPanel,
+.settingsPopover,
+.filterPopover,
+.settingsMenuPanel,
+.filterMenuPanel,
+.pzEditorSheet,
+.pzVideoCinemaPanel,
+.passwordCard,
+.bottomDock,
+.floatingUtilityRail,
+.selectTray,
+.albumControlsRow,
+.searchBar,
+.librarySearchBar,
+.newAlbumPanel,
+.emptyState {
+  background:
+    radial-gradient(circle at 16% 0%, rgba(255,255,255,.18), transparent 34%),
+    radial-gradient(circle at 82% 18%, rgba(255,255,255,.085), transparent 36%),
+    linear-gradient(180deg, rgba(255,255,255,.105), rgba(255,255,255,.030) 48%, rgba(0,0,0,.020)),
+    rgba(255,255,255,.034);
+  border-color: rgba(255,255,255,.29);
+  box-shadow:
+    0 20px 48px rgba(0,0,0,.115),
+    0 5px 14px rgba(0,0,0,.055),
+    inset 0 1px 0 rgba(255,255,255,.34),
+    inset 0 -1px 0 rgba(0,0,0,.055),
+    inset 1px 0 0 rgba(255,255,255,.075),
+    inset -1px 0 0 rgba(0,0,0,.030);
+}
+
+.floatingPanel,
+.settingsPopover,
+.filterPopover,
+.settingsMenuPanel,
+.filterMenuPanel,
+.pzEditorSheet,
+.pzVideoCinemaPanel,
+.passwordCard {
+  box-shadow:
+    0 28px 72px rgba(0,0,0,.18),
+    0 8px 22px rgba(0,0,0,.08),
+    inset 0 1px 0 rgba(255,255,255,.36),
+    inset 0 -1px 0 rgba(0,0,0,.07),
+    inset 1px 0 0 rgba(255,255,255,.09),
+    inset -1px 0 0 rgba(0,0,0,.035);
+}
+
+button,
+.pill,
+.filterChipGrid button,
+.settingsMenuGrid button,
+.filterSortRow button,
+.newAlbumTrigger,
+.albumControlsRow input,
+.searchBar input,
+.librarySearchBar input,
+select,
+input,
+textarea {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.20), transparent 42%),
+    linear-gradient(180deg, rgba(255,255,255,.135), rgba(255,255,255,.040) 48%, rgba(0,0,0,.025)),
+    rgba(255,255,255,.040);
+  border-color: rgba(255,255,255,.30);
+  box-shadow:
+    0 8px 20px rgba(0,0,0,.075),
+    0 1px 2px rgba(0,0,0,.050),
+    inset 0 1px 0 rgba(255,255,255,.34),
+    inset 0 -1px 0 rgba(0,0,0,.060);
+}
+
+button:hover,
+.pill:hover,
+.filterChipGrid button:hover,
+.settingsMenuGrid button:hover,
+.filterSortRow button:hover,
+.newAlbumTrigger:hover {
+  transform: translateY(-1px) scale(1.012);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.26), transparent 43%),
+    linear-gradient(180deg, rgba(255,255,255,.165), rgba(255,255,255,.055) 48%, rgba(0,0,0,.020)),
+    rgba(255,255,255,.052);
+  border-color: rgba(255,255,255,.39);
+  box-shadow:
+    0 12px 26px rgba(0,0,0,.100),
+    0 2px 4px rgba(0,0,0,.065),
+    inset 0 1px 0 rgba(255,255,255,.42),
+    inset 0 -1px 0 rgba(0,0,0,.060);
+}
+
+button:active,
+.filterChipGrid button:active,
+.settingsMenuGrid button:active,
+.filterSortRow button:active,
+.newAlbumTrigger:active {
+  transform: translateY(0) scale(.985);
+  box-shadow:
+    0 5px 13px rgba(0,0,0,.075),
+    inset 0 1px 2px rgba(0,0,0,.060),
+    inset 0 1px 0 rgba(255,255,255,.24);
+}
+
+.filterChipGrid button.active,
+.filterSortRow button.active,
+.settingsMenuGrid button.active,
+button.active,
+.pill.active {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.30), transparent 45%),
+    linear-gradient(180deg, rgba(255,255,255,.205), rgba(255,255,255,.070) 50%, rgba(0,0,0,.018)),
+    rgba(255,255,255,.058);
+  border-color: rgba(255,255,255,.46);
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.105),
+    inset 0 1px 0 rgba(255,255,255,.52),
+    inset 0 -1px 0 rgba(0,0,0,.060),
+    inset 0 0 18px rgba(255,255,255,.035);
+}
+
+.photoCard,
+.groupCard {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255,255,255,.15), transparent 38%),
+    linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.025) 50%, rgba(0,0,0,.025)),
+    rgba(255,255,255,.030);
+  border-color: rgba(255,255,255,.24);
+  box-shadow:
+    0 15px 38px rgba(0,0,0,.095),
+    inset 0 1px 0 rgba(255,255,255,.25),
+    inset 0 -1px 0 rgba(0,0,0,.052);
+}
+
+.photoCard:hover,
+.groupCard:hover {
+  box-shadow:
+    0 20px 48px rgba(0,0,0,.125),
+    inset 0 1px 0 rgba(255,255,255,.34),
+    inset 0 -1px 0 rgba(0,0,0,.055);
+}
+
+.settingsMenuPanel,
+.filterMenuPanel {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255,255,255,.19), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,.105), rgba(255,255,255,.034) 52%, rgba(0,0,0,.028)),
+    rgba(255,255,255,.038);
+}
+
+.settingsMenuGroup,
+.panelSection {
+  border-radius: 16px;
+  padding: 7px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.014)),
+    rgba(255,255,255,.014);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 -1px 0 rgba(0,0,0,.030);
+}
+
+@media (max-width: 760px) {
+  .albumControlsRow {
+    max-width: calc(100vw - 32px);
+  }
+
+  .albumControlsRow .albumSearchOnly,
+  .albumSearchOnly {
+    width: clamp(140px, 45vw, 220px);
+  }
+}
+
+
+/* GLOBAL UI SCALE-UP PASS */
+:root {
+  --photoz-ui-scale: 1.095;
+}
+
+body {
+  font-size: calc(13px * var(--photoz-ui-scale));
+}
+
+.appShell {
+  font-size: calc(1em * var(--photoz-ui-scale));
+}
+
+.pageTitle,
+.pageHeader h1,
+h1 {
+  font-size: clamp(58px, 6.25vw, 92px);
+  letter-spacing: -.075em;
+}
+
+.pageScroll {
+  font-size: 1.055em;
+}
+
+button,
+.pill,
+select,
+input,
+textarea {
+  font-size: 10.5px;
+}
+
+button,
+.pill,
+.filterChipGrid button,
+.settingsMenuGrid button,
+.filterSortRow button,
+.newAlbumTrigger,
+.topActionButton,
+.utilityRailButton,
+.iconUtilityButton {
+  min-height: 34px;
+}
+
+button:not(.closeButton):not(.newAlbumTrigger),
+.pill,
+.filterChipGrid button,
+.settingsMenuGrid button,
+.filterSortRow button {
+  padding-inline: 11px;
+}
+
+.topActionButton,
+.utilityRailButton,
+.iconUtilityButton,
+.floatingUtilityRail .ambientUtilityButton {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+}
+
+.bottomDock {
+  min-height: 54px;
+  padding: 6px;
+  gap: 6px;
+}
+
+.bottomDock button {
+  width: 48px;
+  min-width: 48px;
+  height: 42px;
+  min-height: 42px;
+}
+
+.bottomDock svg,
+.bottomDock .dockBookIcon,
+.bottomDock .dockSearchSparkIcon,
+.bottomDock .lashEyeIcon {
+  width: 23px;
+  height: 23px;
+}
+
+.dockBookIcon,
+.dockSearchSparkIcon,
+.lashEyeIcon {
+  width: 22px;
+  height: 22px;
+}
+
+.floatingUtilityRail {
+  min-height: 42px;
+  padding: 5px;
+  gap: 5px;
+}
+
+.floatingPanel,
+.settingsPopover,
+.filterPopover,
+.settingsMenuPanel,
+.filterMenuPanel {
+  font-size: 1.08em;
+}
+
+.settingsMenuPanel,
+.filterMenuPanel {
+  width: min(345px, calc(100vw - 28px));
+  padding: 12px;
+  gap: 10px;
+}
+
+.settingsMenuHeader,
+.filterMenuHeader {
+  height: 32px;
+}
+
+.settingsMenuHeader strong,
+.filterMenuHeader strong {
+  font-size: 10px;
+}
+
+.settingsMenuGroup > span,
+.panelLabel {
+  font-size: 8px;
+}
+
+.settingsMenuGrid button,
+.filterChipGrid button,
+.filterSortRow button {
+  min-height: 39px;
+  font-size: 9px;
+  border-radius: 14px;
+}
+
+.filterSortRow {
+  grid-template-columns: 1fr 1fr 46px;
+}
+
+.albumControlsRow {
+  gap: 9px;
+}
+
+.albumControlsRow .albumSearchOnly,
+.albumSearchOnly {
+  width: clamp(175px, 19vw, 285px);
+  min-width: 175px;
+  max-width: 285px;
+}
+
+.albumControlsRow input,
+.albumSearchOnly input,
+.searchBar input,
+.librarySearchBar input {
+  min-height: 39px;
+  font-size: 10px;
+}
+
+.newAlbumTrigger {
+  width: 42px;
+  min-width: 42px;
+  min-height: 39px;
+  font-size: 14px;
+}
+
+.archiveTabs button,
+.searchFilters button,
+.librarySearchFilters button {
+  min-height: 36px;
+  font-size: 9.5px;
+  padding-inline: 13px;
+}
+
+.albumSearchOnly,
+.searchBar,
+.librarySearchBar {
+  min-height: 42px;
+}
+
+.photoGrid,
+.searchGrid {
+  gap: 12px;
+}
+
+.photoCard,
+.groupCard {
+  border-radius: 18px;
+}
+
+.photoMeta strong,
+.groupMeta strong {
+  font-size: 11px;
+}
+
+.photoMeta span,
+.groupMeta span {
+  font-size: 9px;
+}
+
+.pzCardQuickActions button,
+.pzGroupEditButton {
+  width: 29px;
+  min-width: 29px;
+  height: 29px;
+  min-height: 29px;
+}
+
+.selectionDot {
+  width: 20px;
+  height: 20px;
+}
+
+.pzVideoPlayPlate {
+  width: 43px;
+  height: 43px;
+}
+
+.pzVideoBadge,
+.starBadge,
+.pzHiddenBadge,
+.pzTrashRibbon {
+  min-height: 23px;
+  font-size: 8.5px;
+}
+
+.emptyState h2 {
+  font-size: 15px;
+}
+
+.emptyState p {
+  font-size: 11px;
+}
+
+.pzEditorSheet {
+  width: min(620px, calc(100vw - 30px));
+  padding: 16px;
+  gap: 14px;
+}
+
+.pzEditorSheet header {
+  height: 39px;
+}
+
+.pzEditorSheet header strong {
+  font-size: 29px;
+}
+
+.pzEditorSheet label span,
+.pzDetailFieldsGrid label span {
+  font-size: 8.5px;
+}
+
+.pzEditorSheet input,
+.pzEditorSheet textarea,
+.pzEditorSheet select {
+  min-height: 39px;
+  font-size: 12px;
+}
+
+.pzEditorToggleRow button,
+.pzWideToggle {
+  min-height: 39px;
+}
+
+.pzVideoCinemaPanel {
+  width: min(1120px, calc(100vw - 28px));
+}
+
+.pzVideoCinemaPanel header strong {
+  font-size: 28px;
+}
+
+.pzCinemaInfo div {
+  min-height: 52px;
+}
+
+.pzCinemaInfo span {
+  font-size: 8px;
+}
+
+.pzCinemaInfo strong {
+  font-size: 12px;
+}
+
+.pzCinemaInfo button {
+  height: 37px;
+  font-size: 9.5px;
+}
+
+.passwordCard {
+  transform: scale(1.045);
+  transform-origin: center;
+}
+
+@media (max-width: 760px) {
+  .pageTitle,
+  .pageHeader h1,
+  h1 {
+    font-size: clamp(48px, 13vw, 74px);
+  }
+
+  .albumControlsRow .albumSearchOnly,
+  .albumSearchOnly {
+    width: clamp(165px, 48vw, 250px);
+  }
+
+  .settingsMenuPanel,
+  .filterMenuPanel {
+    width: min(345px, calc(100vw - 20px));
+  }
+
+  .bottomDock button {
+    width: 46px;
+    min-width: 46px;
+    height: 42px;
   }
 }

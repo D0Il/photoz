@@ -97,3 +97,25 @@ Added:
 - playback-only video view preserved
 
 - Fixed TDZ runtime crash by moving PHOTOZ workflow derived values after albums/memories state initialization.
+
+- Removed the floating Save/Backup confidence buttons from the main screen; save/backup state is no longer exposed as on-screen UI.
+
+- Changed visible album creation label from `+ New album` to `+`.
+
+- Removed the visible Select control. Long-pressing a file now enters selection mode and selects that file; tapping while selection mode is active toggles items.
+
+- Added hold-and-swipe selection: long-press one file to enter selection, then drag across other files to add them without toggling them off.
+
+- Renamed Tools to Settings and reorganized Settings/Filter panels into grouped, compact controls.
+
+- Replaced the eye symbol with a custom lashed eye icon and center-closing blink animation.
+
+- Dock Albums icon is now a custom animated open book with flipping pages; dock Search icon now has animated sparkle accents.
+
+- Added global glass UI animation: subtle moving sheen/refraction and breathing highlights across dock, menus, panels, buttons, cards, modals, and glass containers.
+
+- Shortened the album search bar and added a glass-depth pass: stronger edge highlights, inner shadows, layered reflections, deeper menus/buttons/cards, and less plastic-looking surfaces.
+
+- Scaled the UI up slightly while preserving layout relationships: larger dock, controls, menus, type, inputs, cards, modals, and icons without changing the placement system.
+
+- Changed visible `ALBUMS` label to `PHOTO ALBUMS`.
