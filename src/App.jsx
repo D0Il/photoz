@@ -3018,6 +3018,12 @@ function PzVideoPlaybackModal(props) {
 
 
 
+
+function withTooltip(label) {
+  const value = String(label || "").trim();
+  return value ? { title: value, "data-tooltip": value, "aria-label": value } : {};
+}
+
 function AnimatedBookDockIcon(props) {
   const size = props.size || 20;
   return (
