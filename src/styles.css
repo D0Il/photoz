@@ -10802,3 +10802,18 @@ button[title="Select"],
 button[data-tooltip="Select"] {
   display: none;
 }
+
+
+/* SELECT BUTTON NUCLEAR REMOVAL */
+.selectButton,
+button.selectButton,
+[data-role="select-button"],
+[data-action="select"],
+button[aria-label="Select"],
+button[title="Select"],
+button[data-tooltip="Select"],
+button[aria-label="Long-press files"],
+button[title="Long-press files"],
+button[data-tooltip="Long-press files"] {
+  display: none;
+}
