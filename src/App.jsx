@@ -2445,6 +2445,52 @@ function Modal(props) {
 
 
 
+
+function pzNowIso() {
+  return new Date().toISOString();
+}
+
+function pzIsVideo(memory) {
+  const source = memory && typeof memory === "object" ? memory : {};
+  const type = String(source.type || source.mimeType || source.metadata?.type || source.kind || "").toLowerCase();
+  const name = String(source.fileName || source.filename || source.name || source.title || source.storageKey || "").toLowerCase();
+  return type.indexOf("video") !== -1 || /\.(mp4|mov|m4v|webm|avi|mkv)$/i.test(name);
+}
+
+function pzMemoryDisplayName(memory) {
+  const source = memory && typeof memory === "object" ? memory : {};
+  return source.title || source.fileName || source.filename || source.name || source.storageKey || "FILE";
+}
+
+function pzVideoRuntime(memory) {
+  const source = memory && typeof memory === "object" ? memory : {};
+  const seconds = Number(source.duration || source.durationSeconds || source.metadata?.duration || 0);
+  if (!Number.isFinite(seconds) || seconds <= 0) return "VIDEO";
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return String(mins) + ":" + String(secs).padStart(2, "0");
+}
+
+function pzVideoSizeLabel(memory) {
+  return formatBytes(fileSizeBytes(memory));
+}
+
+function pzUpdateAlbum(items, id, patch) {
+  const target = String(id || "");
+  return safeArray(items).map(normalizeAlbumRecord).map(function (album) {
+    if (String(album.id) !== target) return album;
+    return normalizeAlbumRecord({ ...album, ...(patch || {}) });
+  });
+}
+
+function pzUpdateMemory(items, id, patch) {
+  const target = String(id || "");
+  return safeArray(items).map(normalizeMemoryRecord).map(function (memory) {
+    if (String(memory.id) !== target) return memory;
+    return normalizeMemoryRecord({ ...memory, ...(patch || {}) });
+  });
+}
+
 function PzToastStack(props) {
   const items = safeArray(props.items);
   if (!items.length) return null;
@@ -2460,6 +2506,111 @@ function PzToastStack(props) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+
+function PzAlbumEditorPanel(props) {
+  const album = props.album ? normalizeAlbumRecord(props.album) : null;
+  const [draftTitle, setDraftTitle] = useState(album ? album.title : "");
+  const [draftDescription, setDraftDescription] = useState(album ? album.description : "");
+  const [draftParentId, setDraftParentId] = useState(album ? album.parentId || "" : "");
+  const [draftHidden, setDraftHidden] = useState(album ? Boolean(album.excludeFromAll) : false);
+  const [draftLocked, setDraftLocked] = useState(album ? Boolean(album.locked) : false);
+  const [draftPinned, setDraftPinned] = useState(album ? Boolean(album.pinned) : false);
+
+  useEffect(function () {
+    setDraftTitle(album ? album.title : "");
+    setDraftDescription(album ? album.description || "" : "");
+    setDraftParentId(album ? album.parentId || "" : "");
+    setDraftHidden(album ? Boolean(album.excludeFromAll) : false);
+    setDraftLocked(album ? Boolean(album.locked) : false);
+    setDraftPinned(album ? Boolean(album.pinned) : false);
+  }, [album && album.id]);
+
+  if (!props.open || !album) return null;
+
+  const parentOptions = safeArray(props.albums).map(normalizeAlbumRecord).filter(function (item) {
+    return item.id !== album.id && item.id !== "star";
+  });
+
+  function save() {
+    if (props.onSave) {
+      props.onSave(album.id, {
+        title: draftTitle || album.title || "PHOTO ALBUM",
+        description: draftDescription,
+        parentId: draftParentId,
+        excludeFromAll: draftHidden,
+        locked: draftLocked,
+        pinned: draftPinned
+      });
+    }
+    if (props.onClose) props.onClose();
+  }
+
+  return (
+    <div className="modalBackdrop pzDetailBackdrop" onClick={props.onClose}>
+      <section className="pzEditorSheet pzAlbumEditorPanel" onClick={function (event) { event.stopPropagation(); }}>
+        <header>
+          <div>
+            <em>PHOTO ALBUM</em>
+            <strong>{album.title || "PHOTO ALBUM"}</strong>
+          </div>
+          <button type="button" className="closeButton" onClick={props.onClose}>×</button>
+        </header>
+
+        <div className="pzDetailFieldsGrid">
+          <label className="span2"><span>TITLE</span><input value={draftTitle} onChange={function (event) { setDraftTitle(event.target.value); }} /></label>
+          <label className="span2"><span>DESCRIPTION</span><textarea value={draftDescription} onChange={function (event) { setDraftDescription(event.target.value); }} /></label>
+          <label className="span2"><span>PARENT</span><select value={draftParentId} onChange={function (event) { setDraftParentId(event.target.value); }}>
+            <option value="">NONE</option>
+            {parentOptions.map(function (item) { return <option key={item.id} value={item.id}>{item.title}</option>; })}
+          </select></label>
+          <label className="pzEditorToggleRow"><input type="checkbox" checked={draftPinned} onChange={function (event) { setDraftPinned(event.target.checked); }} /><span>PINNED</span></label>
+          <label className="pzEditorToggleRow"><input type="checkbox" checked={draftLocked} onChange={function (event) { setDraftLocked(event.target.checked); }} /><span>LOCKED</span></label>
+          <label className="pzEditorToggleRow"><input type="checkbox" checked={draftHidden} onChange={function (event) { setDraftHidden(event.target.checked); }} /><span>HIDE FROM ALL</span></label>
+        </div>
+
+        <div className="pzEditorActions">
+          <button type="button" onClick={save}>SAVE</button>
+          {props.onSetCover ? <button type="button" onClick={function () { props.onSetCover(album.id); }}>SET COVER</button> : null}
+          {props.onDelete ? <button type="button" className="danger" onClick={function () { props.onDelete(album.id); if (props.onClose) props.onClose(); }}>DELETE</button> : null}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function PasswordGate(props) {
+  const [code, setCode] = useState("");
+  const [error, setError] = useState("");
+
+  async function unlock(event) {
+    event.preventDefault();
+    setError("");
+    try {
+      const response = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: code })
+      });
+      if (!response.ok) throw new Error("LOCKED");
+      window.sessionStorage.setItem("photozUnlocked", "true");
+      if (props.onUnlock) props.onUnlock();
+    } catch (err) {
+      setError("ACCESS DENIED");
+    }
+  }
+
+  return (
+    <div className="passwordGate">
+      <form className="passwordCard" onSubmit={unlock}>
+        <span>PHOTOZ</span>
+        <input value={code} onChange={function (event) { setCode(event.target.value); }} placeholder="ACCESS CODE" autoFocus />
+        <button type="submit">ENTER</button>
+        {error ? <em>{error}</em> : null}
+      </form>
     </div>
   );
 }

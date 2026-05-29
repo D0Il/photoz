@@ -59,6 +59,9 @@ check("eye blink is one cohesive group, not split eyelids", dockIcons.includes("
 check("music glyph is an actual music note", app.includes("musicNoteStem") && app.includes("musicNoteFlag") && app.includes("musicNoteHead") && !app.includes("musicDisc") && css.includes(".musicUtilityIcon .musicNoteStem"));
 check("AmbientMusicControl is defined before use", app.includes("function AmbientMusicControl()") && app.includes("<AmbientMusicControl />"));
 check("PzToastStack is defined before use", app.includes("function PzToastStack(props)") && app.includes("<PzToastStack items={pzToasts} />"));
+check("PzAlbumEditorPanel is defined before use", app.includes("function PzAlbumEditorPanel(props)") && app.includes("<PzAlbumEditorPanel"));
+check("PasswordGate is defined before use", app.includes("function PasswordGate(props)") && app.includes("<PasswordGate onUnlock="));
+check("runtime helpers are defined before use", app.includes("function pzUpdateAlbum(items, id, patch)") && app.includes("function pzUpdateMemory(items, id, patch)") && app.includes("function pzNowIso()") && app.includes("function pzIsVideo(memory)") && app.includes("function pzMemoryDisplayName(memory)") && app.includes("function pzVideoRuntime(memory)") && app.includes("function pzVideoSizeLabel(memory)"));
 const ambientControl = app.match(/function AmbientMusicControl\(\) \{[\s\S]*?export default function App/)?.[0] || "";
 check("ambient music button has no native tooltip title", ambientControl.includes("ambientUtilityButton") && !ambientControl.includes("data-tooltip") && !ambientControl.includes("title={"));
 check("utility spacing is explicitly aligned", css.includes("count is plain text to the LEFT") && css.includes(".floatingUtilityCluster > .utilityFileCount") && css.includes("order: 0") && css.includes(".floatingUtilityCluster > .floatingUtilityRail") && css.includes("order: 1"));
