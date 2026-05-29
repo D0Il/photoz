@@ -1,0 +1,24 @@
+{
+  "name": "photoz",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "node scripts/write-access-code.mjs && vite build",
+    "preview": "vite preview",
+    "validate": "node scripts/validate-photoz.mjs",
+    "smoke": "playwright test"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^6.0.2",
+    "vite": "^8.0.14",
+    "typescript": "^6.0.3",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "framer-motion": "^12.40.0",
+    "lucide-react": "^1.17.0",
+    "wrangler": "^4.95.0"
+  },
+  "devDependencies": {}
+}
