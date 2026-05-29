@@ -1897,7 +1897,7 @@ function GroupCard(props) {
   return (
     <article className="groupCard" onClick={function () { props.openGroup && props.openGroup(group); }}>
       <div className="groupCover">
-        {cover ? (video ? <video src={cover.previewUrl || cover.storageUrl || cover.url} muted playsInline preload="metadata" /> : <img src={cover.previewUrl || cover.storageUrl || cover.url} alt="" loading="lazy" />) : <span className="pzBlankCover">X</span>}
+        {cover ? (video ? <video src={cover.previewUrl || cover.storageUrl || cover.url} muted playsInline preload="metadata" /> : <img src={cover.previewUrl || cover.storageUrl || cover.url} alt="" loading="lazy" />) : <span className="pzBlankCover"><PhotozAlbumDockIcon size={28} /></span>}
         {video ? <span className="pzVideoBadge"><Film size={11} />{pzVideoLabel(cover)}</span> : null}
       </div>
       <div className="groupMeta"><strong>{cleanSystemLabel(group.title || group.id)}</strong><span>{safeArray(group.items).length}</span></div>
@@ -1948,7 +1948,7 @@ function MirrorFilter(props) {
       </div>
 
       {!items.length ? (
-        <EmptyState title="X"></EmptyState>
+        <EmptyState title="NO FILES">Files marked for mirror will appear here.</EmptyState>
       ) : (
         <div className="photoGrid mirrorGrid">
           {items.map(function (memory) {
@@ -2188,7 +2188,7 @@ function SearchFilter(props) {
       </div>
 
       {!items.length ? (
-        <EmptyState title={query ? "NO MATCHES" : "X"}>{query ? "Nothing matched that search." : ""}</EmptyState>
+        <EmptyState title={query ? "NO MATCHES" : "NO FILES"}>{query ? "Nothing matched that search." : "Upload photos or videos to browse them here."}</EmptyState>
       ) : (
         <div className="photoGrid searchGrid">
           {items.map(function (memory) {
@@ -3006,13 +3006,13 @@ function MusicUtilityIcon(props) {
   return (
     <span className="musicUtilityIcon" aria-hidden="true" style={{ width: size, height: size }}>
       <svg viewBox="0 0 28 28" focusable="false">
-        <path className="musicAura" d="M7.1 18.9c2.25 2.65 5.95 3.72 9.35 2.7 3.36-1.01 5.7-3.86 5.96-7.24" />
-        <path className="musicBeam" d="M15.3 7.2v10.05" />
-        <path className="musicFlag" d="M15.3 7.2c2.85.28 4.72 1.02 5.62 2.22v3.3c-1.08-1.06-2.95-1.75-5.62-2.07" />
-        <ellipse className="musicNoteHead" cx="11.1" cy="18.2" rx="3.35" ry="2.35" transform="rotate(-18 11.1 18.2)" />
-        <path className="musicWave left" d="M7.1 11.15c1.13-1.54 2.68-2.47 4.62-2.78" />
-        <path className="musicWave right" d="M21.6 16.35c-.48 1.57-1.43 2.85-2.84 3.85" />
-        <path className="musicGlint" d="M21.35 5.6l.43 1.16 1.16.43-1.16.43-.43 1.16-.43-1.16-1.16-.43 1.16-.43.43-1.16Z" />
+        <circle className="musicDisc" cx="14" cy="14" r="7.1" />
+        <circle className="musicDiscHole" cx="14" cy="14" r="1.55" />
+        <path className="musicGroove" d="M9.55 14a4.45 4.45 0 0 1 4.45-4.45M18.45 14A4.45 4.45 0 0 1 14 18.45" />
+        <path className="musicBeam" d="M16.8 7.65v9.05" />
+        <path className="musicFlag" d="M16.8 7.65c2.38.22 3.98.82 4.82 1.82v2.58c-.98-.78-2.58-1.28-4.82-1.52" />
+        <ellipse className="musicNoteHead" cx="13.1" cy="17.6" rx="2.75" ry="1.9" transform="rotate(-18 13.1 17.6)" />
+        <path className="musicGlint" d="M21.75 4.9l.42 1.12 1.12.42-1.12.42-.42 1.12-.42-1.12-1.12-.42 1.12-.42.42-1.12Z" />
       </svg>
     </span>
   );
@@ -4340,7 +4340,7 @@ async function handleUpload(eventOrFiles) {
   const key = screen + "-" + (activeGroup ? activeGroup.id : "home");
 
   return unlocked ? (
-    <div className="app photozProUI">
+    <div className={"app photozProUI page-" + activePage}>
       
         {uploadNotice ? <div className="uploadNoticeToast">{uploadNotice}</div> : null}
         {uploadPendingItems.length ? <div className="uploadPendingStrip">{uploadPendingItems.length} UPLOADING</div> : null}

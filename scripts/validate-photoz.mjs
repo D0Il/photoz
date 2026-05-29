@@ -53,6 +53,15 @@ check("tooltip z-index high", /\[data-tooltip\]::after[\s\S]*z-index:\s*9999/.te
 check("tooltip containers overflow visible", css.includes(".dockWrap,") && css.includes(".dock,") && css.includes(".bottomDock,") && css.includes(".floatingUtilityCluster,") && css.includes("overflow: visible"));
 check("no broad important overrides", !css.includes("!important"));
 
+
+check("app exposes active page class for page-specific layout", app.includes('className={"app photozProUI page-" + activePage}'));
+check("no debug X empty states", !app.includes('title="X"') && !app.includes(': "X"') && !app.includes('>X</span>'));
+check("empty states use intentional copy", app.includes('NO FILES') && app.includes('Upload photos or videos to browse them here.'));
+check("final utility cluster is absolute aligned", css.includes('PHOTOZ final layout repair') && css.includes('top: 22px;') && css.includes('right: 26px;'));
+check("dock tooltips are lifted above icons", css.includes('.photozProUI .dockButton[data-tooltip]::after') && css.includes('top: -44px;'));
+check("search and mirror control bars hidden by active page class", css.includes('.photozProUI.page-search .controlBar') && css.includes('.photozProUI.page-mirror .controlBar'));
+check("empty states are compact not giant debug panels", css.includes('.photozProUI .emptyState,') && css.includes('border-radius: 999px;'));
+
 check("upload media route uses Worker file endpoint", app.includes('const MEDIA_BASE = "/api/file";'));
 check("handleUploadOriginal accepts event or FileList inputs", app.includes('function handleUploadOriginal(eventOrFiles)'));
 check("upload flow normalizes event or FileList", app.includes('eventOrFiles && eventOrFiles.target && eventOrFiles.target.files'));
