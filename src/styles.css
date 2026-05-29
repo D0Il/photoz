@@ -3295,3 +3295,525 @@ pre {
     grid-column: 1 / -1;
   }
 }
+
+
+/* REAL fix: system shortcuts are not albums */
+.systemFolderStrip {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 5px !important;
+  margin: 0 0 16px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.systemFolderStrip .groupCard,
+.systemFolderStrip .albumCard,
+.systemFolderStrip article,
+.systemFolderStrip > div {
+  display: none !important;
+}
+
+.systemShortcutLink {
+  all: unset;
+  box-sizing: border-box;
+  height: 28px;
+  min-height: 28px;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border-radius: 7px;
+  border: 1px solid rgba(0,0,0,.070);
+  background: rgba(255,255,255,.035);
+  color: rgba(0,0,0,.50);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .03em;
+  cursor: pointer;
+  box-shadow: none;
+  backdrop-filter: blur(4px);
+}
+
+.systemShortcutLink span {
+  color: rgba(0,0,0,.52);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .035em;
+}
+
+.systemShortcutLink em {
+  color: rgba(0,0,0,.34);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.systemShortcutLink:hover {
+  background: rgba(255,255,255,.075);
+  border-color: rgba(0,0,0,.10);
+}
+
+.systemFolderBadge {
+  display: none !important;
+}
+
+/* REAL fix: Tools are a dropdown, not UI blocks */
+.toolsPanel,
+.toolsDropdown {
+  width: min(340px, 100%) !important;
+  margin: 0 0 10px auto !important;
+  padding: 8px !important;
+  border-radius: 13px !important;
+  border: 1px solid rgba(255,255,255,.24) !important;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.11), rgba(255,255,255,.025)),
+    rgba(255,255,255,.018) !important;
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.10),
+    inset 0 1px 0 rgba(255,255,255,.26) !important;
+  backdrop-filter: blur(12px) saturate(1.08) !important;
+}
+
+.toolsDropdownTop {
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px 5px;
+}
+
+.toolsDropdownTop strong {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .02em;
+  color: rgba(0,0,0,.55);
+}
+
+.toolsDropdownTop button {
+  all: unset;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  color: rgba(0,0,0,.42);
+  cursor: pointer;
+}
+
+.toolsDropdownList {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.toolsDropdownList button,
+.toolsDropdownList .importButton {
+  height: 42px !important;
+  min-height: 42px !important;
+  border-radius: 9px !important;
+  border: 1px solid rgba(255,255,255,.20) !important;
+  background: rgba(255,255,255,.030) !important;
+  box-shadow: none !important;
+  color: rgba(0,0,0,.52) !important;
+  padding: 6px 7px !important;
+  display: grid !important;
+  align-content: center !important;
+  gap: 1px !important;
+  text-align: left !important;
+  cursor: pointer;
+}
+
+.toolsDropdownList button span,
+.toolsDropdownList .importButton span {
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: .01em !important;
+  color: rgba(0,0,0,.56) !important;
+}
+
+.toolsDropdownList button em {
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: .02em;
+  color: rgba(0,0,0,.32);
+}
+
+.toolsDropdownList button:hover,
+.toolsDropdownList .importButton:hover {
+  background: rgba(255,255,255,.070) !important;
+}
+
+/* View is a small tray too */
+.viewDropdown {
+  width: min(420px, 100%) !important;
+  margin: 0 0 10px auto !important;
+  padding: 8px !important;
+  border-radius: 13px !important;
+  border: 1px solid rgba(255,255,255,.22) !important;
+  background: rgba(255,255,255,.030) !important;
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.085),
+    inset 0 1px 0 rgba(255,255,255,.24) !important;
+  backdrop-filter: blur(10px) saturate(1.06) !important;
+}
+
+/* Star label */
+.searchFilters button {
+  min-width: 28px;
+}
+
+@media (max-width: 760px) {
+  .toolsDropdown,
+  .viewDropdown {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+}
+
+
+/* =========================================================
+   PHOTOZ PRO UI OVERHAUL
+   Album-first, cinematic glass, no admin-dashboard energy.
+   ========================================================= */
+
+.photozProUI {
+  --glass-line: rgba(255,255,255,.28);
+  --glass-line-soft: rgba(255,255,255,.16);
+  --ink-strong: rgba(0,0,0,.74);
+  --ink: rgba(0,0,0,.56);
+  --ink-soft: rgba(0,0,0,.36);
+  --veil: rgba(255,255,255,.036);
+  --veil-strong: rgba(255,255,255,.075);
+  --shadow-soft: 0 24px 70px rgba(0,0,0,.16);
+  --shadow-card: 0 18px 46px rgba(0,0,0,.13);
+  color: var(--ink);
+}
+
+/* Main shell: polished glass slab, not a pile of bubbles */
+.photozProUI .shell {
+  border-radius: 28px !important;
+  padding: clamp(16px, 2.4vw, 28px) !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255,255,255,.20), transparent 34%),
+    radial-gradient(circle at 94% 12%, rgba(255,255,255,.10), transparent 30%),
+    linear-gradient(135deg, rgba(255,255,255,.115), rgba(255,255,255,.030) 54%, rgba(0,0,0,.050)),
+    rgba(255,255,255,.030) !important;
+  border: 1px solid rgba(255,255,255,.34) !important;
+  box-shadow:
+    var(--shadow-soft),
+    inset 0 1px 0 rgba(255,255,255,.46),
+    inset 0 -1px 0 rgba(0,0,0,.12) !important;
+  backdrop-filter: blur(16px) saturate(1.12) !important;
+}
+
+/* Page identity: editorial and simple */
+.photozProUI .productHeader {
+  margin: 0 0 8px !important;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.photozProUI .productHeader strong {
+  color: var(--ink-strong) !important;
+  font-size: clamp(38px, 5.4vw, 72px) !important;
+  line-height: .82 !important;
+  font-weight: 950 !important;
+  letter-spacing: -.085em !important;
+}
+.photozProUI .productHeader em {
+  color: rgba(0,0,0,.34) !important;
+  font-size: 10px !important;
+  font-style: normal !important;
+  font-weight: 900 !important;
+  letter-spacing: .12em !important;
+  text-transform: uppercase;
+}
+
+/* Toolbar: slim floating strip */
+.photozProUI .controlBar {
+  width: fit-content !important;
+  max-width: 100% !important;
+  padding: 6px !important;
+  gap: 5px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(255,255,255,.22) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.018)),
+    rgba(0,0,0,.010) !important;
+  box-shadow:
+    0 10px 28px rgba(0,0,0,.075),
+    inset 0 1px 0 rgba(255,255,255,.25) !important;
+}
+.photozProUI .controlBar .pill {
+  display: none !important;
+}
+.photozProUI .controlBar button,
+.photozProUI .controlBar .uploadButton {
+  height: 31px !important;
+  min-height: 31px !important;
+  border-radius: 9px !important;
+  padding: 0 10px !important;
+  font-size: 11px !important;
+  font-weight: 850 !important;
+  letter-spacing: .02em !important;
+  text-transform: none !important;
+  color: rgba(0,0,0,.54) !important;
+  background: rgba(255,255,255,.030) !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+  box-shadow: none !important;
+}
+.photozProUI .controlBar button:hover,
+.photozProUI .controlBar .uploadButton:hover {
+  background: rgba(255,255,255,.080) !important;
+  transform: translateY(-1px);
+}
+
+/* System shortcuts: true shortcuts, not albums */
+.photozProUI .systemFolderStrip {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  margin: 0 0 18px !important;
+  padding: 0 !important;
+}
+.photozProUI .systemFolderStrip .groupCard {
+  display: none !important;
+}
+.photozProUI .systemShortcutLink {
+  all: unset;
+  box-sizing: border-box;
+  height: 30px;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  padding: 0 9px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,.065);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.060), rgba(255,255,255,.016)),
+    rgba(0,0,0,.006);
+  color: rgba(0,0,0,.48);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+  cursor: pointer;
+}
+.photozProUI .systemShortcutLink b {
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1;
+  color: rgba(0,0,0,.54);
+}
+.photozProUI .systemShortcutLink span {
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .02em;
+  color: rgba(0,0,0,.42);
+}
+.photozProUI .systemShortcutLink em {
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 850;
+  color: rgba(0,0,0,.30);
+}
+.photozProUI .systemShortcutLink:hover {
+  background: rgba(255,255,255,.075);
+}
+
+/* Section labels should guide, not scream */
+.photozProUI .archiveLabel {
+  margin: 19px 0 10px !important;
+  color: rgba(0,0,0,.32) !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  letter-spacing: .16em !important;
+}
+
+/* Album cards: premium objects */
+.photozProUI .albumGrid {
+  gap: 14px !important;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+}
+.photozProUI .groupCard {
+  min-height: 292px !important;
+  border-radius: 22px !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 24% 0%, rgba(255,255,255,.18), transparent 34%),
+    linear-gradient(135deg, rgba(255,255,255,.11), rgba(255,255,255,.025) 56%, rgba(0,0,0,.055)),
+    rgba(255,255,255,.028) !important;
+  border: 1px solid rgba(255,255,255,.30) !important;
+  box-shadow:
+    var(--shadow-card),
+    inset 0 1px 0 rgba(255,255,255,.36),
+    inset 0 -1px 0 rgba(0,0,0,.12) !important;
+}
+.photozProUI .groupCard:hover {
+  transform: translateY(-2px);
+}
+.photozProUI .groupCardTop strong {
+  color: rgba(0,0,0,.70) !important;
+  font-size: clamp(22px, 2.5vw, 34px) !important;
+  font-weight: 950 !important;
+  letter-spacing: -.065em !important;
+}
+.photozProUI .groupCardTop span,
+.photozProUI .groupDescription {
+  color: rgba(0,0,0,.38) !important;
+}
+
+/* Photo cards: quieter chrome */
+.photozProUI .photoCard {
+  min-height: 222px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(255,255,255,.24) !important;
+  background: rgba(255,255,255,.026) !important;
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.11),
+    inset 0 1px 0 rgba(255,255,255,.24) !important;
+}
+.photozProUI .photoMeta {
+  padding: 10px 11px !important;
+}
+.photozProUI .photoMeta strong {
+  color: rgba(0,0,0,.62) !important;
+  font-size: 12px !important;
+  font-weight: 850 !important;
+}
+.photozProUI .photoMeta span {
+  color: rgba(0,0,0,.34) !important;
+  font-size: 9px !important;
+}
+
+/* Tools and view: refined dropdowns */
+.photozProUI .toolsDropdown,
+.photozProUI .toolsPanel,
+.photozProUI .viewDropdown,
+.photozProUI .viewPanel {
+  width: min(360px, 100%) !important;
+  margin: 0 0 10px auto !important;
+  padding: 8px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(255,255,255,.24) !important;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.115), rgba(255,255,255,.025)),
+    rgba(255,255,255,.020) !important;
+  box-shadow:
+    0 14px 36px rgba(0,0,0,.11),
+    inset 0 1px 0 rgba(255,255,255,.28) !important;
+  backdrop-filter: blur(14px) saturate(1.1) !important;
+}
+.photozProUI .toolsDropdownTop,
+.photozProUI .statusPanelTop {
+  min-height: 26px !important;
+  margin: 0 0 6px !important;
+}
+.photozProUI .toolsDropdownTop strong,
+.photozProUI .statusPanelTop strong {
+  color: rgba(0,0,0,.54) !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  letter-spacing: .02em !important;
+  text-transform: none !important;
+}
+.photozProUI .toolsDropdownList {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+.photozProUI .toolsDropdownList button,
+.photozProUI .toolsDropdownList .importButton,
+.photozProUI .toolSection button {
+  height: 40px !important;
+  min-height: 40px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+  background: rgba(255,255,255,.030) !important;
+  box-shadow: none !important;
+  padding: 6px 7px !important;
+  color: rgba(0,0,0,.52) !important;
+  text-align: left !important;
+}
+.photozProUI .toolsDropdownList button span,
+.photozProUI .toolsDropdownList .importButton span {
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  color: rgba(0,0,0,.56) !important;
+}
+.photozProUI .toolsDropdownList button em {
+  font-style: normal;
+  font-size: 9px;
+  color: rgba(0,0,0,.32);
+}
+
+/* Search feels elegant */
+.photozProUI .searchBar input {
+  height: 46px !important;
+  border-radius: 14px !important;
+  font-size: 13px !important;
+  letter-spacing: .04em !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.025)),
+    rgba(0,0,0,.010) !important;
+}
+.photozProUI .searchFilters button {
+  height: 30px !important;
+  min-height: 30px !important;
+  border-radius: 8px !important;
+  text-transform: none !important;
+  letter-spacing: .02em !important;
+  font-size: 11px !important;
+}
+
+/* Modal: showcase media, controls secondary */
+.photozProUI .modalContent {
+  gap: 16px !important;
+}
+.photozProUI .modalPhoto {
+  border-radius: 22px !important;
+  min-height: min(74vh, 720px) !important;
+}
+.photozProUI .detailsEditPanel,
+.photozProUI .albumAssignPanel,
+.photozProUI .metadataPanel {
+  border-radius: 16px !important;
+  background: rgba(255,255,255,.028) !important;
+}
+.photozProUI .modalActions button,
+.photozProUI .detailsEditPanel button,
+.photozProUI .albumAssignPanel button {
+  border-radius: 9px !important;
+  text-transform: none !important;
+  letter-spacing: .02em !important;
+}
+
+/* Kill remaining legacy visual clutter */
+.photozProUI .ratingBadge,
+.photozProUI .labelBadge,
+.photozProUI .reviewBadge,
+.photozProUI .privateBadge,
+.photozProUI .legacyMetaPanel,
+.photozProUI .systemFolderBadge {
+  display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 760px) {
+  .photozProUI .productHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .photozProUI .controlBar,
+  .photozProUI .toolsDropdown,
+  .photozProUI .toolsPanel,
+  .photozProUI .viewDropdown,
+  .photozProUI .viewPanel {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+  .photozProUI .albumGrid {
+    grid-template-columns: 1fr !important;
+  }
+}

@@ -28,14 +28,36 @@ const INDEX_SCHEMA_VERSION = 3;
 const MEDIA_BASE = "/media";
 const MAX_PARALLEL_UPLOADS = 3;
 
+function displayShortcutSymbol(value) {
+  const text = String(value || "").toLowerCase();
+  if (text === "starred" || text === "star") return "★";
+  if (text === "trash" || text === "trashed") return "⌫";
+  if (text === "archive" || text === "archived" || text === "hidden") return "—";
+  if (text === "unassigned") return "•";
+  if (text === "all") return "All";
+  return "";
+}
+
+function systemShortcutLabel(value) {
+  const text = String(value || "").toLowerCase();
+  if (text === "starred" || text === "star") return "★";
+  if (text === "all") return "All";
+  if (text === "archive" || text === "archived") return "Hidden";
+  if (text === "trash" || text === "trashed") return "Trash";
+  if (text === "unassigned") return "Unassigned";
+  if (text === "mirror") return "Mirror";
+  return up(value);
+}
+
 function archiveViewLabel(value) {
   if (value === "albums" || value === "albums") return "ALBUMS";
   return up(value);
 }
 
 function filterLabel(value) {
-  if (value === "archive") return "HIDDEN";
-  if (value === "needs-file") return "RESELECT";
+  if (value === "starred") return "★";
+  if (value === "archive") return "Hidden";
+  if (value === "needs-file") return "Reselect";
   return up(value);
 }
 
@@ -1202,7 +1224,7 @@ function ViewPanel(props) {
   if (!props.open) return null;
 
   return (
-    <div className="viewPanel">
+    <div className="viewDropdown">
       <div className="statusPanelTop">
         <strong>View</strong>
         <button type="button" onClick={props.close}>Close</button>
@@ -1220,29 +1242,19 @@ function ToolsPanel(props) {
   if (!props.open) return null;
 
   return (
-    <div className="toolsPanel simplifiedTools quietTools">
-      <div className="statusPanelTop">
+    <div className="toolsDropdown">
+      <div className="toolsDropdownTop">
         <strong>Tools</strong>
-        <button type="button" onClick={props.close}>Close</button>
+        <button type="button" onClick={props.close}>×</button>
       </div>
-
-      <div className="toolSection">
-        <span>Import</span>
-        <button type="button" onClick={props.toggleImportPanel}>Import</button>
-        <button type="button" onClick={props.toggleUploadQueuePanel}>Queue</button>
-      </div>
-
-      <div className="toolSection">
-        <span>Clean up</span>
-        <button type="button" onClick={props.toggleDuplicatePanel}>Duplicates</button>
-        <button type="button" onClick={props.toggleStatusPanel}>Missing</button>
-        <button type="button" onClick={props.toggleHealthPanel}>Repair</button>
-      </div>
-
-      <div className="toolSection">
-        <span>Backup</span>
-        <button type="button" onClick={props.exportVaultIndex}>Backup</button>
-        <button type="button" onClick={props.exportManifestCsv}>List</button>
+      <div className="toolsDropdownList">
+        <button type="button" onClick={props.toggleImportPanel}><span>Import</span><em>Add photos</em></button>
+        <button type="button" onClick={props.toggleUploadQueuePanel}><span>Queue</span><em>Uploads</em></button>
+        <button type="button" onClick={props.toggleDuplicatePanel}><span>Duplicates</span><em>Review</em></button>
+        <button type="button" onClick={props.toggleStatusPanel}><span>Missing</span><em>Reselect</em></button>
+        <button type="button" onClick={props.toggleHealthPanel}><span>Repair</span><em>Archive</em></button>
+        <button type="button" onClick={props.exportVaultIndex}><span>Backup</span><em>Export</em></button>
+        <button type="button" onClick={props.exportManifestCsv}><span>List</span><em>CSV</em></button>
         <ImportBackupButton onImport={props.importVaultIndex} />
       </div>
     </div>
@@ -1548,9 +1560,12 @@ function ControlBar(props) {
 
 function SystemShortcutCard(props) {
   const group = props.group;
+  const label = systemShortcutLabel(group.title || group.id);
+  const symbol = displayShortcutSymbol(group.title || group.id);
   return (
     <button type="button" className="systemShortcutLink" onClick={function () { props.openGroup(group); }}>
-      <span>{up(group.title)}</span>
+      <b>{symbol || label}</b>
+      <span>{symbol ? label : ""}</span>
       <em>{group.items.length}</em>
     </button>
   );
@@ -3272,7 +3287,7 @@ export default function App() {
   const key = screen + "-" + (activeGroup ? activeGroup.id : "home");
 
   return (
-    <div className="app">
+    <div className="app photozProUI">
       <Dock active={activePage} setActive={setActivePage} />
       <main>
         <AnimatePresence mode="wait">

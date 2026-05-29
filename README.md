@@ -736,3 +736,28 @@ Made Tools/View/Import/Queue/Status panels visually lighter:
 - Status stats are subtle, not bubble confetti.
 - Queue/duplicate panels read more like lists.
 - Main albums/photos stay visually dominant.
+
+
+## Actual system/tools/star fix
+
+Fixed at source level:
+- System shortcuts render with `SystemShortcutCard`, not `GroupCard`.
+- System shortcuts are flat utility links, not album cards.
+- Tools panel renders as a compact dropdown list, not section cards.
+- Starred displays as `★`.
+- Folder wording is removed from user-facing labels.
+
+
+## Amazing UI overhaul
+
+Polished PHOTOZ as an album-first private photo archive:
+
+- Premium cinematic glass shell.
+- Editorial Albums/Mirror/Search header.
+- Real albums now dominate visually.
+- System shortcuts are compact utility links, not albums.
+- Starred uses `★`.
+- Tools/View are refined dropdowns.
+- Search is calmer and more elegant.
+- Modal is media-first.
+- Legacy metadata clutter remains hidden.
