@@ -925,3 +925,16 @@ Changed:
 - Worker supports both `PHOTOZ_INDEX`, `photoz`, and `PHOTOZ_BUCKET` bindings.
 - Upload endpoint returns safe JSON even if storage binding is unavailable.
 - Frontend normalizes missing memories/albums/memoryIds before `.filter()` or `.map()`.
+
+
+## Clean chrome layout fix
+
+Fixed the layout problems from the screenshots:
+- Removed the billboard title treatment.
+- Prevented duplicated system utility pills by excluding core/system albums from real album groups.
+- Filter and Tools close each other instead of overlapping into one mess.
+- Select lives beside Filter.
+- Tools menu is a compact popover with clear Upload/Folder labels.
+- Album search and New album are separate controls.
+- Mirror All button is real-sized and labeled All.
+- Bottom dock remains icon-only.

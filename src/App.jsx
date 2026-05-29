@@ -104,12 +104,12 @@ function filterLabel(value) {
 
 function cleanSystemLabel(value) {
   const text = String(value || "").toLowerCase();
-  if (text === "starred" || text === "star" || text === "★") return "★";
-  if (text === "archived" || text === "archive" || text === "hidden") return "Hidden";
-  if (text === "trash" || text === "trashed") return "Trash";
-  if (text === "all") return "All";
-  if (text === "unassigned") return "Unassigned";
-  if (text === "videos") return "Videos";
+  if (text === "starred" || text === "star" || text === "★" || text === "virtual-starred") return "★";
+  if (text === "archived" || text === "archive" || text === "hidden" || text === "virtual-archived") return "Hidden";
+  if (text === "trash" || text === "trashed" || text === "virtual-trash") return "Trash";
+  if (text === "all" || text === "virtual-all") return "All";
+  if (text === "unassigned" || text === "virtual-unassigned") return "Unassigned";
+  if (text === "videos" || text === "virtual-videos") return "Videos";
   return up(value);
 }
 
@@ -423,14 +423,22 @@ function isSystemAlbumGroup(group) {
   const title = String((group && group.title) || "").toLowerCase();
   return Boolean(group && group.virtual) ||
     id === "all" ||
+    id === "virtual-all" ||
+    id === "star" ||
     id === "starred" ||
+    id === "virtual-starred" ||
     id === "archive" ||
     id === "archived" ||
+    id === "virtual-archived" ||
     id === "trash" ||
     id === "trashed" ||
+    id === "virtual-trash" ||
     id === "unassigned" ||
+    id === "virtual-unassigned" ||
     id === "videos" ||
+    id === "virtual-videos" ||
     title === "all" ||
+    title === "star" ||
     title === "starred" ||
     title === "archive" ||
     title === "archived" ||
@@ -480,7 +488,8 @@ function albumGroups(albums, memories, parentId) {
   const parent = String(parentId || "");
 
   return albums.filter(function (album) {
-    return albumParentId(album) === parent;
+    const groupLike = { id: album.id, sourceId: album.id, title: album.title };
+    return albumParentId(album) === parent && !isSystemAlbumGroup(groupLike);
   }).map(function (album) {
     const items = newest(albumMemoryIds(album).map(function (id) {
       return memories.find(function (memory) {
@@ -569,7 +578,10 @@ function ensureAlbumCoverage(memories, albums) {
 }
 
 function removeMemoryFromAlbum(albums, albumId, memoryId) {
-  return albums.map(function (album) {
+  return albums.filter(function (album) {
+    const groupLike = { id: album.id, sourceId: album.id, title: album.title };
+    return !isSystemAlbumGroup(groupLike);
+  }).map(function (album) {
     if (album.id !== albumId) return album;
     return { ...album, memoryIds: (album.memoryIds || []).filter(function (id) { return id !== memoryId; }) };
   });
@@ -1807,7 +1819,7 @@ function MirrorView(props) {
   const items = sortMemories(mirrorItems(props.memories), props.sortMode);
   const mirrorOnly = newest(items.filter(function (memory) { return Boolean(memory.inMirror); }));
   const marked = newest(items.filter(function (memory) { return Boolean(memory.isMe) && !memory.inMirror; }));
-  const allGroup = { id: "mirror-all", title: "MIRROR", items: items, sort: items[0] ? items[0].sort : 0 };
+  const allGroup = { id: "mirror-all", title: "ALL", items: items, sort: items[0] ? items[0].sort : 0 };
 
   return (
     <div className="pageScroll mirrorPage">
@@ -1815,7 +1827,7 @@ function MirrorView(props) {
       <div className="mirrorControl">
         <button type="button" onClick={function () { props.openGroup(allGroup); }}>
           <Eye size={20} />
-          <span>Mirror</span>
+          <span>All</span>
           <b>{items.length}</b>
           <em>›</em>
         </button>
@@ -3410,9 +3422,9 @@ const [albumSort, setAlbumSort] = useState("recent");
                 </div>
                 <ControlBar archive={archive} archiveView={archiveView} setArchiveView={setArchiveView} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} viewControlsOpen={viewControlsOpen} toggleViewControls={function () { setViewControlsOpen(function (value) { return !value; }); }} toolsOpen={toolsOpen} toggleToolsPanel={function () { setToolsOpen(function (value) { return !value; }); }} />
                 <div className="floatingUtilityRail">
-                  <button type="button" className={viewControlsOpen ? "active" : ""} onClick={function () { setViewControlsOpen(function (value) { return !value; }); }}>Filter</button>
+                  <button type="button" className={viewControlsOpen ? "active" : ""} onClick={function () { setToolsOpen(false); setViewControlsOpen(function (value) { return !value; }); }}>Filter</button>
                   <button type="button" className={selectionMode ? "active" : ""} onClick={function () { setSelectionMode(function (value) { return !value; }); }}>{selectionMode ? "Done" : "Select"}</button>
-                  <button type="button" className={toolsOpen ? "active" : ""} onClick={function () { setToolsOpen(function (value) { return !value; }); }}>⚙</button>
+                  <button type="button" className={toolsOpen ? "active" : ""} onClick={function () { setViewControlsOpen(false); setToolsOpen(function (value) { return !value; }); }}>⚙</button>
                 </div>
                 <ViewPanel open={viewControlsOpen} close={function () { setViewControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveView === "albums"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize} />
                 <UndoBar snapshot={undoSnapshot} undo={undoLastAction} clear={function () { setUndoSnapshot(null); }} />
