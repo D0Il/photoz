@@ -8820,3 +8820,918 @@ body:has(.selectUtilityButton.active) .bulkBar,
     font-size: 27px;
   }
 }
+
+
+/* Empty copy cleanup */
+.searchPage .archiveLabel:empty,
+.mirrorPage .archiveLabel:empty {
+  display: none;
+}
+
+.searchPage .emptyState p:empty,
+.mirrorPage .emptyState p:empty {
+  display: none;
+}
+
+
+/* Runtime hardening cleanup */
+.searchPage .archiveLabel:empty,
+.mirrorPage .archiveLabel:empty,
+.searchPage .emptyState p:empty,
+.mirrorPage .emptyState p:empty {
+  display: none;
+}
+
+
+/* FINAL WINDOWS / MENUS / POPUPS POLISH */
+
+/* Shared panel surface: one mature glass language */
+.floatingPanel,
+.settingsPopover,
+.toolsDropdown,
+.toolsIconMenu,
+.viewPanel,
+.viewDropdown,
+.importPanel,
+.uploadQueuePanel,
+.statusPanel,
+.duplicatesPanel,
+.healthPanel,
+.editPanel,
+.undoBar,
+.detailPanel,
+.memoryModal,
+.modalPanel,
+.lightboxPanel,
+.drawerPanel {
+  border: 1px solid rgba(255,255,255,.24);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255,255,255,.16), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,.105), rgba(255,255,255,.030)),
+    rgba(255,255,255,.030);
+  box-shadow:
+    0 22px 56px rgba(0,0,0,.16),
+    inset 0 1px 0 rgba(255,255,255,.30),
+    inset 0 -1px 0 rgba(0,0,0,.075);
+  backdrop-filter: blur(18px) saturate(1.12);
+  -webkit-backdrop-filter: blur(18px) saturate(1.12);
+}
+
+/* Floating menus anchor cleanly to the top utility rail */
+.floatingPanel,
+.settingsPopover,
+.toolsDropdown,
+.toolsIconMenu,
+.viewPanel,
+.viewDropdown {
+  position: absolute;
+  top: 62px;
+  right: 24px;
+  z-index: 80;
+  width: 276px;
+  max-width: calc(100vw - 48px);
+  padding: 10px;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+/* No crude menu title bars */
+.toolsDropdownTop,
+.panelHeader:empty,
+.panelTitle:empty {
+  display: none;
+}
+
+/* Panel sections are intentional groups, not random button piles */
+.panelSection,
+.settingsMenuSection,
+.toolsMenuGroup,
+.toolsDropdownList {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 7px;
+  padding: 0 0 9px;
+  margin: 0 0 9px;
+  border-bottom: 1px solid rgba(255,255,255,.13);
+}
+
+.panelSection:last-child,
+.settingsMenuSection:last-child,
+.toolsMenuGroup:last-child,
+.toolsDropdownList:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.panelSection.secondary,
+.settingsMenuSection.secondary,
+.toolsMenuGroup.secondary {
+  opacity: .84;
+}
+
+.panelLabel {
+  height: 14px;
+  display: flex;
+  align-items: center;
+  padding: 0 2px;
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 850;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(0,0,0,.32);
+}
+
+/* Menu rows */
+.floatingPanel button,
+.settingsPopover button,
+.settingsPopover .uploadButton,
+.settingsPopover .importButton,
+.toolsDropdown button,
+.toolsDropdown .uploadButton,
+.toolsDropdown .importButton,
+.viewPanel button,
+.viewDropdown button {
+  min-height: 34px;
+  height: 34px;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 0 11px;
+  border-radius: 11px;
+  border: 1px solid rgba(255,255,255,.18);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.070), rgba(255,255,255,.020)),
+    rgba(255,255,255,.024);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.18),
+    0 5px 12px rgba(0,0,0,.025);
+  color: rgba(0,0,0,.58);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .005em;
+  text-align: left;
+  cursor: pointer;
+}
+
+.floatingPanel button:hover,
+.settingsPopover button:hover,
+.settingsPopover .uploadButton:hover,
+.settingsPopover .importButton:hover,
+.toolsDropdown button:hover,
+.toolsDropdown .uploadButton:hover,
+.toolsDropdown .importButton:hover,
+.viewPanel button:hover,
+.viewDropdown button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255,255,255,.32);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.105), rgba(255,255,255,.035)),
+    rgba(255,255,255,.035);
+}
+
+.floatingPanel button.active,
+.viewPanel button.active,
+.viewDropdown button.active,
+.settingsPopover button.active {
+  color: rgba(0,0,0,.74);
+  border-color: rgba(255,255,255,.38);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.060)),
+    rgba(255,255,255,.040);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.30),
+    0 6px 14px rgba(0,0,0,.045);
+}
+
+/* Segmented options inside Filter */
+.segmentedPanelGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 6px;
+}
+
+.segmentedPanelGrid.three {
+  grid-template-columns: repeat(3, minmax(0,1fr));
+}
+
+.segmentedPanelGrid button {
+  min-height: 30px;
+  height: 30px;
+  justify-content: center;
+  padding: 0 8px;
+  border-radius: 10px;
+  font-size: 9px;
+}
+
+/* Larger floating content panels */
+.importPanel,
+.uploadQueuePanel,
+.statusPanel,
+.duplicatesPanel,
+.healthPanel {
+  position: absolute;
+  top: 64px;
+  right: 24px;
+  z-index: 75;
+  width: min(460px, calc(100vw - 48px));
+  max-height: min(68vh, 560px);
+  overflow: auto;
+  padding: 12px;
+  border-radius: 20px;
+}
+
+.importPanel h2,
+.uploadQueuePanel h2,
+.statusPanel h2,
+.duplicatesPanel h2,
+.healthPanel h2,
+.importPanel h3,
+.uploadQueuePanel h3,
+.statusPanel h3,
+.duplicatesPanel h3,
+.healthPanel h3 {
+  margin: 0 0 9px;
+  font-family: Georgia, "Times New Roman", ui-serif, serif;
+  font-size: 20px;
+  line-height: .95;
+  font-weight: 500;
+  letter-spacing: -.035em;
+  color: rgba(0,0,0,.64);
+}
+
+/* Inputs in windows */
+.importPanel input,
+.importPanel select,
+.importPanel textarea,
+.uploadQueuePanel input,
+.uploadQueuePanel select,
+.uploadQueuePanel textarea,
+.statusPanel input,
+.statusPanel select,
+.statusPanel textarea,
+.duplicatesPanel input,
+.duplicatesPanel select,
+.duplicatesPanel textarea,
+.healthPanel input,
+.healthPanel select,
+.healthPanel textarea,
+.editPanel input,
+.editPanel textarea,
+.newAlbumPanel input {
+  height: 32px;
+  min-height: 32px;
+  width: 100%;
+  border-radius: 11px;
+  border: 1px solid rgba(255,255,255,.22);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.060), rgba(255,255,255,.020)),
+    rgba(255,255,255,.024);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+  color: rgba(0,0,0,.62);
+  font-size: 10px;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+/* New album panel should look deliberate */
+.newAlbumPanel {
+  min-height: 42px;
+  align-items: center;
+  border-radius: 16px;
+  padding: 6px;
+}
+
+.newAlbumPanel button {
+  height: 30px;
+  min-height: 30px;
+  border-radius: 10px;
+}
+
+/* Modal/detail window polish */
+.modalBackdrop,
+.lightboxBackdrop,
+.memoryBackdrop {
+  background: rgba(235,235,235,.44);
+  backdrop-filter: blur(16px) saturate(1.05);
+  -webkit-backdrop-filter: blur(16px) saturate(1.05);
+}
+
+.detailPanel,
+.memoryModal,
+.modalPanel,
+.lightboxPanel {
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+/* Close/icon buttons */
+.closeButton,
+.iconButton,
+.panelClose,
+.detailPanel button[aria-label*="Close"],
+.memoryModal button[aria-label*="Close"] {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  padding: 0;
+}
+
+/* Select tray/window state */
+.selectTray,
+.bulkBar {
+  border: 1px solid rgba(255,255,255,.22);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.080), rgba(255,255,255,.025)),
+    rgba(255,255,255,.024);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.22),
+    0 10px 24px rgba(0,0,0,.060);
+  border-radius: 16px;
+}
+
+/* Prevent raw browser/prototype focus and disabled weirdness */
+button,
+[role="button"],
+input,
+select,
+textarea {
+  outline: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  opacity: .42;
+  cursor: default;
+  transform: none;
+}
+
+/* Scrollbars inside panels: slim and quiet */
+.importPanel::-webkit-scrollbar,
+.uploadQueuePanel::-webkit-scrollbar,
+.statusPanel::-webkit-scrollbar,
+.duplicatesPanel::-webkit-scrollbar,
+.healthPanel::-webkit-scrollbar {
+  width: 7px;
+}
+
+.importPanel::-webkit-scrollbar-thumb,
+.uploadQueuePanel::-webkit-scrollbar-thumb,
+.statusPanel::-webkit-scrollbar-thumb,
+.duplicatesPanel::-webkit-scrollbar-thumb,
+.healthPanel::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(0,0,0,.12);
+}
+
+/* Mobile: panels become calm sheets, not broken overlays */
+@media (max-width: 760px) {
+  .floatingPanel,
+  .settingsPopover,
+  .toolsDropdown,
+  .toolsIconMenu,
+  .viewPanel,
+  .viewDropdown,
+  .importPanel,
+  .uploadQueuePanel,
+  .statusPanel,
+  .duplicatesPanel,
+  .healthPanel {
+    position: static;
+    width: 100%;
+    max-width: 100%;
+    margin: 8px 0 0;
+    border-radius: 18px;
+  }
+
+  .segmentedPanelGrid,
+  .segmentedPanelGrid.three {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Header / placeholder casing cleanup */
+.photozProUI .productHeader strong.actualPageTitle,
+.photozProUI .productHeader > strong.actualPageTitle,
+.photozProUI .shell .productHeader strong.actualPageTitle,
+.photozProUI main .productHeader strong.actualPageTitle,
+.photozProUI .productHeader > strong,
+.photozProUI .shell .productHeader > strong {
+  text-transform: uppercase;
+  letter-spacing: .015em;
+}
+
+.albumSearchOnly input::placeholder,
+.searchPage .searchBar input::placeholder,
+.searchPage .librarySearchBar input::placeholder {
+  text-transform: uppercase;
+  letter-spacing: .055em;
+  font-size: 9px;
+  color: rgba(0,0,0,.34);
+}
+
+/* No duplicate Albums subtitle under the album controls */
+.photozProUI.page-albums .archiveLabel:empty {
+  display: none;
+}
+
+
+/* Utility rail icon-only buttons */
+.floatingUtilityRail .iconUtilityButton,
+.floatingUtilityRail .selectUtilityButton.iconUtilityButton,
+.floatingUtilityRail .cogUtilityButton.iconUtilityButton {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.floatingUtilityRail .iconUtilityButton svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+  color: rgba(0,0,0,.58);
+}
+
+.floatingUtilityRail .iconUtilityButton.active svg {
+  color: rgba(0,0,0,.76);
+}
+
+.floatingUtilityRail .selectUtilityButton.iconUtilityButton.active {
+  min-width: 30px;
+}
+
+
+/* TOOLTIP / SOUND / ANIMATION PASS */
+
+/* Proper tooltip system: uses data-tooltip without adding visual clutter */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 9px);
+  transform: translate(-50%, 4px) scale(.96);
+  transform-origin: 50% 100%;
+  min-width: max-content;
+  max-width: 180px;
+  padding: 6px 8px;
+  border-radius: 9px;
+  border: 1px solid rgba(255,255,255,.22);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.050)),
+    rgba(30,30,30,.72);
+  box-shadow:
+    0 12px 28px rgba(0,0,0,.20),
+    inset 0 1px 0 rgba(255,255,255,.20);
+  backdrop-filter: blur(12px) saturate(1.1);
+  -webkit-backdrop-filter: blur(12px) saturate(1.1);
+  color: rgba(255,255,255,.92);
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 820;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 300;
+  transition:
+    opacity .14s ease,
+    transform .14s ease;
+}
+
+[data-tooltip]::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 4px);
+  width: 8px;
+  height: 8px;
+  transform: translate(-50%, 4px) rotate(45deg) scale(.88);
+  background: rgba(30,30,30,.70);
+  border-right: 1px solid rgba(255,255,255,.16);
+  border-bottom: 1px solid rgba(255,255,255,.16);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 299;
+  transition:
+    opacity .14s ease,
+    transform .14s ease;
+}
+
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::after,
+[data-tooltip]:hover::before,
+[data-tooltip]:focus-visible::before {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
+[data-tooltip]:focus-visible::before {
+  transform: translate(-50%, 0) rotate(45deg) scale(1);
+}
+
+/* Bottom dock tooltips should rise from dock without clipping */
+.dock [data-tooltip]::after,
+.dockButton[data-tooltip]::after {
+  bottom: calc(100% + 12px);
+}
+
+/* Universal polished interaction motion */
+button,
+[role="button"],
+.uploadButton,
+.importButton,
+.systemRailItem,
+.groupCard,
+.photoCard,
+.albumTile,
+.dock button,
+.dockButton,
+.floatingUtilityRail button,
+.searchFilters button,
+.modeBar button,
+.controlBar button {
+  transition:
+    transform .16s cubic-bezier(.2,.8,.2,1),
+    opacity .16s ease,
+    background .16s ease,
+    border-color .16s ease,
+    box-shadow .16s ease,
+    color .16s ease,
+    filter .16s ease;
+  will-change: transform;
+}
+
+button:hover,
+[role="button"]:hover,
+.uploadButton:hover,
+.importButton:hover,
+.systemRailItem:hover,
+.groupCard:hover,
+.photoCard:hover,
+.albumTile:hover,
+.searchFilters button:hover,
+.modeBar button:hover,
+.controlBar button:hover {
+  transform: translateY(-1px);
+}
+
+button:active,
+[role="button"]:active,
+.uploadButton:active,
+.importButton:active,
+.systemRailItem:active,
+.groupCard:active,
+.photoCard:active,
+.albumTile:active,
+.dock button:active,
+.dockButton:active,
+.floatingUtilityRail button:active,
+.searchFilters button:active,
+.modeBar button:active,
+.controlBar button:active {
+  transform: translateY(0) scale(.975);
+  filter: saturate(.96);
+}
+
+/* Cards should feel finished, not static prototype tiles */
+.groupCard:hover,
+.photoCard:hover,
+.albumTile:hover {
+  box-shadow:
+    0 16px 34px rgba(0,0,0,.11),
+    inset 0 1px 0 rgba(255,255,255,.24);
+  border-color: rgba(255,255,255,.34);
+}
+
+.groupCard:active,
+.photoCard:active,
+.albumTile:active {
+  box-shadow:
+    0 8px 18px rgba(0,0,0,.08),
+    inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+/* Panel entrance polish */
+.floatingPanel,
+.settingsPopover,
+.toolsDropdown,
+.toolsIconMenu,
+.viewPanel,
+.viewDropdown,
+.importPanel,
+.uploadQueuePanel,
+.statusPanel,
+.duplicatesPanel,
+.healthPanel,
+.editPanel,
+.newAlbumPanel,
+.selectTray,
+.bulkBar {
+  animation: photozPanelIn .18s cubic-bezier(.2,.8,.2,1) both;
+}
+
+@keyframes photozPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(.982);
+    filter: blur(.5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* Grid item entrance: subtle, fast, not gimmicky */
+.photoGrid > *,
+.albumGrid > *,
+.timelineStack > * {
+  animation: photozItemIn .20s cubic-bezier(.2,.8,.2,1) both;
+}
+
+@keyframes photozItemIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(.992);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Utility icons feel tactile */
+.floatingUtilityRail .iconUtilityButton:hover,
+.dock button:hover,
+.dockButton:hover {
+  transform: translateY(-1px) scale(1.035);
+}
+
+.floatingUtilityRail .iconUtilityButton:active,
+.dock button:active,
+.dockButton:active {
+  transform: scale(.955);
+}
+
+/* Active states with a subtle pulse only when toggled */
+.floatingUtilityRail .iconUtilityButton.active,
+.searchFilters button.active,
+.modeBar button.selected,
+.viewPanel button.active {
+  animation: photozActivePop .18s cubic-bezier(.2,.8,.2,1) both;
+}
+
+@keyframes photozActivePop {
+  0% { transform: scale(.96); }
+  100% { transform: scale(1); }
+}
+
+/* Respect reduced motion: no animations/tooltips motion, but layout still works */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .001ms;
+    animation-iteration-count: 1;
+    transition-duration: .001ms;
+    scroll-behavior: auto;
+  }
+
+  [data-tooltip]::before,
+  [data-tooltip]::after {
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+
+/* AMBIENT MUSIC CONTROL */
+.ambientControl {
+  position: absolute;
+  top: 18px;
+  right: 154px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 59;
+}
+
+.ambientToggle {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.22);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.105), rgba(255,255,255,.030)),
+    rgba(255,255,255,.024);
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.060),
+    inset 0 1px 0 rgba(255,255,255,.22);
+  backdrop-filter: blur(12px) saturate(1.08);
+  -webkit-backdrop-filter: blur(12px) saturate(1.08);
+  color: rgba(0,0,0,.58);
+}
+
+.ambientToggle.active {
+  color: rgba(0,0,0,.76);
+  border-color: rgba(255,255,255,.38);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.17), rgba(255,255,255,.055)),
+    rgba(255,255,255,.040);
+}
+
+.ambientToggle svg {
+  width: 14px;
+  height: 14px;
+}
+
+.ambientSlider {
+  height: 30px;
+  width: 112px;
+  display: inline-grid;
+  grid-template-columns: 12px 1fr 12px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.22);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.090), rgba(255,255,255,.026)),
+    rgba(255,255,255,.024);
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.050),
+    inset 0 1px 0 rgba(255,255,255,.20);
+  backdrop-filter: blur(12px) saturate(1.08);
+  -webkit-backdrop-filter: blur(12px) saturate(1.08);
+}
+
+.ambientSlider svg {
+  width: 12px;
+  height: 12px;
+  color: rgba(0,0,0,.42);
+}
+
+.ambientSlider input {
+  width: 100%;
+  height: 2px;
+  min-height: 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(0,0,0,.18);
+  accent-color: rgba(0,0,0,.58);
+  box-shadow: none;
+}
+
+.ambientSlider input::-webkit-slider-thumb {
+  width: 11px;
+  height: 11px;
+}
+
+@media (max-width: 760px) {
+  .ambientControl {
+    position: static;
+    margin-left: auto;
+    width: fit-content;
+  }
+}
+
+
+/* CLOUDFLARE PASSWORD GATE */
+.passwordGate {
+  min-height: 100vh;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  box-sizing: border-box;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.34), transparent 32%),
+    linear-gradient(135deg, #f4f4f4, #d8d8d8 48%, #f8f8f8);
+}
+
+.passwordPanel {
+  width: min(330px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 22px;
+  border-radius: 28px;
+  border: 1px solid rgba(255,255,255,.30);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255,255,255,.22), transparent 38%),
+    linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.038)),
+    rgba(255,255,255,.055);
+  box-shadow:
+    0 24px 60px rgba(0,0,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.36),
+    inset 0 -1px 0 rgba(0,0,0,.08);
+  backdrop-filter: blur(18px) saturate(1.10);
+  -webkit-backdrop-filter: blur(18px) saturate(1.10);
+  animation: photozPanelIn .20s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.passwordPanel.error {
+  animation: passwordShake .26s ease both;
+  border-color: rgba(0,0,0,.18);
+}
+
+.passwordMark {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.28);
+  background: rgba(255,255,255,.050);
+  color: rgba(0,0,0,.56);
+}
+
+.passwordPanel strong {
+  font-family: Georgia, "Times New Roman", ui-serif, serif;
+  font-size: 30px;
+  line-height: .92;
+  font-weight: 500;
+  letter-spacing: .015em;
+  color: rgba(0,0,0,.66);
+}
+
+.passwordPanel label {
+  width: 100%;
+  display: grid;
+  gap: 7px;
+}
+
+.passwordPanel label span {
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .16em;
+  color: rgba(0,0,0,.34);
+}
+
+.passwordPanel input {
+  width: 100%;
+  height: 38px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.24);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.080), rgba(255,255,255,.028)),
+    rgba(255,255,255,.030);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.20),
+    0 8px 18px rgba(0,0,0,.035);
+  color: rgba(0,0,0,.68);
+  font-size: 12px;
+  text-align: center;
+  letter-spacing: .12em;
+}
+
+.passwordPanel input::placeholder {
+  font-size: 9px;
+  letter-spacing: .16em;
+  color: rgba(0,0,0,.30);
+}
+
+.passwordPanel button {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 999px;
+}
+
+@keyframes passwordShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  60% { transform: translateX(4px); }
+}

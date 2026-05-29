@@ -5,14 +5,18 @@ PHOTOZ is a personal photo library interface for albums, Mirror/ME photos, and c
 ## Current behavior
 
 - **Albums** is for real albums and album organization.
+- **★** shows every file marked starred.
+- **?** shows unassigned files.
+- **Trash** uses a real trash-can icon.
 - **Search** is the chronological file grid.
 - **Search filters** are All, Photos, and Videos.
 - **Search excludes Trash**.
 - **Search respects Hide from All**.
 - **Hide from All** is an album-card toggle that keeps that album’s contents out of Search’s All grid.
 - **Nested albums inside a Hide from All album** are also excluded from Search’s All grid.
-- **Mirror All** is an inline toggle, not a folder/page opener.
-- **Albums does not show global All, Hidden, or Videos shortcuts; Trash and Unassigned use compact symbols.**.
+- **Mirror/ME** shows ME files that are also starred by default.
+- **Mirror/ME All** is an inline toggle that shows every ME file.
+- **Albums does not show global All, Hidden, or Videos shortcuts**.
 - **The Albums view switcher** only appears on Albums.
 - **Tools** lives in the cog menu.
 - **Select** opens a compact selection tray.
@@ -32,8 +36,20 @@ Deploy with your existing Cloudflare/Workers flow after replacing the repo files
 
 The Worker guards `/api/index`, `/api/load-index`, `/api/backup-index`, `/api/save-index`, and `/api/upload` so missing index data should not crash the UI.
 
-- Album shortcuts use compact symbols/icons: `★`, trash-can icon, and `?`.
+- Search and Mirror empty states now use compact `X` copy.
 
-- Search bar input now fills the glass bubble instead of appearing undersized.
+- Runtime array guards added so missing data cannot crash `.filter()`/`.map()` paths.
 
-- Page header now uses a distinct editorial serif treatment instead of the same UI font.
+- Menus, floating panels, modals, and popups now share a finalized glass panel system.
+
+- Page headers and search placeholders are uppercase; duplicate Albums subtitle removed.
+
+- Filter and Select utility controls are icon-only with accessible labels.
+
+- Added accessible tooltips, subtle UI click sounds, and polished hover/press/panel animations.
+
+- Ambient music toggle with volume control added to the top utility area.
+
+## Password gate
+
+The entry gate validates through `/api/unlock` against a Cloudflare Worker secret/env var. Supported names: `PHOTOZ_PASSWORD`, `PHOTOZ_ACCESS_PASSWORD`, `ACCESS_PASSWORD`, or `PASSWORD`.

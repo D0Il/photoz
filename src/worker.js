@@ -136,11 +136,37 @@ async function handleFile(env, pathname) {
   });
 }
 
+
+function getConfiguredPassword(env) {
+  return (env && (env.PHOTOZ_PASSWORD || env.PHOTOZ_ACCESS_PASSWORD || env.ACCESS_PASSWORD || env.PASSWORD)) || "";
+}
+
+async function handleUnlock(request, env) {
+  const configured = String(getConfiguredPassword(env) || "");
+  let supplied = "";
+  try {
+    const body = await request.json();
+    supplied = String((body && body.password) || "");
+  } catch (error) {}
+
+  if (!configured) {
+    return jsonResponse({ ok: false, error: "PASSWORD_NOT_CONFIGURED" }, { status: 500 });
+  }
+
+  if (supplied && supplied === configured) {
+    return jsonResponse({ ok: true });
+  }
+
+  return jsonResponse({ ok: false }, { status: 401 });
+}
+
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (request.method === "OPTIONS") return new Response("", { status: 204, headers: corsHeaders() });
     if (url.pathname === "/favicon.ico") return new Response("", { status: 204, headers: corsHeaders() });
+    if (url.pathname === "/api/unlock" && request.method === "POST") return handleUnlock(request, env);
     if ((url.pathname === "/api/index" || url.pathname === "/api/load-index") && request.method === "GET") return jsonResponse(await readIndex(env));
     if ((url.pathname === "/api/index" || url.pathname === "/api/save-index") && request.method !== "GET") {
       const body = await readJsonBody(request);
