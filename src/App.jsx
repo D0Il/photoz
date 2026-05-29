@@ -1,21 +1,23 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, Clock3, Eye, Images, Search, Upload, X } from "lucide-react";
+import { ChevronLeft, Eye, Images, Search, Upload, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
+const UNASSIGNED_ALBUM_ID = "unassigned";
+
 const INITIAL_ALBUMS = [
+  { id: UNASSIGNED_ALBUM_ID, title: "UNASSIGNED", memoryIds: [] },
   { id: "star", title: "★", memoryIds: [] },
   { id: "videos", title: "VIDEOS", memoryIds: [] },
 ];
 
 const PAGES = [
-  { id: "mirror", icon: Eye },
   { id: "albums", icon: Images },
-  { id: "timeline", icon: Clock3 },
+  { id: "mirror", icon: Eye },
   { id: "search", icon: Search },
 ];
 
-const MODES = ["years", "months", "eras"];
+const ARCHIVE_VIEWS = ["folders", "years", "months", "eras"];
 const R2_BASE = "https://ede1e7633dd439375ff7a143c1c9b512.r2.cloudflarestorage.com/photoz";
 const MAX_PARALLEL_UPLOADS = 3;
 
@@ -159,6 +161,68 @@ function albumGroups(albums, memories) {
   }));
 }
 
+function ensureCoreAlbums(albums) {
+  const byId = {};
+  albums.forEach(function (album) {
+    byId[album.id] = album;
+  });
+
+  const output = [];
+  INITIAL_ALBUMS.forEach(function (album) {
+    output.push(byId[album.id] ? { ...byId[album.id] } : { ...album, memoryIds: [] });
+  });
+
+  albums.forEach(function (album) {
+    if (!byId[album.id]) return;
+    if (!INITIAL_ALBUMS.some(function (core) { return core.id === album.id; })) {
+      output.push({ ...album });
+    }
+  });
+
+  return output;
+}
+
+function memoryHasHomeAlbum(memoryId, albums) {
+  return albums.some(function (album) {
+    if (album.id === "star") return false;
+    return (album.memoryIds || []).indexOf(memoryId) !== -1;
+  });
+}
+
+function ensureAlbumCoverage(memories, albums) {
+  const cleanAlbums = ensureCoreAlbums(albums).map(function (album) {
+    return { ...album, memoryIds: Array.from(new Set(album.memoryIds || [])) };
+  });
+
+  const unassigned = cleanAlbums.find(function (album) {
+    return album.id === UNASSIGNED_ALBUM_ID;
+  });
+
+  memories.forEach(function (memory) {
+    if (!memoryHasHomeAlbum(memory.id, cleanAlbums)) {
+      unassigned.memoryIds.push(memory.id);
+    }
+  });
+
+  unassigned.memoryIds = Array.from(new Set(unassigned.memoryIds));
+  return cleanAlbums;
+}
+
+function removeMemoryFromAlbum(albums, albumId, memoryId) {
+  return albums.map(function (album) {
+    if (album.id !== albumId) return album;
+    return { ...album, memoryIds: (album.memoryIds || []).filter(function (id) { return id !== memoryId; }) };
+  });
+}
+
+function addMemoryToAlbum(albums, albumId, memoryId) {
+  return albums.map(function (album) {
+    if (album.id !== albumId) return album;
+    return { ...album, memoryIds: Array.from(new Set((album.memoryIds || []).concat([memoryId]))) };
+  });
+}
+
+
 function searchMemories(memories, query) {
   const needle = query.trim().toLowerCase();
   if (!needle) return [];
@@ -191,11 +255,13 @@ function renameAlbum(albums, id, title) {
 }
 
 function cleanIndex(index) {
+  const memories = Array.isArray(index.memories) ? index.memories : [];
+  const albums = Array.isArray(index.albums) && index.albums.length ? index.albums : INITIAL_ALBUMS;
   return {
     version: 1,
     savedAt: new Date().toISOString(),
-    memories: Array.isArray(index.memories) ? index.memories : [],
-    albums: Array.isArray(index.albums) && index.albums.length ? index.albums : INITIAL_ALBUMS,
+    memories,
+    albums: ensureAlbumCoverage(memories, albums),
   };
 }
 
@@ -206,13 +272,14 @@ async function loadIndex() {
 }
 
 async function saveIndex(memories, albums) {
+  const coveredAlbums = ensureAlbumCoverage(memories, albums);
   const payload = cleanIndex({
     memories: memories.map(function (memory) {
       const copy = { ...memory };
       delete copy.previewUrl;
       return copy;
     }),
-    albums,
+    albums: coveredAlbums,
   });
 
   const res = await fetch("/api/index", {
@@ -253,7 +320,7 @@ function UploadButton(props) {
   return (
     <label className="uploadButton">
       <Upload size={16} />
-      <span>UPLOAD</span>
+      <span>{props.folder ? "FOLDER" : "UPLOAD"}</span>
       <input
         type="file"
         multiple
@@ -308,7 +375,8 @@ function Dock(props) {
                 props.setActive(page.id);
               }}
             >
-              <Icon size={20} strokeWidth={active ? 2.4 : 1.9} />
+              <Icon size={19} strokeWidth={active ? 2.4 : 1.9} />
+              <span>{up(page.id)}</span>
             </button>
           );
         })}
@@ -321,19 +389,20 @@ function ControlBar(props) {
   return (
     <div className="controlBar">
       <div className="leftControls">
-        {props.timeline ? (
+        <div className="brandMark">PHOTOZ</div>
+        {props.archive ? (
           <div className="modeBar">
-            {MODES.map(function (mode) {
+            {ARCHIVE_VIEWS.map(function (view) {
               return (
                 <button
-                  key={mode}
+                  key={view}
                   type="button"
-                  className={props.mode === mode ? "selected" : ""}
+                  className={props.archiveView === view ? "selected" : ""}
                   onClick={function () {
-                    props.setMode(mode);
+                    props.setArchiveView(view);
                   }}
                 >
-                  {up(mode)}
+                  {up(view)}
                 </button>
               );
             })}
@@ -403,25 +472,36 @@ function MirrorView(props) {
 
 function AlbumsView(props) {
   const folders = albumGroups(props.albums, props.memories);
+  const archiveGroups = props.archiveView === "folders" ? folders : groupBy(props.archiveView, props.memories);
+  const isFolders = props.archiveView === "folders";
+
   return (
     <div className="pageScroll">
-      <div className="albumEditor">
-        <Pill>{props.albums.length}</Pill>
-        <input
-          value={props.draft}
-          onChange={function (event) { props.setDraft(event.target.value); }}
-          placeholder="NEW ALBUM"
-        />
-        <button type="button" onClick={props.createAlbum}>CREATE</button>
-      </div>
-      <div className="albumGrid">
-        {folders.map(function (album) {
-          const editing = props.editingId === album.sourceId;
+      {isFolders ? (
+        <div className="albumEditor">
+          <Pill>{props.albums.length}</Pill>
+          <input
+            value={props.draft}
+            onChange={function (event) { props.setDraft(event.target.value); }}
+            placeholder="NEW ALBUM"
+          />
+          <button type="button" onClick={props.createAlbum}>CREATE</button>
+        </div>
+      ) : null}
+
+      <div className="archiveLabel">{up(props.archiveView)}</div>
+      <div className={isFolders ? "albumGrid folderView" : props.archiveView === "months" ? "albumGrid filterView" : "timelineStack filterView"}>
+        {archiveGroups.map(function (group) {
+          const editing = isFolders && props.editingId === group.sourceId;
+          if (!isFolders) {
+            return <GroupCard key={group.id} group={group} openGroup={props.openGroup} openMemory={props.openMemory} />;
+          }
+
           return (
-            <div className="albumTile" key={album.id}>
+            <div className="albumTile" key={group.id}>
               <div className="tileActions">
-                <button type="button" onClick={function () { props.startEdit(album.sourceId, album.title); }}>EDIT</button>
-                <button type="button" onClick={function () { props.deleteAlbum(album.sourceId); }}><X size={14} /></button>
+                <button type="button" onClick={function () { props.startEdit(group.sourceId, group.title); }}>EDIT</button>
+                {group.sourceId !== UNASSIGNED_ALBUM_ID ? <button type="button" onClick={function () { props.deleteAlbum(group.sourceId); }}><X size={14} /></button> : null}
               </div>
               {editing ? (
                 <Glass className="editPanel">
@@ -432,24 +512,10 @@ function AlbumsView(props) {
                   </div>
                 </Glass>
               ) : (
-                <GroupCard group={album} openGroup={props.openGroup} openMemory={props.openMemory} />
+                <GroupCard group={group} openGroup={props.openGroup} openMemory={props.openMemory} />
               )}
             </div>
           );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function TimelineView(props) {
-  const items = pageItems("timeline", props.memories);
-  const groups = groupBy(props.mode, items);
-  return (
-    <div className="pageScroll">
-      <div className={props.mode === "months" ? "albumGrid" : "timelineStack"}>
-        {groups.map(function (group) {
-          return <GroupCard key={group.id} group={group} openGroup={props.openGroup} openMemory={props.openMemory} />;
         })}
       </div>
     </div>
@@ -518,13 +584,13 @@ function Modal(props) {
 }
 
 export default function App() {
-  const [mode, setMode] = useState("years");
-  const [activePage, setActivePage] = useState("mirror");
+  const [archiveView, setArchiveView] = useState("folders");
+  const [activePage, setActivePage] = useState("albums");
   const [screen, setScreen] = useState("home");
   const [activeGroup, setActiveGroup] = useState(null);
   const [activeMemory, setActiveMemory] = useState(null);
   const [memories, setMemories] = useState([]);
-  const [albums, setAlbums] = useState(INITIAL_ALBUMS);
+  const [albums, setAlbums] = useState(ensureCoreAlbums(INITIAL_ALBUMS));
   const [draft, setDraft] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editDraft, setEditDraft] = useState("");
@@ -537,7 +603,7 @@ export default function App() {
     loadIndex().then(function (index) {
       if (!alive) return;
       setMemories(index.memories);
-      setAlbums(index.albums);
+      setAlbums(ensureAlbumCoverage(index.memories, index.albums));
       setSync("saved");
     }).catch(function () {
       if (alive) setSync("local");
@@ -568,14 +634,15 @@ export default function App() {
   function createAlbum() {
     const name = draft.trim();
     if (!name) return;
-    const next = albums.concat([{ id: "custom-" + safeName(name.toLowerCase()) + "-" + Date.now(), title: name, memoryIds: [] }]);
+    const next = ensureAlbumCoverage(memories, albums.concat([{ id: "custom-" + safeName(name.toLowerCase()) + "-" + Date.now(), title: name, memoryIds: [] }]));
     setAlbums(next);
     setDraft("");
     persist(memories, next);
   }
 
   function deleteAlbum(id) {
-    const next = removeAlbum(albums, id);
+    if (id === UNASSIGNED_ALBUM_ID) return;
+    const next = ensureAlbumCoverage(memories, removeAlbum(albums, id));
     setAlbums(next);
     if (editingId === id) {
       setEditingId(null);
@@ -591,7 +658,7 @@ export default function App() {
 
   function saveEdit() {
     if (!editingId) return;
-    const next = renameAlbum(albums, editingId, editDraft);
+    const next = ensureAlbumCoverage(memories, renameAlbum(albums, editingId, editDraft));
     setAlbums(next);
     setEditingId(null);
     setEditDraft("");
@@ -670,9 +737,18 @@ export default function App() {
       return memory.id;
     });
 
-    const nextAlbums = videoIds.length ? albums.map(function (album) {
-      return album.id === "videos" ? { ...album, memoryIds: album.memoryIds.concat(videoIds) } : album;
-    }) : albums;
+    const photoIds = imported.filter(function (memory) {
+      return memory.kind !== "video";
+    }).map(function (memory) {
+      return memory.id;
+    });
+
+    let nextAlbums = albums.map(function (album) {
+      if (album.id === "videos") return { ...album, memoryIds: Array.from(new Set(album.memoryIds.concat(videoIds))) };
+      if (album.id === UNASSIGNED_ALBUM_ID) return { ...album, memoryIds: Array.from(new Set(album.memoryIds.concat(photoIds))) };
+      return album;
+    });
+    nextAlbums = ensureAlbumCoverage(nextMemories, nextAlbums);
 
     setMemories(nextMemories);
     setAlbums(nextAlbums);
@@ -681,8 +757,8 @@ export default function App() {
     event.target.value = "";
   }
 
-  const timeline = activePage === "timeline";
-  const key = screen + "-" + activePage + "-" + mode + "-" + (activeGroup ? activeGroup.id : "");
+  const archive = activePage === "albums";
+  const key = screen + "-" + activePage + "-" + archiveView + "-" + (activeGroup ? activeGroup.id : "");
 
   return (
     <div className="app">
@@ -692,10 +768,9 @@ export default function App() {
           <motion.div key={key} className="screen" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
             {screen === "home" ? (
               <Glass className="shell">
-                <ControlBar timeline={timeline} mode={mode} setMode={setMode} count={memories.length} sync={sync} onUpload={handleUpload} />
+                <ControlBar archive={archive} archiveView={archiveView} setArchiveView={setArchiveView} count={memories.length} sync={sync} onUpload={handleUpload} />
                 {activePage === "mirror" ? <MirrorView memories={memories} openGroup={openGroup} openMemory={setActiveMemory} /> : null}
-                {activePage === "albums" ? <AlbumsView memories={memories} albums={albums} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={setActiveMemory} /> : null}
-                {activePage === "timeline" ? <TimelineView memories={memories} mode={mode} openGroup={openGroup} openMemory={setActiveMemory} /> : null}
+                {activePage === "albums" ? <AlbumsView archiveView={archiveView} memories={memories} albums={albums} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={setActiveMemory} /> : null}
                 {activePage === "search" ? <SearchView memories={memories} query={query} setQuery={setQuery} openMemory={setActiveMemory} /> : null}
               </Glass>
             ) : null}
