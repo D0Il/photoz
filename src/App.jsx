@@ -4382,7 +4382,6 @@ const [albumSort, setAlbumSort] = useState("recent");
         </AnimatePresence>
       </main>
       <Modal memory={activeMemory} close={function () { setActiveMemory(null); }} deleteMemory={deleteMemory} restoreMemory={restoreMemory} toggleMeFlag={toggleMeFlag} toggleMirror={toggleMirror} toggleArchive={toggleArchive} toggleRefilter={toggleRefilter} togglePrivate={togglePrivate} albums={albums} addToAlbum={addToAlbum} moveToAlbum={moveToAlbum} removeFromAlbum={removeFromAlbum} updateMemoryDetails={updateMemoryDetails} downloadOriginal={downloadOriginal} openOriginal={openOriginal} copyMediaUrl={copyMediaUrl} copyStorageKey={copyStorageKey} toggleStar={toggleStar} isStarred={activeMemory ? albumHasMemory(albums, "star", activeMemory.id) : false} setAlbumCover={setAlbumCover} clearAlbumCover={clearAlbumCover} />
-      <PzStateBanner loading={pzLibraryLoading} saving={saving} error={pzLibraryError} />
       <PzToastStack items={pzToasts} />
       <PzAlbumEditorPanel
         open={Boolean(pzActiveAlbumEditor)}

@@ -112,10 +112,4 @@ Added:
 
 - Dock Albums icon is now a custom animated open book with flipping pages; dock Search icon now has animated sparkle accents.
 
-- Added global glass UI animation: subtle moving sheen/refraction and breathing highlights across dock, menus, panels, buttons, cards, modals, and glass containers.
-
-- Shortened the album search bar and added a glass-depth pass: stronger edge highlights, inner shadows, layered reflections, deeper menus/buttons/cards, and less plastic-looking surfaces.
-
-- Scaled the UI up slightly while preserving layout relationships: larger dock, controls, menus, type, inputs, cards, modals, and icons without changing the placement system.
-
-- Changed visible `ALBUMS` label to `PHOTO ALBUMS`.
+- Recovery build: removed broad glass/scale override passes that broke page layout; kept stable dock icons, lashed eye, Settings/Filter, hold-swipe selection, PHOTO ALBUMS label, playback-only video, and password fix.
