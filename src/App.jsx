@@ -11,9 +11,9 @@ const INITIAL_ALBUMS = [
 ];
 
 const PAGES = [
-  { id: "albums", icon: DockAlbumGlyph },
-  { id: "mirror", icon: DockMirrorGlyph },
-  { id: "search", icon: DockSearchGlyph },
+  { id: "albums" },
+  { id: "mirror" },
+  { id: "search" },
 ];
 
 const ARCHIVE_FILTERS = ["albums", "years", "months", "eras"];
@@ -1494,28 +1494,27 @@ function PhotoCard(props) {
 }
 
 function Dock(props) {
+  const activePage = props.activePage || props.currentPage || "albums";
+  const setActivePage = props.setActivePage || props.onChange || function () {};
+
   return (
-    <div className="dockWrap">
-      <Glass className="dock">
-        {PAGES.map(function (page) {
-          const Icon = page.icon;
-          const active = props.active === page.id;
-          return (
-            <button
-              key={page.id} data-page-id={page.id}
-              type="button"
-              aria-label={page.id}
-              className={cls("dockButton", active && "active")}
-              onClick={function () {
-                props.setActive(page.id);
-              }}
-            >
-              <Icon size={19} strokeWidth={active ? 2.4 : 1.9} />
-            </button>
-          );
-        })}
-      </Glass>
-    </div>
+    <nav className="bottomDock" aria-label="Navigation">
+      {PAGES.map(function (page) {
+        const active = activePage === page.id;
+        return (
+          <button
+            type="button"
+            key={page.id}
+            data-page-id={page.id}
+            className={active ? "active" : ""}
+            aria-current={active ? "page" : undefined}
+            onClick={function () { setActivePage(page.id); }}
+          >
+            <DockIconForPage id={page.id} />
+          </button>
+        );
+      })}
+    </nav>
   );
 }
 
@@ -3098,24 +3097,31 @@ function LashEyeIcon(props) {
 }
 
 
+
+
+
+
+
+
+
 function DockAlbumGlyph(props) {
-  const size = props.size || 22;
+  const size = props.size || 24;
   return (
     <span className="dockGlyph dockGlyphAlbum" aria-hidden="true" style={{ width: size, height: size }}>
       <svg viewBox="0 0 28 28" focusable="false">
-        <path d="M4.7 7.2c3.3-.5 6.2.2 9.3 2v13c-3.05-1.75-6.1-2.3-9.3-1.55V7.2Z" />
-        <path d="M23.3 7.2c-3.3-.5-6.2.2-9.3 2v13c3.05-1.75 6.1-2.3 9.3-1.55V7.2Z" />
+        <path className="bookCover" d="M4.7 7.2c3.3-.5 6.2.2 9.3 2v13c-3.05-1.75-6.1-2.3-9.3-1.55V7.2Z" />
+        <path className="bookCover" d="M23.3 7.2c-3.3-.5-6.2.2-9.3 2v13c3.05-1.75 6.1-2.3 9.3-1.55V7.2Z" />
         <path className="flipPage" d="M14 9.4c2.35-1.25 4.65-1.82 6.8-1.58v11.2c-2.1-.24-4.4.32-6.8 1.67V9.4Z" />
-        <path d="M14 9.3v13.1" />
-        <path d="M7.1 11.3c1.55-.13 3 .14 4.6.8" />
-        <path d="M16.3 12.1c1.6-.66 3.05-.93 4.6-.8" />
+        <path className="line" d="M14 9.3v13.1" />
+        <path className="line" d="M7.1 11.3c1.55-.13 3 .14 4.6.8" />
+        <path className="line" d="M16.3 12.1c1.6-.66 3.05-.93 4.6-.8" />
       </svg>
     </span>
   );
 }
 
 function DockMirrorGlyph(props) {
-  const size = props.size || 22;
+  const size = props.size || 24;
   return (
     <span className="dockGlyph dockGlyphEye" aria-hidden="true" style={{ width: size, height: size }}>
       <svg viewBox="0 0 28 28" focusable="false">
@@ -3133,17 +3139,24 @@ function DockMirrorGlyph(props) {
 }
 
 function DockSearchGlyph(props) {
-  const size = props.size || 22;
+  const size = props.size || 24;
   return (
     <span className="dockGlyph dockGlyphSearch" aria-hidden="true" style={{ width: size, height: size }}>
       <svg viewBox="0 0 28 28" focusable="false">
-        <circle cx="12.2" cy="12.2" r="6.25" />
-        <path d="M16.9 16.9 22.4 22.4" />
+        <circle className="lens" cx="12.2" cy="12.2" r="6.25" />
+        <path className="handle" d="M16.9 16.9 22.4 22.4" />
         <path className="spark big" d="M21.2 4.4l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7.7-2Z" />
         <path className="spark small" d="M6.2 4.3l.45 1.25 1.25.45-1.25.45L6.2 7.7l-.45-1.25L4.5 6l1.25-.45.45-1.25Z" />
       </svg>
     </span>
   );
+}
+
+function DockIconForPage(props) {
+  if (props.id === "albums") return <DockAlbumGlyph size={24} />;
+  if (props.id === "mirror") return <DockMirrorGlyph size={24} />;
+  if (props.id === "search") return <DockSearchGlyph size={24} />;
+  return null;
 }
 
 export default function App() {
@@ -4432,7 +4445,6 @@ const [albumSort, setAlbumSort] = useState("recent");
             {screen === "home" ? (
               <Glass className={"shell grid-" + gridSize + (settingsOpen || filterControlsOpen || importPanelOpen || uploadQueueOpen || statusOpen || duplicatesOpen || healthOpen ? " has-panel-open" : "")}>
                 <div className="productHeader">
-                  <strong className="actualPageTitle">{activePage === "albums" ? "PHOTO ALBUMS" : activePage === "mirror" ? "MIRROR" : "SEARCH"}</strong>
                   <em>{memories.length} files</em>
                 </div>
                 <ControlBar activePage={activePage} archive={archive} archiveFilter={archiveFilter} setArchiveFilter={setArchiveFilter} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} filterControlsOpen={filterControlsOpen} toggleFilterControls={function () { setFilterControlsOpen(function (value) { return !value; }); }} settingsOpen={settingsOpen} toggleSettingsPanel={function () { setSettingsOpen(function (value) { return !value; }); }} />

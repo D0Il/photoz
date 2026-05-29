@@ -11024,3 +11024,157 @@ button[data-tooltip="Long-press files"] {
 .searchBar.librarySearchBar input {
   font-size: 9px;
 }
+
+
+/* FINAL NAV ICON AND TITLE FIX */
+.pageTitle,
+.pageHeader h1,
+.pageHeader > h1,
+.heroTitle,
+.viewTitle,
+.screenTitle,
+.titleBlock,
+.titleCluster,
+.mainPageTitle,
+.appChrome > h1,
+.appChrome h1:first-child,
+.pageScroll > h1:first-child,
+.glass > h1:first-child,
+[data-page-title="true"] {
+  display: none;
+  visibility: hidden;
+  height: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.bottomDock {
+  overflow: visible;
+}
+
+.bottomDock button {
+  display: grid;
+  place-items: center;
+  color: rgba(0,0,0,.74);
+}
+
+.bottomDock .dockGlyph {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  opacity: 1;
+  visibility: visible;
+  color: currentColor;
+  position: relative;
+  z-index: 10;
+  line-height: 0;
+}
+
+.bottomDock .dockGlyph svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  overflow: visible;
+  opacity: 1;
+  visibility: visible;
+}
+
+.bottomDock .dockGlyph path,
+.bottomDock .dockGlyph circle {
+  vector-effect: non-scaling-stroke;
+}
+
+.bottomDock .dockGlyphAlbum .bookCover,
+.bottomDock .dockGlyphAlbum .flipPage {
+  fill: rgba(255,255,255,.18);
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bottomDock .dockGlyphAlbum .line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.45;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bottomDock .dockGlyphAlbum .flipPage {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: dockFinalBookFlip 3.4s ease-in-out infinite;
+}
+
+.bottomDock .dockGlyphEye path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bottomDock .dockGlyphEye .iris,
+.bottomDock .dockGlyphSearch .spark {
+  fill: currentColor;
+  stroke: none;
+}
+
+.bottomDock .dockGlyphEye .eyeTop {
+  transform-origin: 14px 14px;
+  animation: dockFinalEyeTop 5s ease-in-out infinite;
+}
+
+.bottomDock .dockGlyphEye .eyeBottom {
+  transform-origin: 14px 14px;
+  animation: dockFinalEyeBottom 5s ease-in-out infinite;
+}
+
+.bottomDock .dockGlyphSearch .lens,
+.bottomDock .dockGlyphSearch .handle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bottomDock .dockGlyphSearch .spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dockFinalSpark 2.6s ease-in-out infinite;
+}
+
+.bottomDock .dockGlyphSearch .small {
+  animation-delay: .35s;
+}
+
+@keyframes dockFinalBookFlip {
+  0%, 25%, 100% { transform: perspective(54px) rotateY(0deg); opacity: .95; }
+  48% { transform: perspective(54px) rotateY(-120deg); opacity: .45; }
+  68% { transform: perspective(54px) rotateY(0deg); opacity: .95; }
+}
+
+@keyframes dockFinalEyeTop {
+  0%, 88%, 100% { transform: translateY(0) scaleY(1); }
+  92%, 94% { transform: translateY(3px) scaleY(.2); }
+}
+
+@keyframes dockFinalEyeBottom {
+  0%, 88%, 100% { transform: translateY(0) scaleY(1); }
+  92%, 94% { transform: translateY(-3px) scaleY(.2); }
+}
+
+@keyframes dockFinalSpark {
+  0%, 65%, 100% { transform: scale(.6) rotate(0deg); opacity: .24; }
+  14% { transform: scale(1.08) rotate(12deg); opacity: .95; }
+  30% { transform: scale(.82) rotate(24deg); opacity: .55; }
+}
