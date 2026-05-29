@@ -783,3 +783,14 @@ Replaced the layered stylesheet with one clean source-level stylesheet.
 - System shortcuts are a separate rail, not album cards.
 - Tools/View are clean dropdown panels.
 - Album cards, photo cards, modal, toolbar, and panels each have one canonical style.
+
+
+## Complete UI restore after CSS cleanup
+
+Fixed the broken visual state caused by the too-small stylesheet:
+
+- Native file inputs are hidden again.
+- Bottom navigation is styled and fixed to bottom center.
+- Toolbar, album editor, search, panels, albums, photos, modal, and utility rows are covered.
+- System shortcuts remain a separate rail, not album cards.
+- Still has zero `!important` rules.
