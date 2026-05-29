@@ -28,15 +28,42 @@ const INDEX_SCHEMA_VERSION = 3;
 const MEDIA_BASE = "/media";
 const MAX_PARALLEL_UPLOADS = 3;
 
+
+
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
+}
+
+function normalizeMemoryRecord(memory) {
+  const source = memory && typeof memory === "object" ? memory : {};
+  return {
+    ...source,
+    id: source.id || ("memory-" + Date.now() + "-" + Math.random().toString(36).slice(2)),
+    title: source.title || source.name || source.filename || "Untitled",
+    kind: source.kind || (String(source.type || "").startsWith("video") ? "video" : "image"),
+    albumIds: safeArray(source.albumIds),
+  };
+}
+
+function normalizeAlbumRecord(album) {
+  const source = album && typeof album === "object" ? album : {};
+  return {
+    ...source,
+    id: source.id || ("album-" + Date.now() + "-" + Math.random().toString(36).slice(2)),
+    title: source.title || "Untitled album",
+    description: source.description || "",
+    memoryIds: safeArray(source.memoryIds),
+    parentId: source.parentId || "",
+    excludeFromAll: Boolean(source.excludeFromAll),
+  };
 }
 
 function normalizeVaultIndex(index) {
   const source = index && typeof index === "object" ? index : {};
   return {
-    memories: safeArray(source.memories),
-    albums: safeArray(source.albums),
+    ...source,
+    memories: safeArray(source.memories).map(normalizeMemoryRecord),
+    albums: safeArray(source.albums).map(normalizeAlbumRecord),
     settings: source.settings && typeof source.settings === "object" ? source.settings : {},
     updatedAt: source.updatedAt || new Date().toISOString(),
   };
@@ -152,6 +179,9 @@ function duplicateGroups(memories) {
 }
 
 function albumCoverMemory(album, memories) {
+  album = normalizeAlbumRecord(album);
+  memories = safeArray(memories).map(normalizeMemoryRecord);
+
   if (album.coverId) {
     const cover = memories.find(function (memory) { return memory.id === album.coverId; });
     if (cover) return cover;
@@ -263,6 +293,8 @@ function pageItems(page, memories) {
 }
 
 function groupBy(mode, items) {
+  memories = safeArray(memories).map(normalizeMemoryRecord);
+
   memories = safeArray(memories);
 
   const key = mode === "months" ? "month" : mode === "eras" ? "era" : "year";
@@ -295,6 +327,97 @@ function sortAlbumGroups(groups, mode) {
   });
 }
 
+function albumParentId(album) {
+  return album && album.parentId ? String(album.parentId) : "";
+}
+
+function albumMemoryIds(album) {
+  album = normalizeAlbumRecord(album);
+
+  return Array.from(new Set(safeArray(album && album.memoryIds).filter(Boolean)));
+}
+
+function albumById(albums, id) {
+  albums = safeArray(albums).map(normalizeAlbumRecord);
+
+  return safeArray(albums).find(function (album) { return String(album.id) === String(id); }) || null;
+}
+
+function albumChildIds(albums, parentId) {
+  albums = safeArray(albums).map(normalizeAlbumRecord);
+
+  const parent = String(parentId || "");
+  return safeArray(albums)
+    .filter(function (album) { return albumParentId(album) === parent; })
+    .map(function (album) { return String(album.id); });
+}
+
+function albumDescendantIds(albums, rootId) {
+  albums = safeArray(albums).map(normalizeAlbumRecord);
+
+  const all = safeArray(albums);
+  const found = new Set();
+  let changed = true;
+  while (changed) {
+    changed = false;
+    all.forEach(function (album) {
+      const id = String(album.id || "");
+      if (!id || found.has(id)) return;
+      const parent = albumParentId(album);
+      if (parent === String(rootId || "") || found.has(parent)) {
+        found.add(id);
+        changed = true;
+      }
+    });
+  }
+  return found;
+}
+
+function albumTreeIds(albums, rootId) {
+  const ids = albumDescendantIds(albums, rootId);
+  if (rootId) ids.add(String(rootId));
+  return ids;
+}
+
+function albumsExcludedFromAll(albums) {
+  const excluded = new Set();
+  safeArray(albums).forEach(function (album) {
+    if (!album.excludeFromAll) return;
+    albumTreeIds(albums, album.id).forEach(function (id) { excluded.add(id); });
+  });
+  return excluded;
+}
+
+function memoryIsInAlbumTree(memory, albums, rootId) {
+  const ids = albumTreeIds(albums, rootId);
+  return safeArray(albums).some(function (album) {
+    return ids.has(String(album.id)) && albumMemoryIds(album).indexOf(memory.id) !== -1;
+  });
+}
+
+function memoryExcludedFromAll(memory, albums) {
+  const excluded = albumsExcludedFromAll(albums);
+  if (!excluded.size) return false;
+  return safeArray(albums).some(function (album) {
+    return excluded.has(String(album.id)) && albumMemoryIds(album).indexOf(memory.id) !== -1;
+  });
+}
+
+function visibleAllMemories(memories, albums) {
+  return newest(safeArray(memories).filter(function (memory) {
+    return !memory.inMirror && !memory.archived && !memory.trashed && !memoryExcludedFromAll(memory, albums);
+  }));
+}
+
+function directAlbumMemories(albums, memories, albumId) {
+  const album = albumById(albums, albumId);
+  if (!album) return [];
+  const ids = albumMemoryIds(album);
+  return newest(ids.map(function (id) {
+    return safeArray(memories).find(function (memory) { return memory.id === id && !memory.trashed; });
+  }).filter(Boolean));
+}
+
 function isSystemAlbumGroup(group) {
   const id = String((group && (group.id || group.sourceId)) || "").toLowerCase();
   const title = String((group && group.title) || "").toLowerCase();
@@ -319,36 +442,53 @@ function isSystemAlbumGroup(group) {
 }
 
 function virtualAlbumGroups(albums, memories) {
+  albums = safeArray(albums).map(normalizeAlbumRecord);
+  memories = safeArray(memories).map(normalizeMemoryRecord);
+
   albums = safeArray(albums);
   memories = safeArray(memories);
 
-  const all = newest(memories.filter(function (memory) { return !memory.inMirror && !memory.archived && !memory.trashed; }));
+  const all = visibleAllMemories(memories, albums);
   const archived = newest(memories.filter(function (memory) { return Boolean(memory.archived) && !memory.trashed; }));
   const trash = newest(memories.filter(function (memory) { return Boolean(memory.trashed); }));
   const starredAlbum = albums.find(function (album) { return album.id === "star"; });
   const starredItems = starredAlbum ? newest(starredAlbum.memoryIds.map(function (id) {
-    return memories.find(function (memory) { return memory.id === id; });
+    return memories.find(function (memory) { return memory.id === id && !memoryExcludedFromAll(memory, albums); });
   }).filter(Boolean)) : [];
+  const unassignedAlbum = albums.find(function (album) { return album.id === UNASSIGNED_ALBUM_ID; });
+  const unassigned = unassignedAlbum ? newest(albumMemoryIds(unassignedAlbum).map(function (id) {
+    return memories.find(function (memory) { return memory.id === id && !memory.trashed && !memoryExcludedFromAll(memory, albums); });
+  }).filter(Boolean)) : [];
+  const videos = all.filter(function (memory) { return memory.kind === "video"; });
 
   return [
     { id: "virtual-all", sourceId: "virtual-all", title: "ALL", items: all, sort: all[0] ? all[0].sort : 0, virtual: true },
     { id: "virtual-starred", sourceId: "star", title: "STARRED", items: starredItems, sort: starredItems[0] ? starredItems[0].sort : 0, virtual: true },
     { id: "virtual-archived", sourceId: "virtual-archived", title: "ARCHIVED", items: archived, sort: archived[0] ? archived[0].sort : 0, virtual: true },
     { id: "virtual-trash", sourceId: "virtual-trash", title: "TRASH", items: trash, sort: trash[0] ? trash[0].sort : 0, virtual: true },
+    { id: "virtual-unassigned", sourceId: UNASSIGNED_ALBUM_ID, title: "UNASSIGNED", items: unassigned, sort: unassigned[0] ? unassigned[0].sort : 0, virtual: true },
+    { id: "virtual-videos", sourceId: "virtual-videos", title: "VIDEOS", items: videos, sort: videos[0] ? videos[0].sort : 0, virtual: true },
   ];
 }
 
-function albumGroups(albums, memories) {
+function albumGroups(albums, memories, parentId) {
+  albums = safeArray(albums).map(normalizeAlbumRecord);
+  memories = safeArray(memories).map(normalizeMemoryRecord);
+
   albums = safeArray(albums);
   memories = safeArray(memories);
+  const parent = String(parentId || "");
 
-  return albums.map(function (album) {
-    const items = newest(album.memoryIds.map(function (id) {
+  return albums.filter(function (album) {
+    return albumParentId(album) === parent;
+  }).map(function (album) {
+    const items = newest(albumMemoryIds(album).map(function (id) {
       return memories.find(function (memory) {
         return memory.id === id && !memory.trashed;
       });
     }).filter(Boolean));
     const cover = albumCoverMemory(album, memories);
+    const childAlbums = albums.filter(function (child) { return albumParentId(child) === String(album.id); });
 
     return {
       id: "album-" + album.id,
@@ -358,9 +498,13 @@ function albumGroups(albums, memories) {
       items,
       coverId: album.coverId || null,
       cover,
+      childAlbums,
+      childCount: childAlbums.length,
       sort: cover ? cover.sort : items[0] ? items[0].sort : 0,
       pinned: Boolean(album.pinned),
       locked: Boolean(album.locked),
+      parentId: albumParentId(album),
+      excludeFromAll: Boolean(album.excludeFromAll),
     };
   }).sort(function (a, b) {
     if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
@@ -369,6 +513,8 @@ function albumGroups(albums, memories) {
 }
 
 function ensureCoreAlbums(albums) {
+  albums = safeArray(albums).map(normalizeAlbumRecord);
+
   const byId = {};
   albums.forEach(function (album) {
     byId[album.id] = album;
@@ -398,6 +544,9 @@ function memoryHasHomeAlbum(memory, albums) {
 }
 
 function ensureAlbumCoverage(memories, albums) {
+  memories = safeArray(memories).map(normalizeMemoryRecord);
+  albums = safeArray(albums).map(normalizeAlbumRecord);
+
   memories = safeArray(memories);
   albums = safeArray(albums);
 
@@ -441,6 +590,8 @@ function albumHasMemory(albums, albumId, memoryId) {
 }
 
 function mirrorItems(memories) {
+  memories = safeArray(memories).map(normalizeMemoryRecord);
+
   memories = safeArray(memories);
 
   return newest(memories.filter(function (memory) {
@@ -455,6 +606,8 @@ function dateValue(value) {
 }
 
 function albumTitleExists(albums, title, exceptId) {
+  albums = safeArray(albums).map(normalizeAlbumRecord);
+
   const clean = String(title || "").trim().toLowerCase();
   if (!clean) return false;
   return albums.some(function (album) {
@@ -1592,9 +1745,6 @@ function ControlBar(props) {
         <Pill>{props.count}</Pill>
         {props.sync !== "saved" ? <Pill>{up(props.sync)}</Pill> : null}
       </div>
-      <div className="libraryActionCluster">
-        <button type="button" className={props.selectionMode ? "selectModeButton active" : "selectModeButton"} onClick={props.toggleSelectionMode}>{props.selectionMode ? "Done" : "Select"}</button>
-      </div>
     </div>
   );
 }
@@ -1621,7 +1771,7 @@ function GroupCard(props) {
   return (
     <button type="button" className="groupCard" onClick={function () { props.openGroup(group); }}>
       <div className="groupGrid">
-        {!displayItems.length ? <div className="emptyCard">EMPTY</div> : null}
+        {!displayItems.length ? <div className="emptyCard">{group.childCount ? group.childCount + " ALBUMS" : "EMPTY"}</div> : null}
         {displayItems.slice(0, 6).map(function (memory, index) {
           return (
             <PhotoCard
@@ -1641,14 +1791,13 @@ function GroupCard(props) {
           );
         })}
       </div>
-      {group.virtual ? <span className="systemFolderBadge">SYSTEM</span> : null}
       {group.pinned ? <span className="pinBadge">PIN</span> : null}
       {group.locked ? <span className="lockBadge">LOCK</span> : null}
       <div className="groupTitle">
         <strong>{up(group.title)}</strong>
         {group.description ? <small className="groupDescription">{up(group.description)}</small> : null}
-        <span>{group.items.length}</span>
-        <em>{formatBytes(albumSizeBytes(group.items))}</em>
+        <span>{group.items.length + (group.childCount || 0)}</span>
+        {group.excludeFromAll ? <em>Hidden from All</em> : <em>{formatBytes(albumSizeBytes(group.items))}</em>}
       </div>
     </button>
   );
@@ -1693,52 +1842,73 @@ function MirrorView(props) {
 }
 
 function AlbumsView(props) {
-  const albums = sortAlbumGroups(virtualAlbumGroups(safeArray(props.albums), safeArray(props.memories)).concat(albumGroups(safeArray(props.albums), safeArray(props.memories))), props.albumSort).filter(function (folder) {
-    const q = props.albumQuery.trim().toLowerCase();
+  const q = props.albumQuery.trim().toLowerCase();
+  const albums = sortAlbumGroups(
+    virtualAlbumGroups(safeArray(props.albums), safeArray(props.memories)).concat(
+      albumGroups(safeArray(props.albums), safeArray(props.memories), props.currentAlbumId)
+    ),
+    props.albumSort
+  ).filter(function (folder) {
     return !q || String(folder.title || "").toLowerCase().indexOf(q) !== -1;
   });
   const archiveGroups = props.archiveView === "albums" ? albums : groupBy(props.archiveView, safeArray(props.memories));
-  const virtualGroups = props.archiveView === "albums" ? archiveGroups.filter(isSystemAlbumGroup) : [];
+  const virtualGroups = props.archiveView === "albums" && !props.currentAlbumId ? archiveGroups.filter(isSystemAlbumGroup) : [];
   const realGroups = props.archiveView === "albums" ? archiveGroups.filter(function (group) { return !isSystemAlbumGroup(group); }) : archiveGroups;
   const isAlbums = props.archiveView === "albums";
+  const currentAlbum = props.currentAlbumId ? albumById(props.albums, props.currentAlbumId) : null;
+  const currentPhotos = currentAlbum ? directAlbumMemories(props.albums, props.memories, props.currentAlbumId) : [];
 
   return (
     <div className="pageScroll">
-      <VisibleReporter items={props.memories} reportVisibleIds={props.reportVisibleIds} />
+      <VisibleReporter items={props.currentAlbumId ? currentPhotos : props.memories} reportVisibleIds={props.reportVisibleIds} />
       {isAlbums ? (
-        <div className={props.albumCreateOpen ? "albumEditor creating" : "albumEditor"}>
-          <input
-            value={props.albumQuery}
-            onChange={function (event) { props.setAlbumQuery(event.target.value); }}
-            placeholder="Search albums"
-          />
+        <div className="albumControlsRow">
+          <div className="albumSearchOnly">
+            <input
+              value={props.albumQuery}
+              onChange={function (event) { props.setAlbumQuery(event.target.value); }}
+              placeholder={props.currentAlbumId ? "Search inside album" : "Search albums"}
+            />
+          </div>
+          {!props.albumCreateOpen ? (
+            <button type="button" className="newAlbumTrigger" onClick={function () { props.setAlbumCreateOpen(true); }}>
+              {props.currentAlbumId ? "New nested album" : "New album"}
+            </button>
+          ) : null}
           {props.albumCreateOpen ? (
-            <>
+            <div className="newAlbumPanel">
               <input
                 value={props.draft}
                 onChange={function (event) { props.setDraft(event.target.value); }}
-                placeholder="Album name"
+                placeholder={props.currentAlbumId ? "Nested album name" : "Album name"}
               />
-              <button type="button" className="createAlbumButton" title="Create album" onClick={props.createAlbum}>+</button>
-            </>
-          ) : (
-            <button type="button" className="createAlbumButton" title="New album" onClick={function () { props.setAlbumCreateOpen(true); }}>+</button>
-          )}
+              <button type="button" title="Create album" onClick={props.createAlbum}>Create</button>
+              <button type="button" onClick={function () { props.setAlbumCreateOpen(false); props.setDraft(""); }}>Cancel</button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {isAlbums && currentAlbum ? (
+        <div className="albumPathBar">
+          <button type="button" onClick={function () { props.setCurrentAlbumId(""); props.setAlbumQuery(""); props.setAlbumCreateOpen(false); }}>Albums</button>
+          <span>/</span>
+          <strong>{currentAlbum.title}</strong>
+          <button type="button" onClick={function () { props.toggleAlbumExcludeFromAll(currentAlbum.id); }}>
+            {currentAlbum.excludeFromAll ? "Show in All" : "Hide from All"}
+          </button>
         </div>
       ) : null}
 
       {isAlbums && virtualGroups.length ? (
-        <>
-          
-          <div className="systemRail">
-            {virtualGroups.map(function (group) {
-              return <SystemShortcutCard key={group.id} group={group} openGroup={props.openGroup} />;
-            })}
-          </div>
-        </>
+        <div className="systemRail">
+          {virtualGroups.map(function (group) {
+            return <SystemShortcutCard key={group.id} group={group} openGroup={props.openGroup} />;
+          })}
+        </div>
       ) : null}
 
-      <div className="archiveLabel">{isAlbums ? "Albums" : up(props.archiveView)}</div>
+      <div className="archiveLabel">{isAlbums ? (currentAlbum ? "Inside album" : "Albums") : up(props.archiveView)}</div>
       <div className={isAlbums ? "albumGrid folderView" : props.archiveView === "months" ? "albumGrid filterView" : "timelineStack filterView"}>
         {(isAlbums ? realGroups : archiveGroups).map(function (group) {
           const editing = isAlbums && props.editingId === group.sourceId;
@@ -1747,11 +1917,12 @@ function AlbumsView(props) {
           }
 
           return (
-            <div className="albumTile" key={group.id}>
+            <div className={group.excludeFromAll ? "albumTile excludedFromAll" : "albumTile"} key={group.id}>
               <div className="tileActions">
-                {!group.virtual ? <button type="button" onClick={function () { props.toggleAlbumPin(group.sourceId); }}>{group.pinned ? "UNPIN" : "PIN"}</button> : null}
-                {!group.virtual ? <button type="button" onClick={function () { props.toggleAlbumLock(group.sourceId); }}>{group.locked ? "UNLOCK" : "LOCK"}</button> : null}
-                {!group.virtual ? <button type="button" onClick={function () { props.startEdit(group.sourceId, group.title, group.description); }}>EDIT</button> : null}
+                {!group.virtual ? <button type="button" onClick={function () { props.toggleAlbumPin(group.sourceId); }}>{group.pinned ? "Unpin" : "Pin"}</button> : null}
+                {!group.virtual ? <button type="button" onClick={function () { props.toggleAlbumLock(group.sourceId); }}>{group.locked ? "Unlock" : "Lock"}</button> : null}
+                {!group.virtual ? <button type="button" onClick={function () { props.toggleAlbumExcludeFromAll(group.sourceId); }}>{group.excludeFromAll ? "Show in All" : "Hide from All"}</button> : null}
+                {!group.virtual ? <button type="button" onClick={function () { props.startEdit(group.sourceId, group.title, group.description); }}>Edit</button> : null}
                 {!group.virtual && !group.locked && group.sourceId !== UNASSIGNED_ALBUM_ID ? <button type="button" onClick={function () { props.deleteAlbum(group.sourceId); }}><X size={14} /></button> : null}
               </div>
               {editing ? (
@@ -1759,8 +1930,8 @@ function AlbumsView(props) {
                   <input value={props.editDraft} onChange={function (event) { props.setEditDraft(event.target.value); }} />
                   <input value={props.editDescriptionDraft} onChange={function (event) { props.setEditDescriptionDraft(event.target.value); }} placeholder="DESCRIPTION" />
                   <div>
-                    <button type="button" onClick={props.saveEdit}>SAVE</button>
-                    <button type="button" onClick={props.cancelEdit}>CANCEL</button>
+                    <button type="button" onClick={props.saveEdit}>Save</button>
+                    <button type="button" onClick={props.cancelEdit}>Cancel</button>
                   </div>
                 </Glass>
               ) : (
@@ -1770,6 +1941,20 @@ function AlbumsView(props) {
           );
         })}
       </div>
+
+      {isAlbums && currentAlbum ? (
+        <>
+          <div className="archiveLabel">Photos</div>
+          {!currentPhotos.length && !realGroups.length ? <EmptyState title="EMPTY ALBUM">Add photos or create a nested album.</EmptyState> : null}
+          {currentPhotos.length ? (
+            <div className="photoGrid">
+              {currentPhotos.map(function (memory) {
+                return <PhotoCard key={memory.id} memory={memory} showText selectionMode={props.selectionMode} selected={props.selectedIds && props.selectedIds[memory.id]} toggleSelected={props.toggleSelected} isStarred={props.starredIds && props.starredIds[memory.id]} onDelete={props.deleteMemory} onClick={function () { props.openMemory(memory); }} />;
+              })}
+            </div>
+          ) : null}
+        </>
+      ) : null}
     </div>
   );
 }
@@ -2081,6 +2266,7 @@ export default function App() {
   const [gridSize, setGridSize] = useState("normal");
   const [albumQuery, setAlbumQuery] = useState("");
     const [albumCreateOpen, setAlbumCreateOpen] = useState(false);
+  const [currentAlbumId, setCurrentAlbumId] = useState("");
 const [albumSort, setAlbumSort] = useState("recent");
   const [visibleIds, setVisibleIds] = useState([]);
   const [sync, setSync] = useState("loading");
@@ -2091,7 +2277,7 @@ const [albumSort, setAlbumSort] = useState("recent");
     let alive = true;
     loadIndex().then(function (index) {
       if (!alive) return;
-      setMemories(normalizeVaultIndex(index).memories);
+      setMemories(normalizeVaultIndex(normalizeVaultIndex(index)).memories);
       setAlbums(ensureAlbumCoverage(index.memories, index.albums));
       setSync("saved");
     }).catch(function () {
@@ -2113,8 +2299,8 @@ const [albumSort, setAlbumSort] = useState("recent");
 
   function undoLastAction() {
     if (!undoSnapshot) return;
-    setMemories(normalizeVaultIndex(undoSnapshot).memories);
-    setAlbums(normalizeVaultIndex(undoSnapshot).albums);
+    setMemories(normalizeVaultIndex(normalizeVaultIndex(undoSnapshot)).memories);
+    setAlbums(ensureCoreAlbums(normalizeVaultIndex(normalizeVaultIndex(undoSnapshot)).albums));
     setActiveMemory(undoSnapshot.activeMemory || null);
     setActiveGroup(undoSnapshot.activeGroup || null);
     persist(undoSnapshot.memories, undoSnapshot.albums);
@@ -2122,16 +2308,28 @@ const [albumSort, setAlbumSort] = useState("recent");
   }
 
   function persist(nextMemories, nextAlbums) {
+    const normalizedIndex = normalizeVaultIndex({ memories: nextMemories, albums: nextAlbums });
     if (saving.current) return;
     saving.current = true;
     setSync("saving");
-    saveIndex(nextMemories, nextAlbums).then(function (ok) {
+    saveIndex(normalizedIndex.memories, ensureCoreAlbums(normalizedIndex.albums)).then(function (ok) {
       setSync(ok ? "saved" : "local");
+      saving.current = false;
+    }).catch(function () {
+      setSync("local");
       saving.current = false;
     });
   }
 
   function openGroup(group) {
+    if (group && group.sourceId && !group.virtual && activePage === "albums") {
+      setCurrentAlbumId(String(group.sourceId));
+      setAlbumQuery("");
+      setAlbumCreateOpen(false);
+      setScreen("home");
+      setActiveGroup(null);
+      return;
+    }
     setActiveGroup(group);
     setScreen("group");
   }
@@ -2141,10 +2339,29 @@ const [albumSort, setAlbumSort] = useState("recent");
     setActiveGroup(null);
   }
 
+  function toggleAlbumExcludeFromAll(albumId) {
+    const next = albums.map(function (album) {
+      if (String(album.id) !== String(albumId)) return album;
+      return { ...album, excludeFromAll: !Boolean(album.excludeFromAll), updatedAt: new Date().toISOString() };
+    });
+    setAlbums(next);
+    persist(memories, next);
+  }
+
   function createAlbum() {
     const name = draft.trim();
     if (!name || albumTitleExists(albums, name)) return;
-    const next = ensureAlbumCoverage(memories, albums.concat([{ id: "custom-" + safeName(name.toLowerCase()) + "-" + Date.now(), title: name, description: "", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), memoryIds: [] }]));
+    const nextAlbum = {
+      id: "custom-" + safeName(name.toLowerCase()) + "-" + Date.now(),
+      title: name,
+      description: "",
+      parentId: currentAlbumId || "",
+      excludeFromAll: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      memoryIds: [],
+    };
+    const next = ensureAlbumCoverage(memories, albums.concat([nextAlbum]));
     setAlbums(next);
     setDraft("");
     setAlbumCreateOpen(false);
@@ -2288,8 +2505,8 @@ const [albumSort, setAlbumSort] = useState("recent");
       try {
         const parsed = JSON.parse(String(reader.result || "{}"));
         const restored = cleanIndex(parsed);
-        setMemories(normalizeVaultIndex(restored).memories);
-        setAlbums(normalizeVaultIndex(restored).albums);
+        setMemories(normalizeVaultIndex(normalizeVaultIndex(restored)).memories);
+        setAlbums(ensureCoreAlbums(normalizeVaultIndex(normalizeVaultIndex(restored)).albums));
         setActiveMemory(null);
         setActiveGroup(null);
         setSelectedIds({});
@@ -3017,8 +3234,8 @@ const [albumSort, setAlbumSort] = useState("recent");
   function reloadIndex() {
     loadIndex().then(function (index) {
       const clean = cleanIndex(index);
-      setMemories(normalizeVaultIndex(clean).memories);
-      setAlbums(normalizeVaultIndex(clean).albums);
+      setMemories(normalizeVaultIndex(normalizeVaultIndex(clean)).memories);
+      setAlbums(ensureCoreAlbums(normalizeVaultIndex(normalizeVaultIndex(clean)).albums));
       setSync("saved");
     });
   }
@@ -3194,6 +3411,7 @@ const [albumSort, setAlbumSort] = useState("recent");
                 <ControlBar archive={archive} archiveView={archiveView} setArchiveView={setArchiveView} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} viewControlsOpen={viewControlsOpen} toggleViewControls={function () { setViewControlsOpen(function (value) { return !value; }); }} toolsOpen={toolsOpen} toggleToolsPanel={function () { setToolsOpen(function (value) { return !value; }); }} />
                 <div className="floatingUtilityRail">
                   <button type="button" className={viewControlsOpen ? "active" : ""} onClick={function () { setViewControlsOpen(function (value) { return !value; }); }}>Filter</button>
+                  <button type="button" className={selectionMode ? "active" : ""} onClick={function () { setSelectionMode(function (value) { return !value; }); }}>{selectionMode ? "Done" : "Select"}</button>
                   <button type="button" className={toolsOpen ? "active" : ""} onClick={function () { setToolsOpen(function (value) { return !value; }); }}>⚙</button>
                 </div>
                 <ViewPanel open={viewControlsOpen} close={function () { setViewControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveView === "albums"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize} />
@@ -3205,7 +3423,7 @@ const [albumSort, setAlbumSort] = useState("recent");
                 <DuplicatePanel open={duplicatesOpen} memories={memories} close={function () { setDuplicatesOpen(false); }} openMemory={setActiveMemory} trashDuplicateOthers={trashDuplicateOthers} />
                 <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} repairIndex={repairIndex} />
                 <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { setBulkMoreOpen(function (value) { return !value; }); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkReview={bulkMarkReview} bulkClearReview={bulkClearReview} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDelete={bulkDelete} clearSelection={clearSelection} />
-                {activePage === "albums" ? <AlbumsView albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateOpen} archiveView={archiveView} memories={memories} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
+                {activePage === "albums" ? <AlbumsView currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateOpen} archiveView={archiveView} memories={memories} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
                 {activePage === "mirror" ? <MirrorView memories={memories} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
                 {activePage === "search" ? <SearchView memories={memories} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={setAdvancedSearchOpen} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
               </Glass>

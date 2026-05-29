@@ -5469,3 +5469,280 @@ input[type="file"] {
     grid-column: 1;
   }
 }
+
+
+/* Nested album behavior */
+.albumPathBar {
+  width: fit-content;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0 2px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.024);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16);
+}
+
+.albumPathBar button {
+  height: 26px;
+  min-height: 26px;
+  border-radius: 999px;
+  padding: 0 9px;
+  font-size: 10px;
+  box-shadow: none;
+}
+
+.albumPathBar span,
+.albumPathBar strong {
+  font-size: 10px;
+  color: rgba(0,0,0,.44);
+}
+
+.albumTile.excludedFromAll,
+.groupCard.excludedFromAll {
+  border-color: rgba(0,0,0,.16);
+  background:
+    radial-gradient(circle at 24% 0%, rgba(255,255,255,.16), transparent 34%),
+    linear-gradient(135deg, rgba(255,255,255,.085), rgba(255,255,255,.020) 56%, rgba(0,0,0,.075)),
+    rgba(255,255,255,.022);
+}
+
+.groupTitle em {
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.tileActions {
+  gap: 5px;
+}
+
+.tileActions button {
+  height: 26px;
+  min-height: 26px;
+  padding: 0 8px;
+  font-size: 9px;
+}
+
+.albumEditor.creating input::placeholder {
+  color: rgba(0,0,0,.34);
+}
+
+
+/* Final: requested nav/header/search/select/mirror changes */
+
+/* Bottom nav: icon only, no word titles */
+.dock span,
+.dock em,
+.dockButton span,
+.dockButton em {
+  display: none;
+}
+
+.dock button,
+.dockButton {
+  min-width: 42px;
+  width: 42px;
+  min-height: 42px;
+  height: 42px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+
+.dock svg {
+  width: 17px;
+  height: 17px;
+}
+
+/* Page headers: different treatment, not the same huge bold font */
+.productHeader {
+  margin: 0 0 3px;
+  padding-right: 156px;
+}
+
+.productHeader strong {
+  font-family: ui-serif, Georgia, "Times New Roman", serif;
+  font-size: clamp(18px, 1.45vw, 24px);
+  line-height: 1.05;
+  font-weight: 500;
+  letter-spacing: -.025em;
+  color: rgba(0,0,0,.62);
+}
+
+.productHeader em {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  color: rgba(0,0,0,.30);
+}
+
+/* Filter / Select / Cog together, top-right */
+.floatingUtilityRail {
+  position: absolute;
+  top: clamp(18px, 2vw, 24px);
+  right: clamp(18px, 2.4vw, 30px);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.20);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.024)),
+    rgba(255,255,255,.020);
+  box-shadow:
+    0 8px 22px rgba(0,0,0,.06),
+    inset 0 1px 0 rgba(255,255,255,.20);
+  backdrop-filter: blur(10px) saturate(1.06);
+  z-index: 8;
+}
+
+.floatingUtilityRail button {
+  height: 30px;
+  min-height: 30px;
+  border-radius: 999px;
+  padding: 0 11px;
+  font-size: 10px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.floatingUtilityRail button:last-child {
+  width: 30px;
+  padding: 0;
+  font-size: 14px;
+}
+
+.libraryActionCluster {
+  display: none;
+}
+
+/* Search and album creation are separate controls */
+.albumEditor,
+.albumEditor.creating {
+  display: none;
+}
+
+.albumControlsRow {
+  width: fit-content;
+  max-width: min(720px, 100%);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.albumSearchOnly {
+  width: min(320px, 100%);
+  padding: 5px;
+  border-radius: 13px;
+  border: 1px solid rgba(255,255,255,.18);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.016)),
+    rgba(0,0,0,.006);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+.albumSearchOnly input {
+  width: 100%;
+  height: 30px;
+  min-height: 30px;
+  border-radius: 8px;
+  font-size: 10px;
+}
+
+.newAlbumTrigger {
+  height: 32px;
+  min-height: 32px;
+  border-radius: 999px;
+  padding: 0 12px;
+  font-size: 10px;
+}
+
+.newAlbumPanel {
+  flex-basis: 100%;
+  width: fit-content;
+  max-width: min(440px, 100%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.026);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16);
+}
+
+.newAlbumPanel input {
+  width: 210px;
+  height: 30px;
+  min-height: 30px;
+  border-radius: 8px;
+  font-size: 10px;
+}
+
+.newAlbumPanel button {
+  height: 30px;
+  min-height: 30px;
+  border-radius: 9px;
+  padding: 0 10px;
+  font-size: 10px;
+}
+
+/* Mirror All button: real-sized and correctly named */
+.mirrorControl button,
+.mirrorPage .modeBar button,
+.mirrorPage .searchFilters button,
+.mirrorPage .groupTop button {
+  min-width: 58px;
+  height: 32px;
+  min-height: 32px;
+  border-radius: 999px;
+  padding: 0 13px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+/* Root tabs remain compact */
+.controlBar {
+  max-width: calc(100% - 180px);
+}
+
+/* Tools compact and clear */
+.toolsIconMenu,
+.toolsDropdown {
+  width: 250px;
+}
+
+@media (max-width: 760px) {
+  .productHeader {
+    padding-right: 0;
+  }
+
+  .floatingUtilityRail {
+    position: static;
+    width: fit-content;
+    margin-left: auto;
+  }
+
+  .albumControlsRow {
+    width: 100%;
+  }
+
+  .albumSearchOnly {
+    width: 100%;
+  }
+
+  .newAlbumPanel {
+    width: 100%;
+  }
+
+  .newAlbumPanel input {
+    flex: 1;
+    width: auto;
+  }
+}

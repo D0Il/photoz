@@ -1,268 +1,206 @@
-const DEFAULT_INDEX = { memories: [], albums: [], settings: {}, updatedAt: new Date().toISOString() };
+const INDEX_KEY = "index.json";
 
-const INDEX_KEY = "vault-index.json";
-const BACKUP_PREFIX = "index-backups/";
-const AUTH_COOKIE = "photoz_access";
-const ACCESS_ENV_NAME = "PHOTOZ_ACCESS_CODE";
+function corsHeaders() {
+  return {
+    "access-control-allow-origin": "*",
+    "access-control-allow-methods": "GET,POST,PUT,OPTIONS",
+    "access-control-allow-headers": "content-type",
+  };
+}
 
-function json(data, status = 200) {
+function jsonResponse(data, init = {}) {
   return new Response(JSON.stringify(data), {
-    status,
+    status: init.status || 200,
     headers: {
-      "content-type": "application/json; charset=utf-8",
-      "access-control-allow-origin": "*",
-      "access-control-allow-methods": "GET,PUT,POST,OPTIONS",
-      "access-control-allow-headers": "content-type",
+      "content-type": "application/json",
+      "cache-control": "no-store",
+      ...corsHeaders(),
+      ...(init.headers || {}),
     },
   });
 }
 
-function notFound() {
-  return json({ error: "not_found" }, 404);
+function emptyIndex(reason = "") {
+  return {
+    memories: [],
+    albums: [],
+    settings: {},
+    updatedAt: new Date().toISOString(),
+    warning: reason,
+  };
 }
 
-function safeKey(key) {
-  return String(key || "").replace(/^\/+/, "").replace(/\.\./g, "");
+function normalizeIndex(index) {
+  const source = index && typeof index === "object" ? index : {};
+  return {
+    ...source,
+    memories: Array.isArray(source.memories) ? source.memories : [],
+    albums: Array.isArray(source.albums) ? source.albums.map((album) => ({
+      ...album,
+      id: album && album.id ? album.id : `album-${Date.now()}`,
+      title: album && album.title ? album.title : "Untitled album",
+      memoryIds: Array.isArray(album && album.memoryIds) ? album.memoryIds : [],
+      parentId: album && album.parentId ? album.parentId : "",
+      excludeFromAll: Boolean(album && album.excludeFromAll),
+    })) : [],
+    settings: source.settings && typeof source.settings === "object" ? source.settings : {},
+    updatedAt: source.updatedAt || new Date().toISOString(),
+  };
 }
 
-function contentTypeFromKey(key) {
-  const lower = String(key || "").toLowerCase();
-  if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
-  if (lower.endsWith(".png")) return "image/png";
-  if (lower.endsWith(".gif")) return "image/gif";
-  if (lower.endsWith(".webp")) return "image/webp";
-  if (lower.endsWith(".heic")) return "image/heic";
-  if (lower.endsWith(".mp4")) return "video/mp4";
-  if (lower.endsWith(".mov")) return "video/quicktime";
-  return "application/octet-stream";
-}
-
-async function handleHealth(request, env) {
-  if (request.method === "OPTIONS") return json({ ok: true });
-  if (request.method !== "GET") return notFound();
-
-  const index = await env.photoz.get(INDEX_KEY);
-  return json({
-    ok: true,
-    bucket: "photoz",
-    indexFound: Boolean(index),
-    checkedAt: new Date().toISOString(),
-  });
-}
-
-function thumbKeyFromOriginal(key) {
-  return "thumbs/" + String(key || "").replace(/^\/+/, "") + ".webp";
-}
-
-async function handleThumb(request, env, pathname) {
-  if (request.method !== "GET" && request.method !== "HEAD") return notFound();
-
-  const key = safeKey(decodeURIComponent(pathname.replace(/^\/thumb\//, "")));
-  if (!key) return notFound();
-
-  const thumbKey = thumbKeyFromOriginal(key);
-  let object = await env.photoz.get(thumbKey);
-  let isThumb = true;
-
-  if (!object) {
-    object = await env.photoz.get(key);
-    isThumb = false;
-  }
-
-  if (!object) return notFound();
-
-  const headers = new Headers();
-  object.writeHttpMetadata(headers);
-  if (!headers.has("content-type")) headers.set("content-type", isThumb ? "image/webp" : contentTypeFromKey(key));
-  headers.set("etag", object.httpEtag);
-  headers.set("cache-control", "public, max-age=604800");
-
-  if (request.method === "HEAD") return new Response(null, { headers });
-  return new Response(object.body, { headers });
-}
-
-async function handleMedia(request, env, pathname) {
-  if (request.method !== "GET" && request.method !== "HEAD") return notFound();
-
-  const key = safeKey(decodeURIComponent(pathname.replace(/^\/media\//, "")));
-  if (!key) return notFound();
-
-  const object = await env.photoz.get(key);
-  if (!object) return notFound();
-
-  const headers = new Headers();
-  object.writeHttpMetadata(headers);
-  if (!headers.has("content-type")) headers.set("content-type", contentTypeFromKey(key));
-  headers.set("etag", object.httpEtag);
-  headers.set("cache-control", "public, max-age=31536000, immutable");
-
-  if (request.method === "HEAD") return new Response(null, { headers });
-  return new Response(object.body, { headers });
-}
-
-async function handleIndex(request, env) {
-  if (request.method === "OPTIONS") return json({ ok: true });
-
-  if (request.method === "GET") {
-    const object = await env.photoz.get(INDEX_KEY);
-    if (!object) {
-      return json({ version: 1, memories: [], albums: [], savedAt: new Date().toISOString() });
-    }
-    return new Response(await object.text(), {
-      headers: {
-        "content-type": "application/json; charset=utf-8",
-        "cache-control": "no-store",
-      },
-    });
-  }
-
-  if (request.method === "PUT") {
-    const body = await request.text();
-    let parsed;
-    try {
-      parsed = JSON.parse(body);
-    } catch (error) {
-      return json({ error: "invalid_json" }, 400);
-    }
-
-    parsed.savedAt = new Date().toISOString();
-    await env.photoz.put(INDEX_KEY, JSON.stringify(parsed, null, 2), {
-      httpMetadata: { contentType: "application/json; charset=utf-8" },
-    });
-
-    return json({ ok: true });
-  }
-
-  return notFound();
-}
-
-async function handleDelete(request, env) {
-  if (request.method === "OPTIONS") return json({ ok: true });
-  if (request.method !== "POST") return notFound();
-
-  let body;
+async function readJsonBody(request) {
   try {
-    body = await request.json();
+    return await request.json();
   } catch (error) {
-    return json({ error: "invalid_json" }, 400);
+    return {};
   }
+}
 
-  const key = safeKey(body.key);
-  if (!key) return json({ error: "missing_key" }, 400);
+async function readIndex(env) {
+  try {
+    if (env && env.PHOTOZ_INDEX && typeof env.PHOTOZ_INDEX.get === "function") {
+      const stored = await env.PHOTOZ_INDEX.get(INDEX_KEY, { type: "json" });
+      return normalizeIndex(stored || emptyIndex("missing index"));
+    }
 
-  await env.photoz.delete(key);
-  await env.photoz.delete(key + ".metadata.json");
+    if (env && env.photoz && typeof env.photoz.get === "function") {
+      const stored = await env.photoz.get(INDEX_KEY);
+      if (!stored) return normalizeIndex(emptyIndex("missing index"));
+      return normalizeIndex(JSON.parse(stored || "{}"));
+    }
 
-  return json({ ok: true, key });
+    if (env && env.PHOTOZ_BUCKET && typeof env.PHOTOZ_BUCKET.get === "function") {
+      const object = await env.PHOTOZ_BUCKET.get(INDEX_KEY);
+      if (!object) return normalizeIndex(emptyIndex("missing index"));
+      const text = await object.text();
+      return normalizeIndex(JSON.parse(text || "{}"));
+    }
+
+    return normalizeIndex(emptyIndex("missing binding"));
+  } catch (error) {
+    return normalizeIndex(emptyIndex(String(error && error.message ? error.message : error)));
+  }
+}
+
+async function writeIndex(env, index) {
+  const normalized = normalizeIndex(index);
+  normalized.updatedAt = new Date().toISOString();
+
+  try {
+    if (env && env.PHOTOZ_INDEX && typeof env.PHOTOZ_INDEX.put === "function") {
+      await env.PHOTOZ_INDEX.put(INDEX_KEY, JSON.stringify(normalized));
+      return normalized;
+    }
+
+    if (env && env.photoz && typeof env.photoz.put === "function") {
+      await env.photoz.put(INDEX_KEY, JSON.stringify(normalized));
+      return normalized;
+    }
+
+    if (env && env.PHOTOZ_BUCKET && typeof env.PHOTOZ_BUCKET.put === "function") {
+      await env.PHOTOZ_BUCKET.put(INDEX_KEY, JSON.stringify(normalized), {
+        httpMetadata: { contentType: "application/json" },
+      });
+      return normalized;
+    }
+
+    return normalized;
+  } catch (error) {
+    return normalized;
+  }
 }
 
 async function handleUpload(request, env) {
-  if (request.method === "OPTIONS") return json({ ok: true });
-  if (request.method !== "POST") return notFound();
-
-  const form = await request.formData();
-  const file = form.get("file");
-  const key = safeKey(form.get("key"));
-  const metadataRaw = String(form.get("metadata") || "{}");
-
-  if (!file || !key) {
-    return json({ error: "missing_file_or_key" }, 400);
-  }
-
-  let metadata = {};
   try {
-    metadata = JSON.parse(metadataRaw);
+    const form = await request.formData();
+    const files = [];
+    for (const [name, value] of form.entries()) {
+      if (value && typeof value === "object" && "name" in value) {
+        const id = `photo-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        const key = `uploads/${id}-${value.name || "file"}`;
+        let storageUrl = "";
+        if (env && env.PHOTOZ_BUCKET && typeof env.PHOTOZ_BUCKET.put === "function") {
+          await env.PHOTOZ_BUCKET.put(key, value.stream(), {
+            httpMetadata: { contentType: value.type || "application/octet-stream" },
+          });
+          storageUrl = `/api/file/${encodeURIComponent(key)}`;
+        }
+        files.push({
+          id,
+          title: value.name || "Untitled",
+          filename: value.name || "file",
+          kind: String(value.type || "").startsWith("video") ? "video" : "image",
+          type: value.type || "",
+          size: value.size || 0,
+          storageKey: key,
+          storageUrl,
+          previewUrl: storageUrl,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          sort: Date.now(),
+          albumIds: [],
+        });
+      }
+    }
+    return jsonResponse({ ok: true, files, memories: files });
   } catch (error) {
-    metadata = {};
+    return jsonResponse({ ok: false, error: String(error && error.message ? error.message : error), files: [], memories: [] });
   }
-
-  await env.photoz.put(key, file.stream(), {
-    httpMetadata: {
-      contentType: file.type || "application/octet-stream",
-    },
-    customMetadata: {
-      originalName: metadata.name || file.name || "",
-      kind: String(form.get("kind") || ""),
-      title: String(form.get("title") || ""),
-      lastModified: String(metadata.lastModified || ""),
-      signature: String(metadata.signature || ""),
-    },
-  });
-
-  await env.photoz.put(key + ".metadata.json", JSON.stringify(metadata, null, 2), {
-    httpMetadata: { contentType: "application/json; charset=utf-8" },
-  });
-
-  return json({ ok: true, key });
 }
 
-
-async function handleBackupIndex(request, env) {
-  if (request.method !== "POST") return notFound();
-  const current = await env.photoz.get(INDEX_KEY);
-  if (!current) return json({ ok: true, backedUp: false });
-  const text = await current.text();
-  const key = BACKUP_PREFIX + "vault-index-" + new Date().toISOString().replace(/[:.]/g, "-") + ".json";
-  await env.photoz.put(key, text, {
-    httpMetadata: { contentType: "application/json" },
+async function handleFile(env, pathname) {
+  const key = decodeURIComponent(pathname.replace("/api/file/", ""));
+  if (!env || !env.PHOTOZ_BUCKET || typeof env.PHOTOZ_BUCKET.get !== "function") {
+    return new Response("Missing bucket", { status: 404, headers: corsHeaders() });
+  }
+  const object = await env.PHOTOZ_BUCKET.get(key);
+  if (!object) return new Response("Not found", { status: 404, headers: corsHeaders() });
+  return new Response(object.body, {
+    headers: {
+      "content-type": object.httpMetadata && object.httpMetadata.contentType ? object.httpMetadata.contentType : "application/octet-stream",
+      "cache-control": "public, max-age=31536000",
+      ...corsHeaders(),
+    },
   });
-  return json({ ok: true, backedUp: true, key });
 }
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    if (request.method === "OPTIONS") {
+      return new Response("", { status: 204, headers: corsHeaders() });
+    }
+
     if (url.pathname === "/favicon.ico") {
-      return new Response("", { status: 204 });
+      return new Response("", { status: 204, headers: corsHeaders() });
     }
 
-    if (url.pathname === "/api/access") {
-      return handleAccess(request, env);
+    if ((url.pathname === "/api/index" || url.pathname === "/api/load-index") && request.method === "GET") {
+      return jsonResponse(await readIndex(env));
     }
 
-    const authError = await requireAuth(request, env);
-    if (authError) return authError;
+    if ((url.pathname === "/api/index" || url.pathname === "/api/save-index") && request.method !== "GET") {
+      const body = await readJsonBody(request);
+      const index = body && body.memories !== undefined ? body : body.index;
+      return jsonResponse(await writeIndex(env, index || emptyIndex("empty save")));
+    }
 
     if (url.pathname === "/api/backup-index") {
-      return handleBackupIndex(request, env);
+      if (request.method === "GET") return jsonResponse(await readIndex(env));
+      const body = await readJsonBody(request);
+      const index = body && body.memories !== undefined ? body : body.index;
+      return jsonResponse(await writeIndex(env, index || emptyIndex("empty backup")));
     }
 
-    if (url.pathname === "/api/health") {
-      return handleHealth(request, env);
-    }
-
-    if (url.pathname.startsWith("/thumb/")) {
-      return handleThumb(request, env, url.pathname);
-    }
-
-    if (url.pathname.startsWith("/media/")) {
-      return handleMedia(request, env, url.pathname);
-    }
-
-    if (url.pathname === "/api/index") {
-      return handleIndex(request, env);
-    }
-
-    if (url.pathname === "/api/upload") {
+    if (url.pathname === "/api/upload" && request.method === "POST") {
       return handleUpload(request, env);
     }
 
-    if (url.pathname === "/api/delete") {
-      return handleDelete(request, env);
+    if (url.pathname.startsWith("/api/file/")) {
+      return handleFile(env, url.pathname);
     }
 
-    return env.ASSETS.fetch(request);
+    return new Response("Not found", { status: 404, headers: corsHeaders() });
   },
 };
-
-
-function jsonResponse(data, init = {}) {
-  return new Response(JSON.stringify(data), {
-    status: init.status || 200,
-    headers: { "content-type": "application/json", "cache-control": "no-store", ...(init.headers || {}) },
-  });
-}
-
-function emptyIndex(reason = "") {
-  return { memories: [], albums: [], settings: {}, updatedAt: new Date().toISOString(), warning: reason };
-}

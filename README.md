@@ -894,3 +894,34 @@ Fixed the visible layout problems from the screenshot:
 - Tool subtitles stay hidden.
 - No blank-looking upload/folder cells.
 - No `!important` rules.
+
+
+## Nested albums and Hide from All
+
+Added:
+- Albums can be created inside the currently open album.
+- Opening a real album navigates into that album level.
+- Albums can contain nested albums and direct photos.
+- Albums have a Hide from All / Show in All action.
+- Hiding an album from All also hides photos inside its nested child albums from All.
+- Root utility views remain separate from real album cards.
+
+
+## Requested nav/header/search/select/mirror cleanup
+
+Changed:
+- Bottom nav is icon-only.
+- Page headers use a different smaller serif treatment, not the same huge bold headline style.
+- Select is beside Filter in the top-right utility rail.
+- Album search and album creation are separate controls.
+- Mirror “All” control is labeled All and enlarged.
+- Tools remains cog-based with Upload/Folder inside.
+
+
+## Hard upload/index crash fix
+
+- Removed duplicate normalizers.
+- `/api/index`, `/api/load-index`, and `/api/backup-index` return safe JSON instead of 500.
+- Worker supports both `PHOTOZ_INDEX`, `photoz`, and `PHOTOZ_BUCKET` bindings.
+- Upload endpoint returns safe JSON even if storage binding is unavailable.
+- Frontend normalizes missing memories/albums/memoryIds before `.filter()` or `.map()`.
