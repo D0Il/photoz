@@ -47,21 +47,30 @@ async function readJsonBody(request) {
   try { return await request.json(); } catch (error) { return {}; }
 }
 
+async function readStoredText(stored) {
+  if (!stored) return "";
+  if (typeof stored === "string") return stored;
+  if (typeof stored.text === "function") return await stored.text();
+  return String(stored || "");
+}
+
+function getMediaBucket(env) {
+  if (env && env.PHOTOZ_BUCKET && typeof env.PHOTOZ_BUCKET.put === "function") return env.PHOTOZ_BUCKET;
+  if (env && env.photoz && typeof env.photoz.put === "function") return env.photoz;
+  return null;
+}
+
 async function readIndex(env) {
   try {
     if (env && env.PHOTOZ_INDEX && typeof env.PHOTOZ_INDEX.get === "function") {
       const stored = await env.PHOTOZ_INDEX.get(INDEX_KEY, { type: "json" });
       return normalizeIndex(stored || emptyIndex("missing index"));
     }
-    if (env && env.photoz && typeof env.photoz.get === "function") {
-      const stored = await env.photoz.get(INDEX_KEY);
+    const bucket = getMediaBucket(env);
+    if (bucket && typeof bucket.get === "function") {
+      const stored = await bucket.get(INDEX_KEY);
       if (!stored) return normalizeIndex(emptyIndex("missing index"));
-      return normalizeIndex(JSON.parse(stored || "{}"));
-    }
-    if (env && env.PHOTOZ_BUCKET && typeof env.PHOTOZ_BUCKET.get === "function") {
-      const object = await env.PHOTOZ_BUCKET.get(INDEX_KEY);
-      if (!object) return normalizeIndex(emptyIndex("missing index"));
-      const text = await object.text();
+      const text = await readStoredText(stored);
       return normalizeIndex(JSON.parse(text || "{}"));
     }
     return normalizeIndex(emptyIndex("missing binding"));
@@ -76,10 +85,9 @@ async function writeIndex(env, index) {
   try {
     if (env && env.PHOTOZ_INDEX && typeof env.PHOTOZ_INDEX.put === "function") {
       await env.PHOTOZ_INDEX.put(INDEX_KEY, JSON.stringify(normalized));
-    } else if (env && env.photoz && typeof env.photoz.put === "function") {
-      await env.photoz.put(INDEX_KEY, JSON.stringify(normalized));
-    } else if (env && env.PHOTOZ_BUCKET && typeof env.PHOTOZ_BUCKET.put === "function") {
-      await env.PHOTOZ_BUCKET.put(INDEX_KEY, JSON.stringify(normalized), { httpMetadata: { contentType: "application/json" } });
+    } else {
+      const bucket = getMediaBucket(env);
+      if (bucket) await bucket.put(INDEX_KEY, JSON.stringify(normalized), { httpMetadata: { contentType: "application/json" } });
     }
   } catch (error) {}
   return normalized;
@@ -93,11 +101,10 @@ async function handleUpload(request, env) {
       if (value && typeof value === "object" && "name" in value) {
         const id = `photo-${Date.now()}-${Math.random().toString(36).slice(2)}`;
         const key = `uploads/${id}-${value.name || "file"}`;
-        let storageUrl = "";
-        if (env && env.PHOTOZ_BUCKET && typeof env.PHOTOZ_BUCKET.put === "function") {
-          await env.PHOTOZ_BUCKET.put(key, value.stream(), { httpMetadata: { contentType: value.type || "application/octet-stream" } });
-          storageUrl = `/api/file/${encodeURIComponent(key)}`;
-        }
+        const bucket = getMediaBucket(env);
+        if (!bucket) return jsonResponse({ ok: false, error: "PHOTOZ_BUCKET_NOT_CONFIGURED", files: [], memories: [] }, { status: 500 });
+        let storageUrl = `/api/file/${key}`;
+        await bucket.put(key, value.stream(), { httpMetadata: { contentType: value.type || "application/octet-stream" } });
         files.push({
           id,
           title: value.name || "Untitled",
@@ -122,11 +129,12 @@ async function handleUpload(request, env) {
 }
 
 async function handleFile(env, pathname) {
-  const key = decodeURIComponent(pathname.replace("/api/file/", ""));
-  if (!env || !env.PHOTOZ_BUCKET || typeof env.PHOTOZ_BUCKET.get !== "function") {
+  const key = decodeURIComponent(pathname.replace(/^\/(api\/file|media)\//, ""));
+  const bucket = getMediaBucket(env);
+  if (!bucket || typeof bucket.get !== "function") {
     return new Response("Missing bucket", { status: 404, headers: corsHeaders() });
   }
-  const object = await env.PHOTOZ_BUCKET.get(key);
+  const object = await bucket.get(key);
   if (!object) return new Response("Not found", { status: 404, headers: corsHeaders() });
   return new Response(object.body, {
     headers: {
@@ -186,7 +194,7 @@ export default {
       return jsonResponse(await writeIndex(env, index || emptyIndex("empty backup")));
     }
     if (url.pathname === "/api/upload" && request.method === "POST") return handleUpload(request, env);
-    if (url.pathname.startsWith("/api/file/")) return handleFile(env, url.pathname);
+    if (url.pathname.startsWith("/api/file/") || url.pathname.startsWith("/media/")) return handleFile(env, url.pathname);
     return new Response("Not found", { status: 404, headers: corsHeaders() });
   },
 };

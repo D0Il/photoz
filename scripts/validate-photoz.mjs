@@ -49,10 +49,20 @@ check("tooltip z-index high", /\[data-tooltip\]::after[\s\S]*z-index:\s*9999/.te
 check("tooltip containers overflow visible", css.includes(".dockWrap,") && css.includes(".dock,") && css.includes(".bottomDock,") && css.includes(".floatingUtilityCluster,") && css.includes("overflow: visible"));
 check("no broad important overrides", !css.includes("!important"));
 
+check("upload media route uses Worker file endpoint", app.includes('const MEDIA_BASE = "/api/file";'));
+check("handleUploadOriginal accepts event or FileList inputs", app.includes('function handleUploadOriginal(eventOrFiles)'));
+check("upload flow normalizes event or FileList", app.includes('eventOrFiles && eventOrFiles.target && eventOrFiles.target.files'));
+check("worker uses shared media bucket helper", worker.includes('function getMediaBucket(env)'));
+check("worker supports both bucket binding names", worker.includes('env.photoz') && worker.includes('env.PHOTOZ_BUCKET'));
+check("worker serves legacy media URLs", worker.includes('url.pathname.startsWith("/media/")'));
+check("worker file reads do not hard-code PHOTOZ_BUCKET only", !worker.includes('env.PHOTOZ_BUCKET.get(key);'));
+check("worker uploads do not hard-code PHOTOZ_BUCKET only", !worker.includes('env.PHOTOZ_BUCKET.put(key'));
+
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
   for (const failure of failures) console.error("- " + failure);
   process.exit(1);
 }
+
 
 console.log("PHOTOZ validation passed.");

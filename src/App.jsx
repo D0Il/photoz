@@ -28,7 +28,7 @@ const GRID_SIZES = ["compact", "normal", "large"];
 const ALBUM_SORT_OPTIONS = ["recent", "title", "count", "size"];
 const APP_VERSION = "2026.05.29-stabilize-simplify";
 const INDEX_SCHEMA_VERSION = 3;
-const MEDIA_BASE = "/media";
+const MEDIA_BASE = "/api/file";
 const MAX_PARALLEL_UPLOADS = 3;
 
 
@@ -4220,11 +4220,14 @@ const [albumSort, setAlbumSort] = useState("recent");
     }, 50);
   }
 
-  function handleUploadOriginal(event) {
-    const files = Array.prototype.slice.call(event.target.files || []).filter(function (file) {
-      return file.type && (file.type.indexOf("image") === 0 || file.type.indexOf("video") === 0);
+  function handleUploadOriginal(eventOrFiles) {
+    const sourceFiles = eventOrFiles && eventOrFiles.target && eventOrFiles.target.files
+      ? eventOrFiles.target.files
+      : eventOrFiles;
+    const files = Array.prototype.slice.call(sourceFiles || []).filter(function (file) {
+      return file && file.type && (file.type.indexOf("image") === 0 || file.type.indexOf("video") === 0);
     });
-    event.target.value = "";
+    if (eventOrFiles && eventOrFiles.target) eventOrFiles.target.value = "";
 
     if (!files.length) return;
 
