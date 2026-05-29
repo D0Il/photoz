@@ -95,3 +95,5 @@ Added:
 - file detail restore action for trashed files
 - clearer file detail header and trash ribbon
 - playback-only video view preserved
+
+- Fixed TDZ runtime crash by moving PHOTOZ workflow derived values after albums/memories state initialization.

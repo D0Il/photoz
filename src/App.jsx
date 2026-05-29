@@ -2935,11 +2935,6 @@ export default function App() {
     installUiInteractionSounds();
   }, []);
 
-
-  const pzActiveAlbumEditor = pzFindAlbum(albums, pzAlbumEditorId);
-  const pzActiveDetailMemory = safeArray(memories).map(normalizeMemoryRecord).find(function (memory) { return memory.id === pzDetailEditorId; }) || null;
-  const pzActiveVideoMemory = safeArray(memories).map(normalizeMemoryRecord).find(function (memory) { return memory.id === pzVideoPlayerId; }) || null;
-
   function pzSaveAlbumEditor(id, patch) {
     setAlbums(function (items) { return pzUpdateAlbum(items, id, patch); });
     setPzBackupState(function (state) { return { ...state, lastSavedAt: pzNowIso() }; });
@@ -3016,6 +3011,11 @@ const [screen, setScreen] = useState("home");
   const [activeMemory, setActiveMemory] = useState(null);
   const [memories, setMemories] = useState([]);
   const [albums, setAlbums] = useState(ensureCoreAlbums(INITIAL_ALBUMS));
+  const pzActiveAlbumEditor = pzFindAlbum(albums, pzAlbumEditorId);
+  const pzActiveDetailMemory = safeArray(memories).map(normalizeMemoryRecord).find(function (memory) { return memory.id === pzDetailEditorId; }) || null;
+  const pzActiveVideoMemory = safeArray(memories).map(normalizeMemoryRecord).find(function (memory) { return memory.id === pzVideoPlayerId; }) || null;
+
+
   const [draft, setDraft] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editDraft, setEditDraft] = useState("");
