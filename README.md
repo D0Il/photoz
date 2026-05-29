@@ -35,3 +35,5 @@ The Worker guards `/api/index`, `/api/load-index`, `/api/backup-index`, `/api/sa
 - Album shortcuts use compact symbols/icons: `★`, trash-can icon, and `?`.
 
 - Search bar input now fills the glass bubble instead of appearing undersized.
+
+- Page header now uses a distinct editorial serif treatment instead of the same UI font.
