@@ -1072,3 +1072,11 @@ Changed Mirror “All”:
 - Off state shows featured/fav-style Mirror/ME photos.
 - On state shows all Mirror/ME photos.
 - Old Mirror shortcut/folder-card UI is hidden.
+
+
+## Runtime `memories is not defined` fix
+
+Fixed:
+- Replaced the bad `groupBy` guard that referenced `memories` inside `groupBy(mode, items)`.
+- `groupBy` now normalizes `items` only.
+- Rebuilt successfully.

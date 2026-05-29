@@ -293,9 +293,7 @@ function pageItems(page, memories) {
 }
 
 function groupBy(mode, items) {
-  memories = safeArray(memories).map(normalizeMemoryRecord);
-
-  memories = safeArray(memories);
+  items = safeArray(items).map(normalizeMemoryRecord);
 
   const key = mode === "months" ? "month" : mode === "eras" ? "era" : "year";
   const groups = {};
