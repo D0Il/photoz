@@ -761,3 +761,25 @@ Polished PHOTOZ as an album-first private photo archive:
 - Search is calmer and more elegant.
 - Modal is media-first.
 - Legacy metadata clutter remains hidden.
+
+
+## Screenshot exact UI fix
+
+Fixed the actual visible issue from the screenshot:
+
+- System shortcuts no longer render through album cards.
+- System shortcuts now use a separate compact rail component.
+- The system row uses flat utility buttons.
+- Starred displays as `★`.
+- Old system-card visuals are killed with hard CSS guards.
+
+
+## Source CSS cleanup
+
+Replaced the layered stylesheet with one clean source-level stylesheet.
+
+- Removed the override pile.
+- Removed `!important` usage.
+- System shortcuts are a separate rail, not album cards.
+- Tools/View are clean dropdown panels.
+- Album cards, photo cards, modal, toolbar, and panels each have one canonical style.

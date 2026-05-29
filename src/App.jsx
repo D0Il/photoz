@@ -38,6 +38,17 @@ function displayShortcutSymbol(value) {
   return "";
 }
 
+function cleanSystemLabel(value) {
+  const text = String(value || "").toLowerCase();
+  if (text === "starred" || text === "star") return "★";
+  if (text === "archived" || text === "archive" || text === "hidden") return "Hidden";
+  if (text === "trash" || text === "trashed") return "Trash";
+  if (text === "all") return "All";
+  if (text === "unassigned") return "Unassigned";
+  if (text === "videos") return "Videos";
+  return up(value);
+}
+
 function systemShortcutLabel(value) {
   const text = String(value || "").toLowerCase();
   if (text === "starred" || text === "star") return "★";
@@ -1560,12 +1571,9 @@ function ControlBar(props) {
 
 function SystemShortcutCard(props) {
   const group = props.group;
-  const label = systemShortcutLabel(group.title || group.id);
-  const symbol = displayShortcutSymbol(group.title || group.id);
   return (
-    <button type="button" className="systemShortcutLink" onClick={function () { props.openGroup(group); }}>
-      <b>{symbol || label}</b>
-      <span>{symbol ? label : ""}</span>
+    <button type="button" className="systemRailItem" onClick={function () { props.openGroup(group); }}>
+      <span>{cleanSystemLabel(group.title || group.id)}</span>
       <em>{group.items.length}</em>
     </button>
   );
@@ -3287,7 +3295,7 @@ export default function App() {
   const key = screen + "-" + (activeGroup ? activeGroup.id : "home");
 
   return (
-    <div className="app photozProUI">
+    <div className="app">
       <Dock active={activePage} setActive={setActivePage} />
       <main>
         <AnimatePresence mode="wait">
