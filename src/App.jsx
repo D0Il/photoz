@@ -1273,7 +1273,7 @@ function ViewPanel(props) {
   return (
     <div className="viewDropdown">
       <div className="statusPanelTop">
-        <strong>View</strong>
+        <strong>Filter</strong>
         <button type="button" onClick={props.close}>Close</button>
       </div>
       <div className="viewPanelGrid">
@@ -1289,19 +1289,17 @@ function ToolsPanel(props) {
   if (!props.open) return null;
 
   return (
-    <div className="toolsDropdown">
-      <div className="toolsDropdownTop">
-        <strong>Tools</strong>
-        <button type="button" onClick={props.close}>×</button>
-      </div>
+    <div className="toolsDropdown toolsIconMenu">
       <div className="toolsDropdownList">
-        <button type="button" onClick={props.toggleImportPanel}><span>Import</span><em>Add photos</em></button>
-        <button type="button" onClick={props.toggleUploadQueuePanel}><span>Queue</span><em>Uploads</em></button>
-        <button type="button" onClick={props.toggleDuplicatePanel}><span>Duplicates</span><em>Review</em></button>
-        <button type="button" onClick={props.toggleStatusPanel}><span>Missing</span><em>Reselect</em></button>
-        <button type="button" onClick={props.toggleHealthPanel}><span>Repair</span><em>Archive</em></button>
-        <button type="button" onClick={props.exportVaultIndex}><span>Backup</span><em>Export</em></button>
-        <button type="button" onClick={props.exportManifestCsv}><span>List</span><em>CSV</em></button>
+        <UploadButton onUpload={props.onUpload} />
+        <UploadButton onUpload={props.onUpload} folder />
+        <button type="button" onClick={props.toggleImportPanel}>Import</button>
+        <button type="button" onClick={props.toggleUploadQueuePanel}>Queue</button>
+        <button type="button" onClick={props.toggleDuplicatePanel}>Duplicates</button>
+        <button type="button" onClick={props.toggleStatusPanel}>Missing</button>
+        <button type="button" onClick={props.toggleHealthPanel}>Repair</button>
+        <button type="button" onClick={props.exportVaultIndex}>Backup</button>
+        <button type="button" onClick={props.exportManifestCsv}>List</button>
         <ImportBackupButton onImport={props.importVaultIndex} />
       </div>
     </div>
@@ -1594,10 +1592,8 @@ function ControlBar(props) {
         <Pill>{props.count}</Pill>
         {props.sync !== "saved" ? <Pill>{up(props.sync)}</Pill> : null}
       </div>
-      <div className="rightControls">
-        <button type="button" className={props.selectionMode ? "selectModeButton active" : "selectModeButton"} onClick={props.toggleSelectionMode}>{props.selectionMode ? "DONE" : "SELECT"}</button>
-        <UploadButton onUpload={props.onUpload} />
-        <UploadButton onUpload={props.onUpload} folder />
+      <div className="libraryActionCluster">
+        <button type="button" className={props.selectionMode ? "selectModeButton active" : "selectModeButton"} onClick={props.toggleSelectionMode}>{props.selectionMode ? "Done" : "Select"}</button>
       </div>
     </div>
   );
@@ -1710,25 +1706,30 @@ function AlbumsView(props) {
     <div className="pageScroll">
       <VisibleReporter items={props.memories} reportVisibleIds={props.reportVisibleIds} />
       {isAlbums ? (
-        <div className="albumEditor">
-          <Pill>{realGroups.length}</Pill>
+        <div className={props.albumCreateOpen ? "albumEditor creating" : "albumEditor"}>
           <input
             value={props.albumQuery}
             onChange={function (event) { props.setAlbumQuery(event.target.value); }}
-            placeholder="FIND ALBUM"
+            placeholder="Search albums"
           />
-          <input
-            value={props.draft}
-            onChange={function (event) { props.setDraft(event.target.value); }}
-            placeholder="NEW ALBUM"
-          />
-          <button type="button" onClick={props.createAlbum}>CREATE</button>
+          {props.albumCreateOpen ? (
+            <>
+              <input
+                value={props.draft}
+                onChange={function (event) { props.setDraft(event.target.value); }}
+                placeholder="Album name"
+              />
+              <button type="button" className="createAlbumButton" title="Create album" onClick={props.createAlbum}>+</button>
+            </>
+          ) : (
+            <button type="button" className="createAlbumButton" title="New album" onClick={function () { props.setAlbumCreateOpen(true); }}>+</button>
+          )}
         </div>
       ) : null}
 
       {isAlbums && virtualGroups.length ? (
         <>
-          <div className="archiveLabel">Shortcuts</div>
+          
           <div className="systemRail">
             {virtualGroups.map(function (group) {
               return <SystemShortcutCard key={group.id} group={group} openGroup={props.openGroup} />;
@@ -2079,7 +2080,8 @@ export default function App() {
   const [missingReport, setMissingReport] = useState(null);
   const [gridSize, setGridSize] = useState("normal");
   const [albumQuery, setAlbumQuery] = useState("");
-  const [albumSort, setAlbumSort] = useState("recent");
+    const [albumCreateOpen, setAlbumCreateOpen] = useState(false);
+const [albumSort, setAlbumSort] = useState("recent");
   const [visibleIds, setVisibleIds] = useState([]);
   const [sync, setSync] = useState("loading");
   const [undoSnapshot, setUndoSnapshot] = useState(null);
@@ -2145,6 +2147,7 @@ export default function App() {
     const next = ensureAlbumCoverage(memories, albums.concat([{ id: "custom-" + safeName(name.toLowerCase()) + "-" + Date.now(), title: name, description: "", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), memoryIds: [] }]));
     setAlbums(next);
     setDraft("");
+    setAlbumCreateOpen(false);
     persist(memories, next);
   }
 
@@ -3190,19 +3193,19 @@ export default function App() {
                 </div>
                 <ControlBar archive={archive} archiveView={archiveView} setArchiveView={setArchiveView} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} viewControlsOpen={viewControlsOpen} toggleViewControls={function () { setViewControlsOpen(function (value) { return !value; }); }} toolsOpen={toolsOpen} toggleToolsPanel={function () { setToolsOpen(function (value) { return !value; }); }} />
                 <div className="floatingUtilityRail">
-                  <button type="button" className={viewControlsOpen ? "active" : ""} onClick={function () { setViewControlsOpen(function (value) { return !value; }); }}>View</button>
-                  <button type="button" className={toolsOpen ? "active" : ""} onClick={function () { setToolsOpen(function (value) { return !value; }); }}>Tools</button>
+                  <button type="button" className={viewControlsOpen ? "active" : ""} onClick={function () { setViewControlsOpen(function (value) { return !value; }); }}>Filter</button>
+                  <button type="button" className={toolsOpen ? "active" : ""} onClick={function () { setToolsOpen(function (value) { return !value; }); }}>⚙</button>
                 </div>
                 <ViewPanel open={viewControlsOpen} close={function () { setViewControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveView === "albums"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize} />
                 <UndoBar snapshot={undoSnapshot} undo={undoLastAction} clear={function () { setUndoSnapshot(null); }} />
-                <ToolsPanel open={toolsOpen} close={function () { setToolsOpen(false); }} toggleImportPanel={function () { setImportPanelOpen(function (value) { return !value; }); }} toggleUploadQueuePanel={function () { setUploadQueueOpen(function (value) { return !value; }); }} toggleStatusPanel={function () { setStatusOpen(function (value) { return !value; }); }} toggleDuplicatePanel={function () { setDuplicatesOpen(function (value) { return !value; }); }} toggleHealthPanel={function () { setHealthOpen(function (value) { return !value; }); }} exportVaultIndex={exportVaultIndex} exportManifestCsv={exportManifestCsv} importVaultIndex={importVaultIndex} />
+                <ToolsPanel onUpload={handleUpload} open={toolsOpen} close={function () { setToolsOpen(false); }} toggleImportPanel={function () { setImportPanelOpen(function (value) { return !value; }); }} toggleUploadQueuePanel={function () { setUploadQueueOpen(function (value) { return !value; }); }} toggleStatusPanel={function () { setStatusOpen(function (value) { return !value; }); }} toggleDuplicatePanel={function () { setDuplicatesOpen(function (value) { return !value; }); }} toggleHealthPanel={function () { setHealthOpen(function (value) { return !value; }); }} exportVaultIndex={exportVaultIndex} exportManifestCsv={exportManifestCsv} importVaultIndex={importVaultIndex} />
                 <ImportPanel open={importPanelOpen} close={function () { setImportPanelOpen(false); }} uploadBatchSize={uploadBatchSize} setUploadBatchSize={setUploadBatchSize} uploadConcurrency={uploadConcurrency} setUploadConcurrency={setUploadConcurrency} skipDuplicates={skipDuplicates} setSkipDuplicates={setSkipDuplicates} importSummary={importSummary} />
                 <UploadQueuePanel open={uploadQueueOpen} queue={uploadQueue} paused={uploadPaused} togglePause={function () { setUploadPaused(function (value) { return !value; }); }} retryFailed={retryFailedUploads} close={function () { setUploadQueueOpen(false); }} clearFinished={function () { setUploadQueue(function (items) { return items.filter(function (item) { return item.status === "queued" || item.status === "uploading"; }); }); }} />
                 <StatusPanel open={statusOpen} memories={memories} close={function () { setStatusOpen(false); }} retryUpload={retryUpload} clearLocalFailedStatus={clearLocalFailedStatus} purgeTrash={purgeTrash} />
                 <DuplicatePanel open={duplicatesOpen} memories={memories} close={function () { setDuplicatesOpen(false); }} openMemory={setActiveMemory} trashDuplicateOthers={trashDuplicateOthers} />
                 <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} repairIndex={repairIndex} />
                 <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { setBulkMoreOpen(function (value) { return !value; }); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkReview={bulkMarkReview} bulkClearReview={bulkClearReview} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDelete={bulkDelete} clearSelection={clearSelection} />
-                {activePage === "albums" ? <AlbumsView archiveView={archiveView} memories={memories} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
+                {activePage === "albums" ? <AlbumsView albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateOpen} archiveView={archiveView} memories={memories} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
                 {activePage === "mirror" ? <MirrorView memories={memories} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
                 {activePage === "search" ? <SearchView memories={memories} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={setAdvancedSearchOpen} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
               </Glass>

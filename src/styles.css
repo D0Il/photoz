@@ -4381,3 +4381,464 @@ input[type="file"] {
     width: 100%;
   }
 }
+
+
+/* Utility rail refinement: no ugly label, bigger intentional controls */
+.systemRail {
+  margin: 2px 0 16px;
+  gap: 8px;
+}
+
+.systemRailItem {
+  height: 34px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 11px;
+  border: 1px solid rgba(255,255,255,.24);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.024)),
+    rgba(0,0,0,.010);
+  box-shadow:
+    0 8px 20px rgba(0,0,0,.055),
+    inset 0 1px 0 rgba(255,255,255,.20);
+}
+
+.systemRailItem span {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .01em;
+  color: rgba(0,0,0,.56);
+}
+
+.systemRailItem em {
+  font-size: 11px;
+  font-weight: 850;
+  color: rgba(0,0,0,.34);
+}
+
+.systemRailItem:hover {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.035)),
+    rgba(0,0,0,.012);
+  transform: translateY(-1px);
+}
+
+/* Pull Albums label closer now that the shortcut label is gone */
+.systemRail + .archiveLabel {
+  margin-top: 12px;
+}
+
+
+/* Compact headers fix: no giant brick titles */
+.productHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 2px;
+  min-height: 0;
+}
+
+.productHeader strong {
+  font-size: clamp(18px, 1.65vw, 26px);
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -.035em;
+  color: rgba(0,0,0,.66);
+}
+
+.productHeader em {
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 850;
+  letter-spacing: .08em;
+  color: rgba(0,0,0,.34);
+}
+
+/* Pull the interface upward now that the title is not a hero block */
+.shell {
+  gap: 10px;
+}
+
+.controlBar {
+  margin-top: 0;
+}
+
+.archiveLabel {
+  margin: 12px 0 7px;
+}
+
+/* Page-specific safety: Mirror/Search titles should not inherit hero sizing */
+.mirrorPage ~ .productHeader strong,
+.searchPage ~ .productHeader strong,
+.productHeader strong {
+  text-transform: none;
+}
+
+/* Tablet/mobile: still compact, not billboard */
+@media (max-width: 760px) {
+  .productHeader {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .productHeader strong {
+    font-size: 20px;
+  }
+
+  .productHeader em {
+    font-size: 8px;
+  }
+}
+
+
+/* Action cluster fix: Select / Upload / Folder are not part of the album view toolbar */
+.shell {
+  position: relative;
+}
+
+/* Main toolbar should only hold album/view mode controls */
+.controlBar {
+  width: fit-content;
+  max-width: calc(100% - 210px);
+  padding: 5px;
+  gap: 4px;
+}
+
+.controlBar .leftControls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Detached action cluster */
+.libraryActionCluster {
+  position: absolute;
+  top: clamp(50px, 5.8vw, 68px);
+  right: clamp(18px, 2.4vw, 30px);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.22);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.090), rgba(255,255,255,.024)),
+    rgba(255,255,255,.020);
+  box-shadow:
+    0 10px 26px rgba(0,0,0,.075),
+    inset 0 1px 0 rgba(255,255,255,.22);
+  backdrop-filter: blur(10px) saturate(1.06);
+  z-index: 6;
+}
+
+.libraryActionCluster button,
+.libraryActionCluster .uploadButton {
+  height: 28px;
+  min-height: 28px;
+  border-radius: 9px;
+  padding: 0 9px;
+  font-size: 10px;
+  letter-spacing: .01em;
+  box-shadow: none;
+}
+
+.libraryActionCluster .selectModeButton.active,
+.libraryActionCluster button.active {
+  background: rgba(255,255,255,.13);
+  color: rgba(0,0,0,.72);
+  border-color: rgba(0,0,0,.16);
+}
+
+/* View/tools sit above actions, not mixed with upload/select */
+.floatingUtilityRail {
+  top: clamp(18px, 2.4vw, 30px);
+  right: clamp(18px, 2.4vw, 30px);
+}
+
+/* Make spacing account for detached corner controls */
+.productHeader {
+  padding-right: 190px;
+}
+
+.albumEditor,
+.searchBar {
+  margin-top: 2px;
+}
+
+/* Tablet/mobile: stack the action cluster as a normal slim row */
+@media (max-width: 760px) {
+  .productHeader {
+    padding-right: 0;
+  }
+
+  .controlBar {
+    max-width: 100%;
+  }
+
+  .libraryActionCluster {
+    position: static;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 0 4px auto;
+    flex-wrap: wrap;
+  }
+
+  .floatingUtilityRail {
+    position: static;
+    width: fit-content;
+    margin-left: auto;
+  }
+}
+
+
+/* Tools/filter structure fix */
+.floatingUtilityRail {
+  position: absolute;
+  top: clamp(18px, 2.4vw, 30px);
+  right: clamp(18px, 2.4vw, 30px);
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.20);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.024)),
+    rgba(255,255,255,.020);
+  box-shadow:
+    0 8px 22px rgba(0,0,0,.06),
+    inset 0 1px 0 rgba(255,255,255,.20);
+  backdrop-filter: blur(10px) saturate(1.06);
+  z-index: 8;
+}
+
+.floatingUtilityRail button {
+  height: 28px;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: .01em;
+  background: transparent;
+  box-shadow: none;
+}
+
+.floatingUtilityRail button:last-child {
+  width: 28px;
+  padding: 0;
+  font-size: 14px;
+}
+
+.floatingUtilityRail button.active {
+  background: rgba(255,255,255,.13);
+  color: rgba(0,0,0,.72);
+  border-color: rgba(0,0,0,.14);
+}
+
+/* The main action cluster is now only Select, not Upload/Folder clutter */
+.libraryActionCluster {
+  position: absolute;
+  top: clamp(50px, 5.8vw, 68px);
+  right: clamp(18px, 2.4vw, 30px);
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.020);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16);
+  z-index: 6;
+}
+
+.libraryActionCluster:empty {
+  display: none;
+}
+
+.libraryActionCluster button {
+  height: 27px;
+  min-height: 27px;
+  border-radius: 999px;
+  padding: 0 10px;
+  font-size: 10px;
+  box-shadow: none;
+}
+
+/* Tools menu: no word header, no subtitles */
+.toolsIconMenu {
+  width: min(300px, 100%);
+  margin: 0 0 8px auto;
+  padding: 7px;
+  border-radius: 15px;
+}
+
+.toolsIconMenu .toolsDropdownTop {
+  display: none;
+}
+
+.toolsIconMenu .toolsDropdownList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.toolsIconMenu .toolsDropdownList button,
+.toolsIconMenu .toolsDropdownList .uploadButton,
+.toolsIconMenu .toolsDropdownList .importButton {
+  height: 34px;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 0 9px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .01em;
+  background: rgba(255,255,255,.030);
+  box-shadow: none;
+}
+
+.toolsIconMenu .toolsDropdownList button span,
+.toolsIconMenu .toolsDropdownList button em,
+.toolsIconMenu .toolsDropdownList .uploadButton span,
+.toolsIconMenu .toolsDropdownList .uploadButton em,
+.toolsIconMenu .toolsDropdownList .importButton span,
+.toolsIconMenu .toolsDropdownList .importButton em {
+  display: none;
+}
+
+/* Filter panel label matches the renamed control */
+.viewDropdown .statusPanelTop strong,
+.viewPanel .statusPanelTop strong {
+  font-size: 11px;
+}
+
+/* Keep product header from being padded for old upload cluster */
+.productHeader {
+  padding-right: 122px;
+}
+
+@media (max-width: 760px) {
+  .floatingUtilityRail,
+  .libraryActionCluster {
+    position: static;
+    width: fit-content;
+    margin-left: auto;
+  }
+
+  .productHeader {
+    padding-right: 0;
+  }
+
+  .toolsIconMenu {
+    width: 100%;
+  }
+}
+
+
+/* Album editor cleanup: no admin-looking "0 / FIND ALBUM / NEW ALBUM / CREATE" bar */
+.albumEditor {
+  width: fit-content;
+  max-width: 100%;
+  display: grid;
+  grid-template-columns: minmax(180px, 280px) minmax(140px, 220px) 34px;
+  align-items: center;
+  gap: 6px;
+  padding: 5px;
+  border-radius: 13px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.060), rgba(255,255,255,.016)),
+    rgba(0,0,0,.006);
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+.albumEditor .pill {
+  display: none;
+}
+
+.albumEditor input {
+  height: 30px;
+  min-height: 30px;
+  border-radius: 8px;
+  font-size: 10px;
+  letter-spacing: .01em;
+  background: rgba(255,255,255,.028);
+}
+
+.albumEditor .createAlbumButton,
+.albumEditor button {
+  height: 30px;
+  min-height: 30px;
+  width: 34px;
+  padding: 0;
+  border-radius: 9px;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+@media (max-width: 760px) {
+  .albumEditor {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) minmax(0, .85fr) 34px;
+  }
+}
+
+@media (max-width: 520px) {
+  .albumEditor {
+    grid-template-columns: 1fr 34px;
+  }
+
+  .albumEditor input:nth-of-type(2) {
+    grid-column: 1;
+  }
+}
+
+
+/* Split album search from album creation */
+.albumEditor {
+  width: fit-content;
+  max-width: 100%;
+  display: grid;
+  grid-template-columns: minmax(190px, 320px) 34px;
+  align-items: center;
+  gap: 6px;
+  padding: 5px;
+  border-radius: 13px;
+}
+
+.albumEditor.creating {
+  grid-template-columns: minmax(180px, 280px) minmax(150px, 240px) 34px;
+}
+
+.albumEditor input {
+  height: 30px;
+  min-height: 30px;
+}
+
+.albumEditor .createAlbumButton {
+  height: 30px;
+  min-height: 30px;
+  width: 34px;
+  padding: 0;
+  border-radius: 9px;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+@media (max-width: 620px) {
+  .albumEditor,
+  .albumEditor.creating {
+    width: 100%;
+    grid-template-columns: 1fr 34px;
+  }
+
+  .albumEditor.creating input:nth-of-type(2) {
+    grid-column: 1;
+  }
+}

@@ -803,3 +803,65 @@ Includes:
 - Cluttered search copy shortened.
 - System shortcuts stay out of album cards.
 - No `!important`.
+
+
+## Utility rail refinement
+
+- Removed the visible "Shortcuts" label.
+- Made utility rail items larger and more intentional.
+- Kept them visually distinct from real album cards.
+- No `!important` rules.
+
+
+## Compact header fix
+
+Removed the giant hero/header treatment:
+
+- Page titles are compact labels, not huge brick titles.
+- Header spacing is reduced.
+- Albums/Mirror/Search headers stay small on tablet/mobile.
+- No `!important` rules.
+
+
+## Select / Upload / Folder placement fix
+
+Moved the library actions out of the main toolbar:
+
+- Select / Upload / Folder now live in a detached corner action cluster.
+- Main toolbar is reserved for album/view navigation.
+- View/Tools stay separate in the tiny utility rail.
+- Headers remain compact.
+- No `!important` rules.
+
+
+## Tools/filter structure fix
+
+Changed:
+- Removed subtitles from every Tools item.
+- Removed the "Tools" word header inside the tools dropdown.
+- Replaced Tools button with cog symbol.
+- Renamed View to Filter.
+- Moved Upload and Folder into Tools.
+- Removed Upload/Folder from the main visible action cluster.
+- No `!important` rules.
+
+
+## Album editor cleanup
+
+Changed the album editor from an admin-looking row into a compact album control:
+
+- Removed the visible count pill.
+- Changed FIND ALBUM to Search albums.
+- Changed NEW ALBUM to New album.
+- Replaced CREATE with a small + button.
+- Kept zero `!important` rules.
+
+
+## Split album search and creation
+
+Changed the album editor so search and creation are not exposed at the same time:
+
+- Default shows only Search albums + a small + button.
+- Clicking + reveals the Album name field and create button.
+- Removed the always-visible New album field from the main row.
+- No `!important` rules.
