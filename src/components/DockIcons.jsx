@@ -5,12 +5,14 @@ export function PhotozAlbumDockIcon(props) {
   return (
     <svg className="photozDockIcon photozDockBook" aria-hidden="true" viewBox="0 0 32 32" focusable="false" width={size} height={size}>
       <path className="bookShadow" d="M5.2 23.35c3.78-.82 7.2-.08 10.8 2.08 3.6-2.16 7.02-2.9 10.8-2.08" />
-      <path className="bookCover left" d="M5.4 8.05c3.85-.76 7.24.08 10.6 2.32v14.1c-3.34-2.04-6.9-2.62-10.6-1.76V8.05Z" />
-      <path className="bookCover right" d="M26.6 8.05c-3.85-.76-7.24.08-10.6 2.32v14.1c3.34-2.04 6.9-2.62 10.6-1.76V8.05Z" />
-      <path className="bookPageLayer layerOne" d="M7.7 10.75c2.5-.2 4.82.3 6.95 1.52" />
-      <path className="bookPageLayer layerTwo" d="M7.7 13.85c2.25-.17 4.48.32 6.7 1.46" />
-      <path className="bookPageLayer layerThree" d="M17.35 12.25c2.22-1.16 4.54-1.66 6.95-1.5" />
-      <path className="bookPageLayer layerFour" d="M17.62 15.18c2.02-1.03 4.25-1.48 6.68-1.36" />
+      <path className="bookCover left" d="M5.25 8.05c3.82-.78 7.25.07 10.75 2.33v14.18c-3.38-2.05-6.98-2.65-10.75-1.78V8.05Z" />
+      <path className="bookCover right" d="M26.75 8.05c-3.82-.78-7.25.07-10.75 2.33v14.18c3.38-2.05 6.98-2.65 10.75-1.78V8.05Z" />
+      <g className="bookStaticPages">
+        <path className="bookPageLayer layerOne" d="M7.6 11.05c2.38-.18 4.62.3 6.72 1.44" />
+        <path className="bookPageLayer layerThree" d="M17.68 12.45c2.1-1.14 4.34-1.62 6.72-1.44" />
+        <path className="bookPageLayer layerFour" d="M17.68 15.22c1.96-.94 4.12-1.34 6.48-1.2" />
+      </g>
+      <path className="bookFlipPage" d="M16 10.45c-2.82-1.78-5.57-2.38-8.25-1.8v13.1c2.78-.54 5.53.08 8.25 1.86V10.45Z" />
       <path className="bookSpine" d="M16 10.2v14.85" />
     </svg>
   );

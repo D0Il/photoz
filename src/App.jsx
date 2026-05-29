@@ -2178,41 +2178,40 @@ function SearchFilter(props) {
     <div className="pageScroll searchPage">
       <VisibleReporter items={items} reportVisibleIds={props.reportVisibleIds} />
 
-      <div className="searchControlRow">
-        <div className="searchBar librarySearchBar">
+      <div className="searchControlRow compactSearchControlRow">
+        <div className="searchBar librarySearchBar unifiedSearchBar">
           <Search size={15} />
           <input
             value={props.query}
             onChange={function (event) { props.setQuery(event.target.value); }}
-            placeholder={activeSearchFilter === "videos" ? "SEARCH VIDEOS" : "BROWSE"}
+            placeholder="SEARCH"
           />
-        </div>
-        <div className="searchFilterDropdown">
-          <button
-            type="button"
-            className={searchFilterOpen ? "searchFilterTrigger active" : "searchFilterTrigger"}
-            aria-label="Browse filter"
-            onClick={function () { setSearchFilterOpen(function (value) { return !value; }); }}
-          >
-            {activeFilterLabel}
-            <ChevronDown size={12} />
-          </button>
-          {searchFilterOpen ? (
-            <div className="searchFilterMenu">
-              {PRIMARY_SEARCH_FILTERS.map(function (filter) {
-                return (
-                  <button
-                    type="button"
-                    key={filter}
-                    className={activeSearchFilter === filter ? "active" : ""}
-                    onClick={function () { setFilter(filter); setSearchFilterOpen(false); }}
-                  >
-                    {filter === "all" ? "BROWSE" : up(filter)}
-                  </button>
-                );
-              })}
-            </div>
-          ) : null}
+          <div className="searchFilterDropdown inlineSearchFilterDropdown">
+            <button
+              type="button"
+              className={searchFilterOpen ? "searchFilterTrigger iconOnly active" : "searchFilterTrigger iconOnly"}
+              aria-label="Filter results"
+              onClick={function () { setSearchFilterOpen(function (value) { return !value; }); }}
+            >
+              <SlidersHorizontal size={14} />
+            </button>
+            {searchFilterOpen ? (
+              <div className="searchFilterMenu">
+                {PRIMARY_SEARCH_FILTERS.map(function (filter) {
+                  return (
+                    <button
+                      type="button"
+                      key={filter}
+                      className={activeSearchFilter === filter ? "active" : ""}
+                      onClick={function () { setFilter(filter); setSearchFilterOpen(false); }}
+                    >
+                      {filter === "all" ? "BROWSE" : up(filter)}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
 
@@ -2313,118 +2312,119 @@ function Modal(props) {
     setDraftEvent(props.memory.event || "");
     setDraftRating(String(normalizeRating(props.memory.rating)));
     setDraftLabel(props.memory.label || "");
+    setShowMetadata(false);
+    setShowTechnical(false);
   }, [props.memory]);
 
   if (!props.memory) return null;
 
+  const memory = normalizeMemoryRecord(props.memory);
+  const video = pzIsVideo(memory);
+  const source = memory.previewUrl || memory.storageUrl || memory.url;
   const currentAlbums = assignableAlbums(props.albums).filter(function (album) {
-    return albumHasMemory(props.albums, album.id, props.memory.id);
+    return albumHasMemory(props.albums, album.id, memory.id);
   });
   const availableAlbums = assignableAlbums(props.albums);
+  const albumLabel = currentAlbums.length ? currentAlbums.map(function (album) { return album.title; }).join(" / ") : "NONE";
+  const sizeLabel = formatBytes(fileSizeBytes(memory));
+  const statusLabel = memory.trashed ? "TRASH" : memory.archived ? "ARCHIVE" : memory.uploadStatus ? up(memory.uploadStatus) : "LOCAL";
+
+  function saveDetails() {
+    props.updateMemoryDetails(memory, {
+      title: draftTitle,
+      date: draftDate,
+      era: draftEra,
+      tags: draftTags,
+      caption: draftCaption,
+      location: draftLocation,
+      event: draftEvent,
+      rating: draftRating,
+      label: draftLabel
+    });
+  }
 
   return (
     <AnimatePresence>
-      <motion.div className="modal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={props.close}>
-        <motion.div className="modalCard" initial={{ y: 20, scale: 0.98 }} animate={{ y: 0, scale: 1 }} onClick={function (event) { event.stopPropagation(); }}>
-          <div className="modalTop">
-            <div>
-              <h2>{up(props.memory.title)}</h2>
-              <p>{props.memory.fileName}</p>
+      <motion.div className="modal fileInfoModal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={props.close}>
+        <motion.div className="modalCard fileInfoCard" initial={{ y: 18, scale: 0.985 }} animate={{ y: 0, scale: 1 }} onClick={function (event) { event.stopPropagation(); }}>
+          <header className="fileInfoHeader">
+            <div className="fileInfoTitleBlock">
+              <span>{video ? "VIDEO" : "PHOTO"}</span>
+              <h2>{up(memory.title || pzMemoryDisplayName(memory))}</h2>
+              <em>{memory.fileName || memory.metadata?.name || "FILE"}</em>
             </div>
-            <div className="modalActions">
-              <button type="button" onClick={function () { props.toggleStar(props.memory); }}>{props.isStarred ? "UNSTAR" : "STAR"}</button>
-              <button type="button" onClick={function () { props.toggleMeFlag(props.memory); }}>{props.memory.isMe ? "UNMARK ME" : "MARK ME"}</button>
-              <button type="button" onClick={function () { props.toggleMirror(props.memory); }}>{props.memory.inMirror ? "REMOVE FROM MIRROR" : "MOVE TO MIRROR"}</button>
-              <button type="button" onClick={function () { props.toggleArchive(props.memory); }}>{props.memory.archived ? "UNARCHIVE" : "ARCHIVE"}</button>
-              
-              <button type="button" onClick={function () { props.openOriginal(props.memory); }}>Open</button>
-              <button type="button" onClick={function () { props.downloadOriginal(props.memory); }}>Download</button>
-              <button type="button" onClick={function () { props.copyMediaUrl(props.memory); }}>Copy link</button>
-              <button type="button" onClick={function () { props.copyStorageKey(props.memory); }}>Copy key</button>
-              <button type="button" onClick={function () { setShowMetadata(function (value) { return !value; }); }}>METADATA</button>
-              {props.memory.trashed ? <button type="button" onClick={function () { props.restoreMemory(props.memory); }}>Restore</button> : null}
-              <button type="button" onClick={function () { props.deleteMemory(props.memory); }}>{props.memory.trashed ? "DELETE FOREVER" : "TRASH"}</button>
-              <button type="button" onClick={props.close}><X size={18} /></button>
-            </div>
-          </div>
+            <button type="button" className="fileInfoClose" aria-label="Close" onClick={props.close}><X size={18} /></button>
+          </header>
 
-          <PhotoCard memory={{ ...props.memory, previewUrl: props.memory.storageUrl }} className="modalPhoto" isStarred={props.isStarred} 
-                onEdit={props.onEditMemory || function () {}}
-                onPlayVideo={props.onPlayVideo || function () {}}
-                onLongSelect={function (memory) { (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); if (fn) fn(memory.id); }}
-                onDragSelect={function (memory) { const lookup = (typeof selectedIds !== "undefined" ? selectedIds : (typeof props !== "undefined" ? props.selectedIds : {})); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); if (fn && (!lookup || !lookup[memory.id])) fn(memory.id); }}/>
+          <main className="fileInfoLayout">
+            <section className="fileInfoPreviewPanel">
+              <div className="fileInfoPreview">
+                {video ? <video src={source} controls playsInline /> : <img src={source} alt="" />}
+                {memory.trashed ? <span className="pzTrashRibbon">TRASH</span> : null}
+              </div>
+              <div className="fileInfoActionRail">
+                <button type="button" className={props.isStarred ? "active" : ""} onClick={function () { props.toggleStar(memory); }}>★</button>
+                <button type="button" className={memory.isMe ? "active" : ""} onClick={function () { props.toggleMeFlag(memory); }}>ME</button>
+                <button type="button" className={memory.inMirror ? "active" : ""} onClick={function () { props.toggleMirror(memory); }}>MIRROR</button>
+                <button type="button" className={memory.archived ? "active" : ""} onClick={function () { props.toggleArchive(memory); }}>{memory.archived ? "UNARCHIVE" : "ARCHIVE"}</button>
+              </div>
+            </section>
 
-          <button type="button" className="technicalToggle" onClick={function () { setShowTechnical(function (value) { return !value; }); }}>
-            {showTechnical ? "HIDE FILE DETAILS" : "FILE DETAILS"}
-          </button>
+            <aside className="fileInfoInspector">
+              <div className="fileInfoStats">
+                <span><em>TYPE</em><strong>{up(memory.kind || (video ? "video" : "photo"))}</strong></span>
+                <span><em>SIZE</em><strong>{sizeLabel}</strong></span>
+                <span><em>STATUS</em><strong>{statusLabel}</strong></span>
+              </div>
 
-          {showTechnical ? (
-            <div className="fileInfoRow technicalDetails">
-              <span>{up(props.memory.kind || "file")}</span>
-              <span>{formatBytes(fileSizeBytes(props.memory))}</span>
-              <span>{props.memory.uploadStatus ? up(props.memory.uploadStatus) : "LOCAL"}</span>
-              <span>{props.memory.metadata && props.memory.metadata.webkitRelativePath ? props.memory.metadata.webkitRelativePath : props.memory.storageKey || "NO STORAGE KEY"}</span>
-              {props.memory.takeoutMeta && props.memory.takeoutMeta.sidecarPath ? <span>TAKEOUT JSON {props.memory.takeoutMeta.sidecarPath}</span> : null}
-            </div>
-          ) : null}
+              <section className="fileInfoPanel fileInfoDetailsPanel">
+                <div className="fileInfoPanelTop"><strong>DETAILS</strong><button type="button" onClick={saveDetails}><Save size={13} /> SAVE</button></div>
+                <div className="fileInfoFormGrid">
+                  <label><span>TITLE</span><input value={draftTitle} onChange={function (event) { setDraftTitle(event.target.value); }} /></label>
+                  <label><span>DATE</span><input value={draftDate} onChange={function (event) { setDraftDate(event.target.value); }} /></label>
+                  <label><span>ERA</span><input value={draftEra} onChange={function (event) { setDraftEra(event.target.value); }} /></label>
+                  <label><span>LOCATION</span><input value={draftLocation} onChange={function (event) { setDraftLocation(event.target.value); }} /></label>
+                  <label><span>EVENT</span><input value={draftEvent} onChange={function (event) { setDraftEvent(event.target.value); }} /></label>
+                  <label><span>RATING</span><input value={draftRating} onChange={function (event) { setDraftRating(event.target.value); }} /></label>
+                  <label className="wide"><span>TAGS</span><input value={draftTags} onChange={function (event) { setDraftTags(event.target.value); }} /></label>
+                  <label className="wide"><span>CAPTION</span><textarea value={draftCaption} onChange={function (event) { setDraftCaption(event.target.value); }} /></label>
+                </div>
+              </section>
 
-          <div className="modalSectionTitle">DETAILS</div>
-          <div className="detailsEditPanel">
-            <div className="detailsEditGrid">
-              <label>
-                <span>TITLE</span>
-                <input value={draftTitle} onChange={function (event) { setDraftTitle(event.target.value); }} />
-              </label>
-              <label>
-                <span>DATE</span>
-                <input value={draftDate} onChange={function (event) { setDraftDate(event.target.value); }} placeholder="May 29, 2026" />
-              </label>
-              <label>
-                <span>ERA</span>
-                <input value={draftEra} onChange={function (event) { setDraftEra(event.target.value); }} />
-              </label>
-              <label>
-                <span>TAGS</span>
-                <input value={draftTags} onChange={function (event) { setDraftTags(event.target.value); }} placeholder="video, cover, shoot" />
-              </label>
-              <label>
-                <span>CAPTION</span>
-                <input value={draftCaption} onChange={function (event) { setDraftCaption(event.target.value); }} placeholder="NOTES" />
-              </label>
-              <label>
-                <span>LOCATION</span>
-                <input value={draftLocation} onChange={function (event) { setDraftLocation(event.target.value); }} placeholder="PLACE" />
-              </label>
-              <label>
-                <span>EVENT</span>
-                <input value={draftEvent} onChange={function (event) { setDraftEvent(event.target.value); }} placeholder="EVENT" />
-              </label>
-              
-              <button type="button" onClick={function () { props.updateMemoryDetails(props.memory, { title: draftTitle, date: draftDate, era: draftEra, tags: draftTags, caption: draftCaption, location: draftLocation, event: draftEvent }); }}>Save</button>
-            </div>
-          </div>
+              <section className="fileInfoPanel fileInfoAlbumPanel">
+                <div className="fileInfoPanelTop"><strong>PHOTO ALBUM</strong><span>{albumLabel}</span></div>
+                <div className="fileInfoAlbumControls">
+                  <select value={selectedAlbum} onChange={function (event) { setSelectedAlbum(event.target.value); }}>
+                    {availableAlbums.map(function (album) {
+                      return <option key={album.id} value={album.id}>{album.title}</option>;
+                    })}
+                  </select>
+                  <button type="button" onClick={function () { props.addToAlbum(memory, selectedAlbum); }}>ADD</button>
+                  <button type="button" onClick={function () { props.moveToAlbum(memory, selectedAlbum); }}>MOVE</button>
+                  <button type="button" onClick={function () { props.removeFromAlbum(memory, selectedAlbum); }}>REMOVE</button>
+                  <button type="button" onClick={function () { props.setAlbumCover(memory, selectedAlbum); }}>COVER</button>
+                </div>
+              </section>
 
-          <div className="modalSectionTitle">ORGANIZE</div>
-          <div className="albumAssignPanel">
-            <div>
-              <strong>PHOTO ALBUM</strong>
-              <span>{currentAlbums.length ? currentAlbums.map(function (album) { return album.title; }).join(" / ") : "NONE"}</span>
-            </div>
-            <div className="albumAssignControls">
-              <select value={selectedAlbum} onChange={function (event) { setSelectedAlbum(event.target.value); }}>
-                {availableAlbums.map(function (album) {
-                  return <option key={album.id} value={album.id}>{album.title}</option>;
-                })}
-              </select>
-              <button type="button" onClick={function () { props.addToAlbum(props.memory, selectedAlbum); }}>ADD</button>
-              <button type="button" onClick={function () { props.moveToAlbum(props.memory, selectedAlbum); }}>MOVE</button>
-              <button type="button" onClick={function () { props.removeFromAlbum(props.memory, selectedAlbum); }}>REMOVE</button>
-              <button type="button" onClick={function () { props.setAlbumCover(props.memory, selectedAlbum); }}>COVER</button>
-              <button type="button" onClick={function () { props.clearAlbumCover(selectedAlbum); }}>CLEAR COVER</button>
-            </div>
-          </div>
+              <section className="fileInfoPanel fileInfoUtilityPanel">
+                <button type="button" onClick={function () { props.openOriginal(memory); }}>OPEN</button>
+                <button type="button" onClick={function () { props.downloadOriginal(memory); }}>DOWNLOAD</button>
+                <button type="button" onClick={function () { props.copyMediaUrl(memory); }}>COPY LINK</button>
+                <button type="button" onClick={function () { setShowTechnical(function (value) { return !value; }); }}>FILE INFO</button>
+                <button type="button" onClick={function () { setShowMetadata(function (value) { return !value; }); }}>METADATA</button>
+                {memory.trashed ? <button type="button" onClick={function () { props.restoreMemory(memory); }}>RESTORE</button> : <button type="button" className="danger" onClick={function () { props.deleteMemory(memory); }}>TRASH</button>}
+              </section>
 
-          {showMetadata ? <pre>{JSON.stringify(props.memory.metadata || {}, null, 2)}</pre> : null}
+              {showTechnical ? (
+                <section className="fileInfoPanel fileInfoTechnicalPanel">
+                  <span>{memory.metadata && memory.metadata.webkitRelativePath ? memory.metadata.webkitRelativePath : memory.storageKey || "NO STORAGE KEY"}</span>
+                  {memory.takeoutMeta && memory.takeoutMeta.sidecarPath ? <span>TAKEOUT JSON {memory.takeoutMeta.sidecarPath}</span> : null}
+                </section>
+              ) : null}
+
+              {showMetadata ? <pre className="fileInfoMetadata">{JSON.stringify(memory.metadata || {}, null, 2)}</pre> : null}
+            </aside>
+          </main>
         </motion.div>
       </motion.div>
     </AnimatePresence>
@@ -2443,445 +2443,6 @@ function Modal(props) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-const AMBIENT_AUDIO_SOURCES = [];
-
-const AMBIENT_YOUTUBE_URL = "https://www.youtube.com/watch?v=QH-CAuEfCAA";
-const AMBIENT_YOUTUBE_VIDEO_ID = "QH-CAuEfCAA";
-
-function createAmbientVoice(ctx, frequency, detune, gainValue) {
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  const filter = ctx.createBiquadFilter();
-
-  osc.type = "sine";
-  osc.frequency.value = frequency;
-  osc.detune.value = detune;
-
-  filter.type = "lowpass";
-  filter.frequency.value = 760;
-  filter.Q.value = 0.35;
-
-  gain.gain.value = gainValue;
-
-  osc.connect(filter);
-  filter.connect(gain);
-
-  return { osc, gain, filter };
-}
-
-function createAmbientSynth(ctx) {
-  const master = ctx.createGain();
-  const lfo = ctx.createOscillator();
-  const lfoGain = ctx.createGain();
-  const voices = [
-    createAmbientVoice(ctx, 174.61, -7, 0.030),
-    createAmbientVoice(ctx, 261.63, 4, 0.020),
-    createAmbientVoice(ctx, 329.63, -3, 0.014),
-  ];
-
-  master.gain.value = 0.0001;
-  lfo.type = "sine";
-  lfo.frequency.value = 0.045;
-  lfoGain.gain.value = 90;
-
-  voices.forEach(function (voice) {
-    lfo.connect(lfoGain);
-    lfoGain.connect(voice.filter.frequency);
-    voice.gain.connect(master);
-  });
-
-  return {
-    master,
-    voices,
-    lfo,
-    start: function () {
-      const now = ctx.currentTime;
-      voices.forEach(function (voice) { voice.osc.start(now); });
-      lfo.start(now);
-      master.gain.cancelScheduledValues(now);
-      master.gain.setValueAtTime(0.0001, now);
-      master.gain.exponentialRampToValueAtTime(0.085, now + 1.8);
-    },
-    stop: function () {
-      const now = ctx.currentTime;
-      master.gain.cancelScheduledValues(now);
-      master.gain.setValueAtTime(Math.max(master.gain.value, 0.0001), now);
-      master.gain.exponentialRampToValueAtTime(0.0001, now + 0.75);
-      voices.forEach(function (voice) {
-        try { voice.osc.stop(now + 0.85); } catch (error) {}
-      });
-      try { lfo.stop(now + 0.85); } catch (error) {}
-    },
-    setVolume: function (value) {
-      const now = ctx.currentTime;
-      master.gain.cancelScheduledValues(now);
-      master.gain.linearRampToValueAtTime(Math.max(0.0001, value), now + 0.18);
-    },
-  };
-}
-
-function AmbientMusicControl() {
-  const [enabled, setEnabled] = useState(function () {
-    try { return window.localStorage.getItem("photozAmbientEnabled") === "true"; } catch (error) { return false; }
-  });
-  const audioRef = useRef(null);
-  const synthRef = useRef(null);
-  const ctxRef = useRef(null);
-
-  useEffect(function () {
-    try { window.localStorage.setItem("photozAmbientEnabled", enabled ? "true" : "false"); } catch (error) {}
-
-    if (!enabled) {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-      if (synthRef.current) {
-        synthRef.current.stop();
-        synthRef.current = null;
-      }
-      return;
-    }
-
-    if (AMBIENT_YOUTUBE_VIDEO_ID) return;
-
-    if (AMBIENT_AUDIO_SOURCES.length) {
-      if (!audioRef.current) {
-        const audio = new Audio(AMBIENT_AUDIO_SOURCES[0]);
-        audio.loop = true;
-        audio.preload = "auto";
-        audioRef.current = audio;
-      }
-      audioRef.current.volume = 1;
-      audioRef.current.play().catch(function () {
-        setEnabled(false);
-      });
-      return;
-    }
-
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return;
-      if (!ctxRef.current) ctxRef.current = new AudioContext();
-      const ctx = ctxRef.current;
-      if (ctx.state === "suspended") ctx.resume();
-      if (!synthRef.current) {
-        synthRef.current = createAmbientSynth(ctx);
-        synthRef.current.master.connect(ctx.destination);
-        synthRef.current.start();
-      }
-      synthRef.current.setVolume(0.095);
-    } catch (error) {
-      setEnabled(false);
-    }
-  }, [enabled]);
-
-  useEffect(function () {
-    return function () {
-      if (audioRef.current) audioRef.current.pause();
-      if (synthRef.current) synthRef.current.stop();
-    };
-  }, []);
-
-  const youtubeSrc = enabled && AMBIENT_YOUTUBE_VIDEO_ID
-    ? "https://www.youtube.com/embed/" + AMBIENT_YOUTUBE_VIDEO_ID + "?autoplay=1&loop=1&playlist=" + AMBIENT_YOUTUBE_VIDEO_ID + "&controls=0&modestbranding=1&playsinline=1"
-    : "";
-
-  return (
-    <>
-      <button
-        type="button"
-        className={enabled ? "utilityRailButton iconUtilityButton ambientUtilityButton active" : "utilityRailButton iconUtilityButton ambientUtilityButton"}
-        aria-label={enabled ? "Ambient music on" : "Ambient music off"}
-        title={enabled ? "Ambient on" : "Ambient off"}
-        data-tooltip={enabled ? "Ambient on" : "Ambient off"}
-        onClick={function () { setEnabled(function (value) { return !value; }); }}
-      >
-        <span className="ambientGlyph">
-          <MusicUtilityIcon size={18} />
-        </span>
-      </button>
-      {youtubeSrc ? (
-        <iframe
-          className="ambientYoutubeFrame"
-          src={youtubeSrc}
-          title="Ambient music"
-          allow="autoplay; encrypted-media"
-          referrerPolicy="strict-origin-when-cross-origin"
-        />
-      ) : null}
-    </>
-  );
-}
-
-function PasswordGate(props) {
-  const [draft, setDraft] = useState("");
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  async function unlock(event) {
-    event.preventDefault();
-    if (!draft || busy) return;
-
-    setBusy(true);
-    setError("");
-
-    try {
-      const response = await fetch("/api/unlock", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ password: draft }),
-      });
-      const result = await response.json().catch(function () { return {}; });
-      if (response.ok && result && result.ok) {
-        try { window.sessionStorage.setItem("photozUnlocked", "true"); } catch (error) {}
-        props.onUnlock();
-        return;
-      }
-      if (result && result.error === "PHOTOZ_ACCESS_CODE_NOT_CONFIGURED") {
-        setError("CONFIG");
-        setBusy(false);
-        return;
-      }
-    } catch (error) {}
-
-    setError("INVALID");
-    setDraft("");
-    setBusy(false);
-    if (typeof playUiTick === "function") playUiTick("soft");
-  }
-
-  return (
-    <div className="passwordGate">
-      <form className={error ? "passwordPanel error" : "passwordPanel"} onSubmit={unlock}>
-        <div className="passwordMark">
-          <LockKeyhole size={18} strokeWidth={2.1} />
-        </div>
-        <strong>PHOTOZ</strong>
-        <label>
-          <span>ACCESS</span>
-          <input
-            autoFocus
-            type="password"
-            value={draft}
-            onChange={function (event) { setDraft(event.target.value); setError(""); }}
-            placeholder="PASSWORD"
-            aria-label="PHOTOZ access code"
-          />
-        </label>
-        {error ? (
-          <div className="passwordErrorText">
-            {error === "CONFIG" ? "ACCESS CODE NOT SET" : "WRONG CODE"}
-          </div>
-        ) : null}
-        <button type="submit" disabled={busy} aria-label="Unlock">
-          <UnlockKeyhole size={14} strokeWidth={2.1} />
-        </button>
-      </form>
-    </div>
-  );
-}
-
-
-
-function pzNowIso() {
-  return new Date().toISOString();
-}
-
-function pzPatchMemory(memory, patch) {
-  return { ...normalizeMemoryRecord(memory), ...patch, updatedAt: pzNowIso() };
-}
-
-function pzPatchAlbum(album, patch) {
-  return { ...normalizeAlbumRecord(album), ...patch, updatedAt: pzNowIso() };
-}
-
-function pzFindAlbum(albums, id) {
-  return safeArray(albums).map(normalizeAlbumRecord).find(function (album) { return album.id === id; }) || null;
-}
-
-function pzCanMoveAlbum(albums, albumId, parentId) {
-  if (!parentId) return true;
-  if (albumId === parentId) return false;
-  const byId = {};
-  safeArray(albums).map(normalizeAlbumRecord).forEach(function (album) { byId[album.id] = album; });
-  let current = byId[parentId];
-  while (current) {
-    if (current.id === albumId) return false;
-    current = current.parentId ? byId[current.parentId] : null;
-  }
-  return true;
-}
-
-function pzUpdateMemory(memories, id, patch) {
-  return safeArray(memories).map(function (memory) {
-    return memory.id === id ? pzPatchMemory(memory, patch) : memory;
-  });
-}
-
-function pzUpdateAlbum(albums, id, patch) {
-  return safeArray(albums).map(function (album) {
-    return album.id === id ? pzPatchAlbum(album, patch) : album;
-  });
-}
-
-function pzIsVideo(memory) {
-  return Boolean(memory && (memory.kind === "video" || String(memory.type || "").startsWith("video/") || /\.(mp4|mov|webm|m4v)$/i.test(String(memory.name || memory.title || memory.url || memory.storageUrl || ""))));
-}
-
-function pzVideoLabel(memory) {
-  if (!pzIsVideo(memory)) return "";
-  const duration = Number(memory.duration || memory.durationSeconds || 0);
-  if (!duration) return "VIDEO";
-  const mins = Math.floor(duration / 60);
-  const secs = Math.floor(duration % 60);
-  return mins + ":" + String(secs).padStart(2, "0");
-}
-
-function pzDownload(memory) {
-  const url = memory && (memory.storageUrl || memory.previewUrl || memory.url);
-  if (!url) return false;
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = memory.title || memory.name || "photoz-file";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  return true;
-}
-
-
-
-function pzVideoRuntime(memory) {
-  if (!pzIsVideo(memory)) return "";
-  const duration = Number(memory.duration || memory.durationSeconds || 0);
-  if (!duration) return "VIDEO";
-  const hours = Math.floor(duration / 3600);
-  const mins = Math.floor((duration % 3600) / 60);
-  const secs = Math.floor(duration % 60);
-  if (hours) return hours + ":" + String(mins).padStart(2, "0") + ":" + String(secs).padStart(2, "0");
-  return mins + ":" + String(secs).padStart(2, "0");
-}
-
-function pzVideoSizeLabel(memory) {
-  const bytes = Number(memory && (memory.size || memory.bytes || memory.fileSize || memory.sizeBytes || 0)) || 0;
-  if (!bytes) return "SIZE —";
-  if (bytes < 1024 * 1024) return Math.max(1, Math.round(bytes / 1024)) + " KB";
-  if (bytes < 1024 * 1024 * 1024) return Math.round(bytes / 1024 / 102.4) / 10 + " MB";
-  return Math.round(bytes / 1024 / 1024 / 102.4) / 10 + " GB";
-}
-
-function pzVideoStats(items) {
-  const videos = safeArray(items).map(normalizeMemoryRecord).filter(pzIsVideo);
-  const starred = videos.filter(function (memory) { return memory.starred; }).length;
-  const me = videos.filter(function (memory) { return memory.isMe || memory.me; }).length;
-  const bytes = videos.reduce(function (total, memory) {
-    return total + (Number(memory.size || memory.bytes || memory.fileSize || memory.sizeBytes || 0) || 0);
-  }, 0);
-  return { count: videos.length, starred, me, bytes };
-}
-
-
-function pzMemoryDisplayName(memory) {
-  memory = normalizeMemoryRecord(memory);
-  return memory.title || memory.name || memory.filename || "FILE";
-}
-
-function pzAlbumDisplayName(album) {
-  album = normalizeAlbumRecord(album);
-  return album.title || album.name || "ALBUM";
-}
-
-function pzCanRestoreMemory(memory) {
-  return Boolean(memory && memory.trashed);
-}
-
-function pzActionStamp() {
-  return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
-function PzToastStack(props) {
-  const items = safeArray(props.items);
-  if (!items.length) return null;
-  return (
-    <div className="pzToastStack" aria-live="polite">
-      {items.slice(-3).map(function (item) {
-        return (
-          <div className={item.type ? "pzToast " + item.type : "pzToast"} key={item.id}>
-            <strong>{String(item.title || "STATUS").toUpperCase()}</strong>
-            {item.message ? <span>{item.message}</span> : null}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-
-
-function PzStateBanner(props) {
-  if (props.loading) return <div className="pzStateBanner"><UploadCloud size={13} /><span>LOADING</span></div>;
-  if (props.error) return <div className="pzStateBanner error"><AlertTriangle size={13} /><span>{String(props.error).toUpperCase()}</span></div>;
-  if (props.saving) return <div className="pzStateBanner"><Save size={13} /><span>SAVING</span></div>;
-  return null;
-}
-
-function PzAlbumEditorPanel(props) {
-  const album = props.album ? normalizeAlbumRecord(props.album) : null;
-  const [title, setTitle] = useState(album ? album.title || "" : "");
-  const [description, setDescription] = useState(album ? album.description || "" : "");
-  const [parentId, setParentId] = useState(album ? album.parentId || "" : "");
-  const [hideFromAll, setHideFromAll] = useState(Boolean(album && album.hideFromAll));
-
-  useEffect(function () {
-    setTitle(album ? album.title || "" : "");
-    setDescription(album ? album.description || "" : "");
-    setParentId(album ? album.parentId || "" : "");
-    setHideFromAll(Boolean(album && album.hideFromAll));
-  }, [album && album.id]);
-
-  if (!props.open || !album) return null;
-
-  const movableAlbums = safeArray(props.albums).map(normalizeAlbumRecord).filter(function (item) {
-    return item.id !== album.id && pzCanMoveAlbum(props.albums, album.id, item.id) && !isSystemAlbumGroup(item);
-  });
-
-  return (
-    <div className="modalBackdrop pzSoftBackdrop" onClick={props.onClose}>
-      <section className="pzEditorSheet pzAlbumEditorSheet" onClick={function (event) { event.stopPropagation(); }}>
-        <header><strong>ALBUM</strong><button type="button" className="closeButton" onClick={props.onClose}>×</button></header>
-        <label><span>TITLE</span><input value={title} onChange={function (event) { setTitle(event.target.value); }} /></label>
-        <label><span>DESCRIPTION</span><textarea value={description} onChange={function (event) { setDescription(event.target.value); }} /></label>
-        <label><span>INSIDE</span><select value={parentId} onChange={function (event) { setParentId(event.target.value); }}><option value="">ROOT</option>{movableAlbums.map(function (item) { return <option key={item.id} value={item.id}>{item.title || item.id}</option>; })}</select></label>
-        <button type="button" className={hideFromAll ? "pzWideToggle active" : "pzWideToggle"} onClick={function () { setHideFromAll(function (value) { return !value; }); }}><span>HIDE FROM ALL</span><em>{hideFromAll ? "ON" : "OFF"}</em></button>
-        <div className="pzEditorActions">
-          <button type="button" onClick={function () { props.onSave(album.id, { title: title.trim() || album.title, description: description.trim(), parentId: parentId || "", hideFromAll }); props.onClose(); }}>SAVE</button>
-          <button type="button" onClick={function () { props.onSetCover(album.id); }}>SET COVER</button>
-          <button type="button" className="danger" onClick={function () { props.onDelete(album.id); props.onClose(); }}>DELETE</button>
-        </div>
-      </section>
-    </div>
-  );
-}
 
 function PzFileDetailEditor(props) {
   const memory = props.memory ? normalizeMemoryRecord(props.memory) : null;
@@ -3042,9 +2603,12 @@ function MusicUtilityIcon(props) {
   return (
     <span className="musicUtilityIcon" aria-hidden="true" style={{ width: size, height: size }}>
       <svg viewBox="0 0 28 28" focusable="false">
-        <path className="musicNoteStem" d="M17.9 6.15v12.25" />
-        <path className="musicNoteFlag" d="M17.9 6.15c2.25.18 4.12.78 5.62 1.78v3.06c-1.55-.92-3.42-1.48-5.62-1.68" />
-        <ellipse className="musicNoteHead" cx="12.35" cy="19.1" rx="4.15" ry="2.68" transform="rotate(-18 12.35 19.1)" />
+        <path className="musicNoteBeam" d="M12.4 7.15 21.2 5.35" />
+        <path className="musicNoteStem leftStem" d="M12.4 7.15v11.1" />
+        <path className="musicNoteStem rightStem" d="M21.2 5.35v10.65" />
+        <path className="musicNoteFlag" d="M12.4 9.88 21.2 8.08" />
+        <ellipse className="musicNoteHead leftHead" cx="8.75" cy="19.28" rx="3.75" ry="2.42" transform="rotate(-18 8.75 19.28)" />
+        <ellipse className="musicNoteHead rightHead" cx="17.55" cy="17.05" rx="3.75" ry="2.42" transform="rotate(-18 17.55 17.05)" />
       </svg>
     </span>
   );

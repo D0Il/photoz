@@ -13274,3 +13274,686 @@ svg.photozDockIcon {
   82% { transform: scaleY(.18); }
   88% { transform: scaleY(1); }
 }
+
+/* PHOTOZ search/chip spacing cleanup: no duplicate Browse bubble, no detached system chips. */
+.photozProUI.page-search .searchControlRow.compactSearchControlRow {
+  width: min(360px, calc(100vw - 96px));
+  margin: 0 0 6px;
+  display: block;
+  overflow: visible;
+}
+
+.photozProUI.page-search .librarySearchBar.unifiedSearchBar {
+  width: 100%;
+  height: 34px;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 5px 4px 11px;
+  border-radius: 16px;
+  overflow: visible;
+}
+
+.photozProUI.page-search .librarySearchBar.unifiedSearchBar input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.photozProUI.page-search .inlineSearchFilterDropdown {
+  position: relative;
+  flex: 0 0 auto;
+  margin-left: auto;
+  z-index: 80;
+}
+
+.photozProUI.page-search .searchFilterTrigger.iconOnly {
+  width: 28px;
+  min-width: 28px;
+  height: 26px;
+  min-height: 26px;
+  padding: 0;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  color: rgba(0,0,0,.50);
+}
+
+.photozProUI.page-search .searchFilterTrigger.iconOnly svg {
+  width: 14px;
+  height: 14px;
+}
+
+.photozProUI.page-search .searchFilterMenu {
+  top: calc(100% + 7px);
+  right: 0;
+  min-width: 104px;
+}
+
+.photozProUI.page-search .searchFilterMenu button {
+  height: 27px;
+  min-height: 27px;
+  justify-content: flex-start;
+}
+
+/* Album shortcut counters belong directly under the nav cluster, not floating far below it. */
+.photozProUI.page-albums .systemRail {
+  margin: 4px 0 8px;
+  gap: 5px;
+}
+
+.photozProUI.page-albums .controlBar + .albumControlsRow + .systemRail,
+.photozProUI.page-albums .controlBar + .systemRail {
+  margin-top: 5px;
+}
+
+.photozProUI.page-albums .systemRailItem.iconShortcut {
+  height: 28px;
+  min-height: 28px;
+  min-width: 46px;
+  padding: 0 9px;
+  gap: 5px;
+}
+
+.photozProUI.page-albums .albumControlsRow {
+  margin-top: 5px;
+  margin-bottom: 4px;
+}
+
+/* PHOTOZ targeted spacing/icon repair: compact album controls, stronger action buttons, actual note + flipping album. */
+.photozProUI .shell {
+  padding-top: 18px;
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+.photozProUI.page-albums .controlBar {
+  margin: 0 0 2px;
+}
+
+.photozProUI .controlBar .leftControls {
+  gap: 5px;
+}
+
+.photozProUI .controlBar .modeBar {
+  gap: 3px;
+  padding: 3px;
+  border-radius: 14px;
+}
+
+.photozProUI .controlBar .modeBar button {
+  height: 27px;
+  min-height: 27px;
+  padding: 0 8px;
+  border-radius: 10px;
+}
+
+.albumInlineActions {
+  gap: 4px;
+}
+
+.albumSearchToggle,
+.albumQuickCreate {
+  width: 31px;
+  min-width: 31px;
+  height: 31px;
+  min-height: 31px;
+  color: rgba(0,0,0,.74);
+  border-color: rgba(255,255,255,.42);
+  background:
+    radial-gradient(circle at 50% 10%, rgba(255,255,255,.34), transparent 58%),
+    linear-gradient(180deg, rgba(255,255,255,.20), rgba(255,255,255,.060)),
+    rgba(255,255,255,.050);
+  box-shadow:
+    0 10px 22px rgba(0,0,0,.085),
+    inset 0 1px 0 rgba(255,255,255,.48),
+    inset 0 -1px 0 rgba(0,0,0,.070);
+}
+
+.albumSearchToggle svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.45;
+}
+
+.albumQuickCreate {
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.photozProUI .albumControlsRow {
+  margin: 2px 0 3px;
+  gap: 4px;
+}
+
+.photozProUI .albumSearchOnly input,
+.photozProUI .newAlbumPanel input,
+.photozProUI .newAlbumPanel button {
+  height: 28px;
+  min-height: 28px;
+}
+
+.photozProUI.page-albums .systemRail {
+  margin: 1px 0 4px;
+  gap: 4px;
+}
+
+.photozProUI.page-albums .controlBar + .albumControlsRow + .systemRail,
+.photozProUI.page-albums .controlBar + .systemRail {
+  margin-top: 1px;
+}
+
+.photozProUI.page-albums .systemRailItem.iconShortcut {
+  height: 26px;
+  min-height: 26px;
+  min-width: 42px;
+  padding: 0 8px;
+  gap: 4px;
+}
+
+.photozProUI.page-albums .systemRailItem.iconShortcut span:first-child {
+  font-size: 13px;
+}
+
+.photozProUI.page-albums .systemRailItem.iconShortcut em {
+  font-size: 8.5px;
+}
+
+.musicUtilityIcon .musicNoteStem,
+.musicUtilityIcon .musicNoteBeam,
+.musicUtilityIcon .musicNoteFlag {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.musicUtilityIcon .musicNoteStem {
+  stroke-width: 2.1;
+}
+
+.musicUtilityIcon .musicNoteBeam,
+.musicUtilityIcon .musicNoteFlag {
+  stroke-width: 1.75;
+  opacity: .86;
+}
+
+.musicUtilityIcon .musicNoteHead {
+  fill: currentColor;
+  opacity: .92;
+}
+
+.musicUtilityIcon .leftHead,
+.musicUtilityIcon .rightHead {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.musicUtilityIcon .rightHead {
+  opacity: .82;
+}
+
+.photozDockIcon .bookFlipPage {
+  fill: rgba(0,0,0,.045);
+  stroke: currentColor;
+  stroke-width: 1.32;
+  stroke-linejoin: round;
+  transform-box: fill-box;
+  transform-origin: right center;
+  animation: photozActualAlbumPageFlip 3.25s cubic-bezier(.45,0,.2,1) infinite;
+}
+
+.photozDockIcon .bookPageLayer {
+  animation: none;
+}
+
+@keyframes photozActualAlbumPageFlip {
+  0%, 48%, 100% { transform: perspective(90px) rotateY(0deg); opacity: .78; }
+  18% { transform: perspective(90px) rotateY(-68deg) translateX(.5px); opacity: .96; }
+  32% { transform: perspective(90px) rotateY(-22deg) translateX(.1px); opacity: .86; }
+}
+
+/* FILE INFO REDESIGN: clean inspector, not scattered prototype controls */
+.fileInfoModal {
+  z-index: 120;
+  padding: 18px;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(255,255,255,.45), transparent 36%),
+    rgba(235,235,235,.38);
+  backdrop-filter: blur(28px) saturate(1.08);
+  -webkit-backdrop-filter: blur(28px) saturate(1.08);
+}
+
+.fileInfoCard {
+  width: min(1120px, calc(100vw - 28px));
+  max-height: min(88vh, 820px);
+  overflow: auto;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 12px;
+  padding: 13px;
+  border-radius: 30px;
+  border: 1px solid rgba(255,255,255,.46);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255,255,255,.26), transparent 34%),
+    linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.045) 52%, rgba(0,0,0,.055)),
+    rgba(255,255,255,.045);
+  box-shadow:
+    0 38px 110px rgba(0,0,0,.24),
+    0 10px 26px rgba(0,0,0,.10),
+    inset 0 1px 0 rgba(255,255,255,.60),
+    inset 0 -1px 0 rgba(0,0,0,.13);
+  backdrop-filter: blur(22px) saturate(1.14);
+  -webkit-backdrop-filter: blur(22px) saturate(1.14);
+}
+
+.fileInfoHeader {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 4px 5px 4px 8px;
+}
+
+.fileInfoTitleBlock {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.fileInfoTitleBlock span {
+  width: max-content;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.28);
+  background: rgba(255,255,255,.035);
+  color: rgba(0,0,0,.36);
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: .16em;
+}
+
+.fileInfoTitleBlock h2 {
+  max-width: min(620px, 60vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0;
+  font-family: Georgia, "Times New Roman", ui-serif, serif;
+  font-size: clamp(25px, 3.2vw, 44px);
+  line-height: .86;
+  font-weight: 500;
+  letter-spacing: -.055em;
+  color: rgba(0,0,0,.70);
+}
+
+.fileInfoTitleBlock em {
+  max-width: min(640px, 62vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: normal;
+  color: rgba(0,0,0,.34);
+  font-size: 10px;
+  font-weight: 780;
+  letter-spacing: .055em;
+}
+
+.fileInfoClose {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  min-height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.42);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.040)),
+    rgba(255,255,255,.035);
+  color: rgba(0,0,0,.62);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.48),
+    0 10px 22px rgba(0,0,0,.08);
+}
+
+.fileInfoLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(330px, .74fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.fileInfoPreviewPanel,
+.fileInfoInspector,
+.fileInfoPanel {
+  border: 1px solid rgba(255,255,255,.28);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.070), rgba(255,255,255,.020)),
+    rgba(255,255,255,.025);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.34),
+    0 16px 38px rgba(0,0,0,.07);
+  backdrop-filter: blur(14px) saturate(1.08);
+  -webkit-backdrop-filter: blur(14px) saturate(1.08);
+}
+
+.fileInfoPreviewPanel {
+  padding: 9px;
+  border-radius: 24px;
+  display: grid;
+  gap: 9px;
+}
+
+.fileInfoPreview {
+  position: relative;
+  min-height: 420px;
+  max-height: min(62vh, 590px);
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.20);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.10), transparent 38%),
+    rgba(0,0,0,.055);
+}
+
+.fileInfoPreview img,
+.fileInfoPreview video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.fileInfoActionRail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 7px;
+}
+
+.fileInfoActionRail button,
+.fileInfoPanel button,
+.fileInfoAlbumControls button {
+  height: 34px;
+  min-height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.24);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.090), rgba(255,255,255,.024)),
+    rgba(255,255,255,.026);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.34),
+    0 8px 17px rgba(0,0,0,.045);
+  color: rgba(0,0,0,.56);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.fileInfoActionRail button.active,
+.fileInfoPanel button.active {
+  color: rgba(0,0,0,.78);
+  border-color: rgba(255,255,255,.42);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.060)),
+    rgba(255,255,255,.045);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.52),
+    0 12px 24px rgba(0,0,0,.075);
+}
+
+.fileInfoInspector {
+  padding: 9px;
+  border-radius: 24px;
+  display: grid;
+  gap: 8px;
+}
+
+.fileInfoStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 6px;
+}
+
+.fileInfoStats span {
+  min-height: 48px;
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  padding: 8px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.20);
+  background: rgba(255,255,255,.030);
+}
+
+.fileInfoStats em {
+  font-style: normal;
+  color: rgba(0,0,0,.32);
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .16em;
+}
+
+.fileInfoStats strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(0,0,0,.66);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.fileInfoPanel {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 18px;
+}
+
+.fileInfoPanelTop {
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.fileInfoPanelTop strong {
+  color: rgba(0,0,0,.52);
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: .16em;
+}
+
+.fileInfoPanelTop span {
+  min-width: 0;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(0,0,0,.42);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .08em;
+}
+
+.fileInfoPanelTop button {
+  width: auto;
+  min-width: 76px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 10px;
+}
+
+.fileInfoFormGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 7px;
+}
+
+.fileInfoFormGrid label {
+  display: grid;
+  gap: 4px;
+}
+
+.fileInfoFormGrid label.wide {
+  grid-column: 1 / -1;
+}
+
+.fileInfoFormGrid span {
+  padding-left: 2px;
+  color: rgba(0,0,0,.34);
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+.fileInfoFormGrid input,
+.fileInfoFormGrid textarea,
+.fileInfoAlbumControls select {
+  width: 100%;
+  min-height: 32px;
+  border-radius: 11px;
+  border: 1px solid rgba(255,255,255,.24);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.065), rgba(255,255,255,.020)),
+    rgba(255,255,255,.025);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.24);
+  color: rgba(0,0,0,.62);
+  font-size: 10px;
+  padding: 0 9px;
+  box-sizing: border-box;
+}
+
+.fileInfoFormGrid textarea {
+  min-height: 58px;
+  padding-top: 8px;
+  resize: vertical;
+}
+
+.fileInfoAlbumControls {
+  display: grid;
+  grid-template-columns: 1fr repeat(4, auto);
+  gap: 6px;
+}
+
+.fileInfoAlbumControls button {
+  min-width: 58px;
+  padding: 0 9px;
+}
+
+.fileInfoUtilityPanel {
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 6px;
+}
+
+.fileInfoUtilityPanel button.danger,
+.fileInfoAlbumControls button.danger {
+  color: rgba(0,0,0,.72);
+  border-color: rgba(255,255,255,.34);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.12), rgba(0,0,0,.035)),
+    rgba(0,0,0,.030);
+}
+
+.fileInfoTechnicalPanel span {
+  overflow-wrap: anywhere;
+  color: rgba(0,0,0,.44);
+  font-size: 9px;
+  font-weight: 760;
+  line-height: 1.35;
+}
+
+.fileInfoMetadata {
+  max-height: 190px;
+  overflow: auto;
+  margin: 0;
+  border-radius: 16px;
+  font-size: 10px;
+}
+
+/* The separate edit sheet uses the same cleaner language instead of old stacked form slabs. */
+.pzFileDetailEditor {
+  width: min(940px, calc(100vw - 28px));
+  padding: 12px;
+  border-radius: 28px;
+  grid-template-columns: minmax(0, 1fr) minmax(310px, .8fr);
+  grid-template-areas:
+    "head head"
+    "preview fields"
+    "toggles fields"
+    "actions actions";
+  gap: 10px;
+}
+
+.pzFileDetailEditor header { grid-area: head; }
+.pzFileDetailEditor .pzDetailPreview { grid-area: preview; min-height: 380px; aspect-ratio: 4 / 3; }
+.pzFileDetailEditor .pzDetailFieldsGrid { grid-area: fields; align-self: start; }
+.pzFileDetailEditor .pzEditorToggleRow { grid-area: toggles; }
+.pzFileDetailEditor .pzEditorActions { grid-area: actions; }
+
+.pzFileDetailEditor .pzDetailFieldsGrid {
+  padding: 10px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.24);
+  background: rgba(255,255,255,.026);
+}
+
+@media (max-width: 900px) {
+  .fileInfoLayout,
+  .pzFileDetailEditor {
+    grid-template-columns: 1fr;
+  }
+
+  .pzFileDetailEditor {
+    grid-template-areas:
+      "head"
+      "preview"
+      "fields"
+      "toggles"
+      "actions";
+  }
+
+  .fileInfoPreview {
+    min-height: 300px;
+  }
+
+  .fileInfoAlbumControls,
+  .fileInfoUtilityPanel,
+  .fileInfoActionRail {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+
+  .fileInfoAlbumControls select {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .fileInfoStats,
+  .fileInfoFormGrid,
+  .fileInfoAlbumControls,
+  .fileInfoUtilityPanel,
+  .fileInfoActionRail {
+    grid-template-columns: 1fr;
+  }
+
+  .fileInfoTitleBlock h2,
+  .fileInfoTitleBlock em {
+    max-width: calc(100vw - 112px);
+  }
+}
