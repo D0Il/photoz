@@ -11480,3 +11480,158 @@ nav.bottomDock .photozDockIcon svg {
 [data-tooltip]::after {
   z-index: 9999;
 }
+
+/* PHOTOZ 2026-05-29 real visual repair: file count is outside the bubble; dock icons are real svg nodes. */
+.floatingUtilityCluster {
+  position: static;
+  width: fit-content;
+  margin: -36px 0 6px auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  z-index: 140;
+  overflow: visible;
+}
+
+.floatingUtilityCluster .floatingUtilityRail {
+  position: static;
+  width: fit-content;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px;
+  border-radius: 999px;
+  overflow: visible;
+}
+
+.floatingUtilityCluster > .utilityFileCount {
+  position: static;
+  height: auto;
+  min-height: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  border-radius: 0;
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: .13em;
+  color: rgba(0,0,0,.42);
+  white-space: nowrap;
+  pointer-events: none;
+  flex: 0 0 auto;
+}
+
+.floatingUtilityRail .utilityFileCount {
+  display: none;
+}
+
+.dock .photozDockIcon,
+.dockButton .photozDockIcon,
+.bottomDock .photozDockIcon,
+nav.bottomDock .photozDockIcon,
+svg.photozDockIcon {
+  display: block;
+  width: 23px;
+  height: 23px;
+  min-width: 23px;
+  min-height: 23px;
+  overflow: visible;
+  opacity: 1;
+  visibility: visible;
+  color: currentColor;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.45;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  position: relative;
+  z-index: 8;
+  pointer-events: none;
+}
+
+.photozDockIcon .bookCover,
+.photozDockIcon .bookPage,
+.photozDockIcon .bookFlipPage {
+  fill: rgba(0,0,0,.045);
+  stroke: currentColor;
+}
+
+.photozDockIcon .bookFlipPage {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: photozBookPageFlip 3.2s ease-in-out infinite;
+}
+
+.photozDockIcon .bookLine,
+.photozDockIcon .eyeTop,
+.photozDockIcon .eyeBottom,
+.photozDockIcon .lash,
+.photozDockIcon .lens,
+.photozDockIcon .handle {
+  fill: none;
+  stroke: currentColor;
+}
+
+.photozDockIcon .eyeTop {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: photozEyeTopBlink 3.8s ease-in-out infinite;
+}
+
+.photozDockIcon .iris,
+.photozDockIcon .pupilGlint,
+.photozDockIcon .spark {
+  fill: currentColor;
+  stroke: none;
+}
+
+.photozDockIcon .spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: photozSearchSpark 2.9s ease-in-out infinite;
+}
+
+.photozDockIcon .spark.small {
+  animation-delay: .9s;
+}
+
+@keyframes photozBookPageFlip {
+  0%, 58%, 100% { transform: rotateY(0deg) skewY(0deg); opacity: .72; }
+  18% { transform: rotateY(-42deg) skewY(-4deg); opacity: .96; }
+  32% { transform: rotateY(16deg) skewY(2deg); opacity: .84; }
+}
+
+@keyframes photozEyeTopBlink {
+  0%, 72%, 100% { transform: scaleY(1); }
+  78% { transform: scaleY(.18); }
+  84% { transform: scaleY(1); }
+}
+
+@keyframes photozSearchSpark {
+  0%, 62%, 100% { transform: scale(.72) rotate(0deg); opacity: .38; }
+  18% { transform: scale(1.08) rotate(18deg); opacity: .88; }
+}
+
+.dockWrap,
+.dock,
+.bottomDock,
+.floatingUtilityCluster,
+.floatingUtilityRail,
+.settingsMenuPanel,
+.filterMenuPanel,
+.refinedFilterMenu {
+  overflow: visible;
+}
+
+[data-tooltip]::after {
+  z-index: 9999;
+}

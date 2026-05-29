@@ -13,7 +13,8 @@ const failures = [];
 const check = (name, condition) => { if (!condition) failures.push(name); };
 const matchCount = (source, pattern) => (source.match(pattern) || []).length;
 const dockFunction = app.match(/function Dock\(props\) \{[\s\S]*?\n\}/)?.[0] || "";
-const utilityRail = app.match(/<div className="floatingUtilityRail">[\s\S]*?<\/div>/)?.[0] || "";
+const utilityCluster = app.match(/<div className="floatingUtilityCluster">[\s\S]*?<span className="utilityFileCount"[\s\S]*?<\/span>[\s\S]*?<\/div>/)?.[0] || "";
+const utilityRail = app.match(/<div className="floatingUtilityRail"[^>]*>[\s\S]*?<\/div>/)?.[0] || "";
 const settingsPanel = app.match(/function SettingsPanel\(props\) \{[\s\S]*?function HealthPanel/)?.[0] || "";
 
 check("no console.assert", !app.includes("console.assert"));
@@ -26,9 +27,10 @@ check("no actualPageTitle render", !app.includes("{actualPageTitle}"));
 check("singular labels preserved", app.includes("PHOTO ALBUM") && !app.includes("PHOTO ALBUMS") && !app.includes("YEARS") && !app.includes("MONTHS") && !app.includes("ERAS"));
 
 check("exactly one utility file count JSX", matchCount(app, /className="utilityFileCount"/g) === 1);
-check("exactly one FILES status render", matchCount(app, /utilityFileCount[^\n]*>\{safeArray\(memories\)\.length\} FILES<\/span>/g) === 1);
-check("file count is in floating utility rail", utilityRail.includes("<AmbientMusicControl />") && utilityRail.includes("className=\"utilityFileCount\"") && utilityRail.indexOf("<AmbientMusicControl />") < utilityRail.indexOf("className=\"utilityFileCount\""));
-check("file count is not inside a button", !/<button[\s\S]*className="utilityFileCount"[\s\S]*<\/button>/.test(utilityRail));
+check("exactly one FILES status render", matchCount(app, /className="utilityFileCount"[^>]*>\{safeArray\(memories\)\.length\} FILES<\/span>/g) === 1);
+check("file count is outside utility bubble", utilityCluster.includes("className=\"floatingUtilityRail\"") && utilityCluster.includes("className=\"utilityFileCount\"") && utilityCluster.indexOf("</div>") < utilityCluster.indexOf("className=\"utilityFileCount\""));
+check("file count is not inside floatingUtilityRail", !utilityRail.includes("utilityFileCount"));
+check("file count is not inside a button", !/<button[\s\S]*className="utilityFileCount"[\s\S]*<\/button>/.test(utilityCluster));
 check("no product/header duplicate file count", !/<em>\{memories\.length\} files<\/em>/.test(app));
 check("no control-bar count pill duplicate", !app.includes("<Pill>{props.count}</Pill>"));
 check("no old count render paths", !/libraryFileCount|albumFileCountText|albumFileCount|topCount|headerCount|filesCount|totalFiles/.test(app));
@@ -38,12 +40,13 @@ check("dock pages carry labels and components", app.includes('{ id: "albums", la
 check("dock renderer uses Icon component", /const Icon = page\.Icon;[\s\S]*<Icon size=\{23\} \/>/.test(dockFunction));
 check("dock renderer uses tooltip labels", dockFunction.includes("title={page.label}") && dockFunction.includes("aria-label={page.label}") && dockFunction.includes("data-tooltip={page.label}"));
 check("dock uses bottomDock class on actual Glass", dockFunction.includes('className="dock bottomDock"'));
-check("dock animated icon CSS targets real dock", css.includes(".dock .photozDockIcon") && css.includes("photozBookPageFlip") && css.includes("photozEyeTopBlink") && css.includes("photozSearchSpark"));
+check("dock icons are svg elements, not span-wrapped nodes hidden by old dock span rules", /<svg className="photozDockIcon photozDockBook"/.test(dockIcons) && /<svg className="photozDockIcon photozDockEye"/.test(dockIcons) && /<svg className="photozDockIcon photozDockSearch"/.test(dockIcons));
+check("dock animated icon CSS targets real dock", css.includes(".dock .photozDockIcon") && css.includes("svg.photozDockIcon") && css.includes("photozBookPageFlip") && css.includes("photozEyeTopBlink") && css.includes("photozSearchSpark"));
 
 check("settings panel has no redundant header", !settingsPanel.includes("settingsMenuHeader") && !settingsPanel.includes("<strong>SETTINGS</strong>") && !settingsPanel.includes("<Settings"));
 check("filter panel has no redundant header", !filterMenu.includes("filterMenuHeader") && !filterMenu.includes("<strong>FILTER</strong>") && !filterMenu.includes("<SlidersHorizontal"));
 check("tooltip z-index high", /\[data-tooltip\]::after[\s\S]*z-index:\s*9999/.test(css));
-check("tooltip containers overflow visible", css.includes(".dockWrap,") && css.includes(".dock,") && css.includes(".bottomDock,") && css.includes("overflow: visible"));
+check("tooltip containers overflow visible", css.includes(".dockWrap,") && css.includes(".dock,") && css.includes(".bottomDock,") && css.includes(".floatingUtilityCluster,") && css.includes("overflow: visible"));
 check("no broad important overrides", !css.includes("!important"));
 
 if (failures.length) {
