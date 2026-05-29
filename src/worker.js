@@ -21,13 +21,7 @@ function jsonResponse(data, init = {}) {
 }
 
 function emptyIndex(reason = "") {
-  return {
-    memories: [],
-    albums: [],
-    settings: {},
-    updatedAt: new Date().toISOString(),
-    warning: reason,
-  };
+  return { memories: [], albums: [], settings: {}, updatedAt: new Date().toISOString(), warning: reason };
 }
 
 function normalizeIndex(index) {
@@ -49,11 +43,7 @@ function normalizeIndex(index) {
 }
 
 async function readJsonBody(request) {
-  try {
-    return await request.json();
-  } catch (error) {
-    return {};
-  }
+  try { return await request.json(); } catch (error) { return {}; }
 }
 
 async function readIndex(env) {
@@ -62,20 +52,17 @@ async function readIndex(env) {
       const stored = await env.PHOTOZ_INDEX.get(INDEX_KEY, { type: "json" });
       return normalizeIndex(stored || emptyIndex("missing index"));
     }
-
     if (env && env.photoz && typeof env.photoz.get === "function") {
       const stored = await env.photoz.get(INDEX_KEY);
       if (!stored) return normalizeIndex(emptyIndex("missing index"));
       return normalizeIndex(JSON.parse(stored || "{}"));
     }
-
     if (env && env.PHOTOZ_BUCKET && typeof env.PHOTOZ_BUCKET.get === "function") {
       const object = await env.PHOTOZ_BUCKET.get(INDEX_KEY);
       if (!object) return normalizeIndex(emptyIndex("missing index"));
       const text = await object.text();
       return normalizeIndex(JSON.parse(text || "{}"));
     }
-
     return normalizeIndex(emptyIndex("missing binding"));
   } catch (error) {
     return normalizeIndex(emptyIndex(String(error && error.message ? error.message : error)));
@@ -85,29 +72,16 @@ async function readIndex(env) {
 async function writeIndex(env, index) {
   const normalized = normalizeIndex(index);
   normalized.updatedAt = new Date().toISOString();
-
   try {
     if (env && env.PHOTOZ_INDEX && typeof env.PHOTOZ_INDEX.put === "function") {
       await env.PHOTOZ_INDEX.put(INDEX_KEY, JSON.stringify(normalized));
-      return normalized;
-    }
-
-    if (env && env.photoz && typeof env.photoz.put === "function") {
+    } else if (env && env.photoz && typeof env.photoz.put === "function") {
       await env.photoz.put(INDEX_KEY, JSON.stringify(normalized));
-      return normalized;
+    } else if (env && env.PHOTOZ_BUCKET && typeof env.PHOTOZ_BUCKET.put === "function") {
+      await env.PHOTOZ_BUCKET.put(INDEX_KEY, JSON.stringify(normalized), { httpMetadata: { contentType: "application/json" } });
     }
-
-    if (env && env.PHOTOZ_BUCKET && typeof env.PHOTOZ_BUCKET.put === "function") {
-      await env.PHOTOZ_BUCKET.put(INDEX_KEY, JSON.stringify(normalized), {
-        httpMetadata: { contentType: "application/json" },
-      });
-      return normalized;
-    }
-
-    return normalized;
-  } catch (error) {
-    return normalized;
-  }
+  } catch (error) {}
+  return normalized;
 }
 
 async function handleUpload(request, env) {
@@ -120,9 +94,7 @@ async function handleUpload(request, env) {
         const key = `uploads/${id}-${value.name || "file"}`;
         let storageUrl = "";
         if (env && env.PHOTOZ_BUCKET && typeof env.PHOTOZ_BUCKET.put === "function") {
-          await env.PHOTOZ_BUCKET.put(key, value.stream(), {
-            httpMetadata: { contentType: value.type || "application/octet-stream" },
-          });
+          await env.PHOTOZ_BUCKET.put(key, value.stream(), { httpMetadata: { contentType: value.type || "application/octet-stream" } });
           storageUrl = `/api/file/${encodeURIComponent(key)}`;
         }
         files.push({
@@ -167,40 +139,22 @@ async function handleFile(env, pathname) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-
-    if (request.method === "OPTIONS") {
-      return new Response("", { status: 204, headers: corsHeaders() });
-    }
-
-    if (url.pathname === "/favicon.ico") {
-      return new Response("", { status: 204, headers: corsHeaders() });
-    }
-
-    if ((url.pathname === "/api/index" || url.pathname === "/api/load-index") && request.method === "GET") {
-      return jsonResponse(await readIndex(env));
-    }
-
+    if (request.method === "OPTIONS") return new Response("", { status: 204, headers: corsHeaders() });
+    if (url.pathname === "/favicon.ico") return new Response("", { status: 204, headers: corsHeaders() });
+    if ((url.pathname === "/api/index" || url.pathname === "/api/load-index") && request.method === "GET") return jsonResponse(await readIndex(env));
     if ((url.pathname === "/api/index" || url.pathname === "/api/save-index") && request.method !== "GET") {
       const body = await readJsonBody(request);
       const index = body && body.memories !== undefined ? body : body.index;
       return jsonResponse(await writeIndex(env, index || emptyIndex("empty save")));
     }
-
     if (url.pathname === "/api/backup-index") {
       if (request.method === "GET") return jsonResponse(await readIndex(env));
       const body = await readJsonBody(request);
       const index = body && body.memories !== undefined ? body : body.index;
       return jsonResponse(await writeIndex(env, index || emptyIndex("empty backup")));
     }
-
-    if (url.pathname === "/api/upload" && request.method === "POST") {
-      return handleUpload(request, env);
-    }
-
-    if (url.pathname.startsWith("/api/file/")) {
-      return handleFile(env, url.pathname);
-    }
-
+    if (url.pathname === "/api/upload" && request.method === "POST") return handleUpload(request, env);
+    if (url.pathname.startsWith("/api/file/")) return handleFile(env, url.pathname);
     return new Response("Not found", { status: 404, headers: corsHeaders() });
   },
 };

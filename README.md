@@ -1003,3 +1003,28 @@ Added on top:
 - Larger dock icon targets.
 - Soft dock active capsule.
 - No dock text labels.
+
+
+## Final header lock
+
+Fixed the regressed bold page headers:
+- Page titles are locked to small, medium-weight UI labels.
+- Albums/Search/Mirror cannot inherit the old giant bold hero treatment.
+- Content spacing is tightened to match the smaller title.
+- No `!important` rules.
+
+
+## Fully consolidated PHOTOZ build
+
+This build audits and preserves the requested behavior/design fixes together:
+- No giant bold page headers.
+- Select beside Filter.
+- Tools is cog-based; Upload/Folder stay inside Tools.
+- Album search and New Album are separate.
+- Nested albums and Hide from All.
+- System rail de-duped; system/core albums do not render as real cards.
+- Mirror All is full-sized and labeled All.
+- Bottom nav is icon-only with restored wider dock shape.
+- Button dark outline cleanup.
+- Upload/index hardening.
+- No `!important`.

@@ -453,14 +453,11 @@ function virtualAlbumGroups(albums, memories) {
   albums = safeArray(albums).map(normalizeAlbumRecord);
   memories = safeArray(memories).map(normalizeMemoryRecord);
 
-  albums = safeArray(albums);
-  memories = safeArray(memories);
-
   const all = visibleAllMemories(memories, albums);
   const archived = newest(memories.filter(function (memory) { return Boolean(memory.archived) && !memory.trashed; }));
   const trash = newest(memories.filter(function (memory) { return Boolean(memory.trashed); }));
   const starredAlbum = albums.find(function (album) { return album.id === "star"; });
-  const starredItems = starredAlbum ? newest(starredAlbum.memoryIds.map(function (id) {
+  const starredItems = starredAlbum ? newest(albumMemoryIds(starredAlbum).map(function (id) {
     return memories.find(function (memory) { return memory.id === id && !memoryExcludedFromAll(memory, albums); });
   }).filter(Boolean)) : [];
   const unassignedAlbum = albums.find(function (album) { return album.id === UNASSIGNED_ALBUM_ID; });
@@ -482,9 +479,6 @@ function virtualAlbumGroups(albums, memories) {
 function albumGroups(albums, memories, parentId) {
   albums = safeArray(albums).map(normalizeAlbumRecord);
   memories = safeArray(memories).map(normalizeMemoryRecord);
-
-  albums = safeArray(albums);
-  memories = safeArray(memories);
   const parent = String(parentId || "");
 
   return albums.filter(function (album) {

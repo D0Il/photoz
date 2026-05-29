@@ -7104,3 +7104,455 @@ textarea:focus {
     min-height: 39px;
   }
 }
+
+
+/* FINAL HEADER LOCK: no giant bold hero page titles */
+.productHeader {
+  min-height: 0;
+  margin: 0 0 4px;
+  padding-right: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.productHeader strong {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(17px, 1.25vw, 21px);
+  line-height: 1;
+  font-weight: 650;
+  letter-spacing: -.018em;
+  color: rgba(0,0,0,.58);
+  text-transform: none;
+}
+
+.productHeader em {
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 760;
+  letter-spacing: .12em;
+  color: rgba(0,0,0,.26);
+}
+
+/* Page-specific title safety so Albums/Search/Mirror cannot inherit old billboard rules */
+.albumsPage .productHeader strong,
+.searchPage .productHeader strong,
+.mirrorPage .productHeader strong,
+.pageScroll .productHeader strong,
+main .productHeader strong {
+  font-size: clamp(17px, 1.25vw, 21px);
+  font-weight: 650;
+  letter-spacing: -.018em;
+}
+
+/* Pull content up to match the smaller title */
+.shell {
+  gap: 7px;
+  padding-top: 18px;
+}
+
+.controlBar {
+  margin-top: 0;
+}
+
+@media (max-width: 760px) {
+  .productHeader {
+    padding-right: 0;
+  }
+
+  .productHeader strong {
+    font-size: 18px;
+  }
+}
+
+
+/* FINAL CONSOLIDATED LOCKS */
+
+/* Header: never giant/bold hero */
+.productHeader {
+  min-height: 0;
+  margin: 0 0 4px;
+  padding-right: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.productHeader strong {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(17px, 1.25vw, 21px);
+  line-height: 1;
+  font-weight: 650;
+  letter-spacing: -.018em;
+  color: rgba(0,0,0,.58);
+  text-transform: none;
+}
+
+.productHeader em {
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 760;
+  letter-spacing: .12em;
+  color: rgba(0,0,0,.26);
+}
+
+/* No fake floating blank-space pocket */
+.shell {
+  position: relative;
+  gap: 7px;
+  padding-top: 18px;
+}
+
+/* Filter / Select / Cog */
+.floatingUtilityRail {
+  position: static;
+  width: fit-content;
+  margin: -36px 0 6px auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px;
+  border-radius: 999px;
+  z-index: 4;
+}
+
+.floatingUtilityRail .utilityRailButton,
+.floatingUtilityRail button {
+  height: 28px;
+  min-height: 28px;
+  border-radius: 999px;
+  padding: 0 11px;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .01em;
+  color: rgba(0,0,0,.56);
+  border-color: rgba(255,255,255,.24);
+  background: transparent;
+  box-shadow: none;
+}
+
+.floatingUtilityRail .utilityRailButton.active,
+.floatingUtilityRail button.active {
+  color: rgba(0,0,0,.72);
+  border-color: rgba(255,255,255,.38);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.050)),
+    rgba(255,255,255,.040);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.28),
+    0 5px 13px rgba(0,0,0,.045);
+}
+
+.floatingUtilityRail .selectUtilityButton {
+  min-width: 54px;
+  text-align: center;
+}
+
+.floatingUtilityRail .cogUtilityButton,
+.floatingUtilityRail button:last-child {
+  width: 28px;
+  min-width: 28px;
+  padding: 0;
+  font-size: 14px;
+}
+
+/* Tools/Filter popovers compact */
+.toolsIconMenu,
+.toolsDropdown,
+.viewDropdown,
+.viewPanel {
+  position: absolute;
+  top: 60px;
+  right: 24px;
+  margin: 0;
+  z-index: 50;
+}
+
+.toolsIconMenu,
+.toolsDropdown {
+  width: 236px;
+  max-width: calc(100vw - 48px);
+}
+
+.viewDropdown,
+.viewPanel {
+  width: 284px;
+  max-width: calc(100vw - 48px);
+}
+
+.toolsDropdownTop {
+  display: none;
+}
+
+.toolsDropdownList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.toolsDropdownList button,
+.toolsDropdownList .uploadButton,
+.toolsDropdownList .importButton {
+  height: 32px;
+  min-height: 32px;
+  border-radius: 10px;
+  padding: 0 8px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 850;
+  background: rgba(255,255,255,.035);
+  box-shadow: none;
+}
+
+.toolsDropdownList em {
+  display: none;
+}
+
+/* Album search and creation are separate controls */
+.albumEditor,
+.albumEditor.creating {
+  display: none;
+}
+
+.albumControlsRow {
+  width: fit-content;
+  max-width: min(680px, 100%);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.albumSearchOnly {
+  width: 252px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.albumSearchOnly input {
+  width: 100%;
+  height: 32px;
+  min-height: 32px;
+  border-radius: 10px;
+  border-color: rgba(255,255,255,.24);
+  background: rgba(255,255,255,.055);
+  font-size: 10px;
+  padding: 0 11px;
+}
+
+.newAlbumTrigger {
+  height: 32px;
+  min-height: 32px;
+  border-radius: 999px;
+  padding: 0 13px;
+  font-size: 10px;
+  background: rgba(255,255,255,.045);
+}
+
+.newAlbumPanel {
+  flex-basis: 100%;
+  width: fit-content;
+  max-width: min(440px, 100%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.026);
+}
+
+/* System rail no duplicate look */
+.systemRail {
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+
+.systemRailItem {
+  height: 32px;
+  min-height: 32px;
+  border-radius: 10px;
+  padding: 0 11px;
+}
+
+/* Mirror All: full-sized */
+.mirrorControl {
+  width: fit-content;
+  padding: 5px;
+  border-radius: 14px;
+}
+
+.mirrorControl button {
+  min-width: 104px;
+  height: 34px;
+  min-height: 34px;
+  border-radius: 999px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mirrorControl button span {
+  font-size: 11px;
+  font-weight: 900;
+}
+
+/* Button borders: no ugly dark outlines */
+button,
+[role="button"],
+.uploadButton,
+.importButton,
+.dockButton,
+.systemRailItem,
+.modeBar button,
+.controlBar button,
+.floatingUtilityRail button,
+.toolsDropdownList button,
+.albumSortControl button,
+.sortControl button,
+.gridSizeControl button,
+.searchFilters button,
+.albumPathBar button,
+.newAlbumTrigger,
+.newAlbumPanel button,
+.mirrorControl button {
+  outline: 0;
+  border-color: rgba(255,255,255,.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.18),
+    0 5px 14px rgba(0,0,0,.035);
+}
+
+/* Restored dock shape */
+.dockWrap {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 90;
+  width: auto;
+  height: auto;
+  border: 0;
+  background: transparent;
+  pointer-events: none;
+}
+
+.dock {
+  pointer-events: auto;
+  width: auto;
+  min-width: 214px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 7px;
+  border-radius: 28px;
+  border: 1px solid rgba(255,255,255,.30);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255,255,255,.20), transparent 36%),
+    linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.040)),
+    rgba(255,255,255,.050);
+  box-shadow:
+    0 18px 42px rgba(0,0,0,.16),
+    inset 0 1px 0 rgba(255,255,255,.38),
+    inset 0 -1px 0 rgba(0,0,0,.09);
+  backdrop-filter: blur(16px) saturate(1.10);
+}
+
+.dock button,
+.dockButton {
+  all: unset;
+  box-sizing: border-box;
+  width: 62px;
+  height: 40px;
+  min-width: 62px;
+  min-height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  color: rgba(0,0,0,.42);
+  background: transparent;
+  border: 1px solid transparent;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.dock button.active,
+.dockButton.active {
+  color: rgba(0,0,0,.76);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.070)),
+    rgba(255,255,255,.045);
+  border-color: rgba(255,255,255,.38);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.36),
+    0 6px 14px rgba(0,0,0,.075);
+}
+
+.dock svg,
+.dockButton svg {
+  width: 18px;
+  height: 18px;
+}
+
+.dock span,
+.dock em,
+.dockButton span,
+.dockButton em {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .productHeader {
+    padding-right: 0;
+  }
+
+  .floatingUtilityRail {
+    margin: 0 0 6px auto;
+  }
+
+  .toolsIconMenu,
+  .toolsDropdown,
+  .viewDropdown,
+  .viewPanel {
+    position: static;
+    width: fit-content;
+    max-width: 100%;
+    margin-left: auto;
+  }
+
+  .albumControlsRow,
+  .albumSearchOnly,
+  .newAlbumPanel {
+    width: 100%;
+  }
+
+  .dockWrap {
+    bottom: 10px;
+  }
+
+  .dock {
+    min-width: 198px;
+    height: 52px;
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .dock button,
+  .dockButton {
+    width: 58px;
+    min-width: 58px;
+    height: 39px;
+    min-height: 39px;
+  }
+}
