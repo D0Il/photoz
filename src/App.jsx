@@ -151,7 +151,10 @@ function systemShortcutLabel(value) {
 }
 
 function archiveFilterLabel(value) {
-  if (value === "albums" || value === "albums") return "PHOTO ALBUM";
+  if (value === "albums") return "PHOTO ALBUM";
+  if (value === "years") return "YEAR";
+  if (value === "months") return "MONTH";
+  if (value === "eras") return "ERA";
   return up(value);
 }
 
@@ -2003,11 +2006,11 @@ function AlbumsFilter(props) {
       <VisibleReporter items={props.currentAlbumId ? currentPhotos : props.memories} reportVisibleIds={props.reportVisibleIds} />
       {isAlbums ? (
         <div className="albumControlsRow">
-          <label className="albumSearchOnly" aria-label={props.currentAlbumId ? "SEARCH INSIDE ALBUM" : "SEARCH ALBUMS"}>
+          <label className="albumSearchOnly" aria-label={props.currentAlbumId ? "SEARCH INSIDE ALBUM" : "SEARCH PHOTO ALBUMS"}>
             <input
               value={props.albumQuery}
               onChange={function (event) { props.setAlbumQuery(event.target.value); }}
-              placeholder={props.currentAlbumId ? "SEARCH INSIDE ALBUM" : "SEARCH ALBUMS"}
+              placeholder={props.currentAlbumId ? "SEARCH INSIDE ALBUM" : "SEARCH PHOTO ALBUMS"}
             />
           </label>
           {!props.albumCreateOpen ? (
@@ -2164,7 +2167,7 @@ function SearchFilter(props) {
         <input
           value={props.query}
           onChange={function (event) { props.setQuery(event.target.value); }}
-          placeholder={activeSearchFilter === "videos" ? "SEARCH VIDEOS" : "SEARCH FILES"}
+          placeholder={activeSearchFilter === "videos" ? "SEARCH VIDEOS" : "BROWSE"}
         />
       </div>
 
@@ -3003,11 +3006,13 @@ function MusicUtilityIcon(props) {
   return (
     <span className="musicUtilityIcon" aria-hidden="true" style={{ width: size, height: size }}>
       <svg viewBox="0 0 28 28" focusable="false">
-        <path className="musicDisc" d="M14 24.2c5.63 0 10.2-4.57 10.2-10.2S19.63 3.8 14 3.8 3.8 8.37 3.8 14 8.37 24.2 14 24.2Z" />
-        <path className="musicGroove outer" d="M8.7 14a5.3 5.3 0 0 1 10.6 0" />
-        <path className="musicGroove inner" d="M10.95 14a3.05 3.05 0 0 1 6.1 0" />
-        <circle className="musicCore" cx="14" cy="14" r="1.65" />
-        <path className="musicGlint" d="M18.45 7.25l.44 1.18 1.18.44-1.18.44-.44 1.18-.44-1.18-1.18-.44 1.18-.44.44-1.18Z" />
+        <path className="musicAura" d="M7.1 18.9c2.25 2.65 5.95 3.72 9.35 2.7 3.36-1.01 5.7-3.86 5.96-7.24" />
+        <path className="musicBeam" d="M15.3 7.2v10.05" />
+        <path className="musicFlag" d="M15.3 7.2c2.85.28 4.72 1.02 5.62 2.22v3.3c-1.08-1.06-2.95-1.75-5.62-2.07" />
+        <ellipse className="musicNoteHead" cx="11.1" cy="18.2" rx="3.35" ry="2.35" transform="rotate(-18 11.1 18.2)" />
+        <path className="musicWave left" d="M7.1 11.15c1.13-1.54 2.68-2.47 4.62-2.78" />
+        <path className="musicWave right" d="M21.6 16.35c-.48 1.57-1.43 2.85-2.84 3.85" />
+        <path className="musicGlint" d="M21.35 5.6l.43 1.16 1.16.43-1.16.43-.43 1.16-.43-1.16-1.16-.43 1.16-.43.43-1.16Z" />
       </svg>
     </span>
   );
@@ -4347,12 +4352,12 @@ async function handleUpload(eventOrFiles) {
               <Glass className={"shell grid-" + gridSize + (settingsOpen || filterControlsOpen || importPanelOpen || uploadQueueOpen || statusOpen || duplicatesOpen || healthOpen ? " has-panel-open" : "")}>
                 <ControlBar activePage={activePage} archive={archive} archiveFilter={archiveFilter} setArchiveFilter={setArchiveFilter} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} filterControlsOpen={filterControlsOpen} toggleFilterControls={function () { setFilterControlsOpen(function (value) { return !value; }); }} settingsOpen={settingsOpen} toggleSettingsPanel={function () { setSettingsOpen(function (value) { return !value; }); }} />
                 <div className="floatingUtilityCluster">
+                  <span className="utilityFileCount" aria-label={safeArray(memories).length + " files"}>{safeArray(memories).length} FILES</span>
                   <div className="floatingUtilityRail" aria-label="Quick actions">
                     <AmbientMusicControl />
                     <button type="button" aria-label="Filter" title="Filter" data-tooltip="Filter" className={filterControlsOpen ? "utilityRailButton iconUtilityButton active" : "utilityRailButton iconUtilityButton"} onClick={function () { setSettingsOpen(false); setFilterControlsOpen(function (value) { return !value; }); }}><SlidersHorizontal size={14} strokeWidth={2.1} /></button>
                     <button type="button" aria-label="Settings" title="Settings" data-tooltip="Settings" className={settingsOpen ? "utilityRailButton cogUtilityButton iconUtilityButton active" : "utilityRailButton cogUtilityButton iconUtilityButton"} onClick={function () { setFilterControlsOpen(false); setSettingsOpen(function (value) { return !value; }); }}>⚙</button>
                   </div>
-                  <span className="utilityFileCount" aria-label={safeArray(memories).length + " files"}>{safeArray(memories).length} FILES</span>
                 </div>
                 <FilterPanel open={filterControlsOpen} close={function () { setFilterControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveFilter === "albums"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize} 
                 searchFilter={searchFilter}

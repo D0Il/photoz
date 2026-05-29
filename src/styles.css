@@ -11442,8 +11442,10 @@ nav.bottomDock .photozDockIcon svg {
   overflow: visible;
 }
 
-.musicUtilityIcon .musicDisc,
-.musicUtilityIcon .musicGroove {
+.musicUtilityIcon .musicAura,
+.musicUtilityIcon .musicBeam,
+.musicUtilityIcon .musicFlag,
+.musicUtilityIcon .musicWave {
   fill: none;
   stroke: currentColor;
   stroke-width: 1.55;
@@ -11451,17 +11453,33 @@ nav.bottomDock .photozDockIcon svg {
   stroke-linejoin: round;
 }
 
-.musicUtilityIcon .musicGroove {
-  opacity: .62;
+.musicUtilityIcon .musicAura {
+  opacity: .22;
+  stroke-width: 1.15;
 }
 
-.musicUtilityIcon .musicCore,
+.musicUtilityIcon .musicWave {
+  opacity: .48;
+  stroke-width: 1.25;
+}
+
+.musicUtilityIcon .musicFlag {
+  opacity: .82;
+}
+
+.musicUtilityIcon .musicBeam {
+  stroke-width: 1.72;
+}
+
+.musicUtilityIcon .musicNoteHead {
+  fill: currentColor;
+  stroke: none;
+  opacity: .94;
+}
+
 .musicUtilityIcon .musicGlint {
   fill: currentColor;
   stroke: none;
-}
-
-.musicUtilityIcon .musicGlint {
   opacity: .72;
   transform-box: fill-box;
   transform-origin: center;
@@ -11634,4 +11652,58 @@ svg.photozDockIcon {
 
 [data-tooltip]::after {
   z-index: 9999;
+}
+
+/* PHOTOZ utility alignment: count is plain text to the LEFT of the music bubble. */
+.floatingUtilityCluster {
+  position: static;
+  width: fit-content;
+  margin: -36px 0 6px auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  z-index: 140;
+  overflow: visible;
+}
+
+.floatingUtilityCluster > .utilityFileCount {
+  order: 0;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  border-radius: 0;
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: .13em;
+  color: rgba(0,0,0,.42);
+  white-space: nowrap;
+  pointer-events: none;
+  flex: 0 0 auto;
+}
+
+.floatingUtilityCluster > .floatingUtilityRail {
+  order: 1;
+  position: static;
+  width: fit-content;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px;
+  border-radius: 999px;
+  overflow: visible;
+}
+
+.albumControlsRow,
+.searchBar.librarySearchBar,
+.searchFilters.librarySearchFilters {
+  max-width: 100%;
+  box-sizing: border-box;
 }

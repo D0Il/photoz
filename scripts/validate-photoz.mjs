@@ -13,7 +13,7 @@ const failures = [];
 const check = (name, condition) => { if (!condition) failures.push(name); };
 const matchCount = (source, pattern) => (source.match(pattern) || []).length;
 const dockFunction = app.match(/function Dock\(props\) \{[\s\S]*?\n\}/)?.[0] || "";
-const utilityCluster = app.match(/<div className="floatingUtilityCluster">[\s\S]*?<span className="utilityFileCount"[\s\S]*?<\/span>[\s\S]*?<\/div>/)?.[0] || "";
+const utilityCluster = app.match(/<div className="floatingUtilityCluster">[\s\S]*?<\/div>\s*<\/div>/)?.[0] || "";
 const utilityRail = app.match(/<div className="floatingUtilityRail"[^>]*>[\s\S]*?<\/div>/)?.[0] || "";
 const settingsPanel = app.match(/function SettingsPanel\(props\) \{[\s\S]*?function HealthPanel/)?.[0] || "";
 
@@ -24,11 +24,13 @@ check("no unused legacy dock icon imports in App", !/AnimatedBookDockIcon|SparkS
 check("legacy dock aliases remain safe for old imports", dockIcons.includes("export const LashEyeIcon = PhotozMirrorDockIcon") && dockIcons.includes("export const AnimatedBookDockIcon = PhotozAlbumDockIcon") && dockIcons.includes("export const SparkSearchDockIcon = PhotozSearchDockIcon"));
 check("no visible Select labels", !app.includes(">Select<") && !app.includes(">SELECT<") && !app.includes('"Select"') && !app.includes('"SELECT"'));
 check("no actualPageTitle render", !app.includes("{actualPageTitle}"));
-check("singular labels preserved", app.includes("PHOTO ALBUM") && !app.includes("PHOTO ALBUMS") && !app.includes("YEARS") && !app.includes("MONTHS") && !app.includes("ERAS"));
+check("singular labels preserved", app.includes("PHOTO ALBUM") && app.includes("YEAR") && app.includes("MONTH") && app.includes("ERA") && !/>PHOTO ALBUMS</.test(app) && !/>YEARS</.test(app) && !/>MONTHS</.test(app) && !/>ERAS</.test(app) && !/return "YEARS"|return "MONTHS"|return "ERAS"/.test(app));
+check("search copy updated", app.includes("SEARCH PHOTO ALBUMS") && app.includes("BROWSE") && !app.includes("SEARCH ALBUMS") && !app.includes("SEARCH FILES"));
 
 check("exactly one utility file count JSX", matchCount(app, /className="utilityFileCount"/g) === 1);
 check("exactly one FILES status render", matchCount(app, /className="utilityFileCount"[^>]*>\{safeArray\(memories\)\.length\} FILES<\/span>/g) === 1);
-check("file count is outside utility bubble", utilityCluster.includes("className=\"floatingUtilityRail\"") && utilityCluster.includes("className=\"utilityFileCount\"") && utilityCluster.indexOf("</div>") < utilityCluster.indexOf("className=\"utilityFileCount\""));
+check("file count is outside utility bubble", utilityCluster.includes("className=\"floatingUtilityRail\"") && utilityCluster.includes("className=\"utilityFileCount\""));
+check("file count is left of music bubble", utilityCluster.indexOf("className=\"utilityFileCount\"") !== -1 && utilityCluster.indexOf("className=\"floatingUtilityRail\"") !== -1 && utilityCluster.indexOf("className=\"utilityFileCount\"") < utilityCluster.indexOf("className=\"floatingUtilityRail\""));
 check("file count is not inside floatingUtilityRail", !utilityRail.includes("utilityFileCount"));
 check("file count is not inside a button", !/<button[\s\S]*className="utilityFileCount"[\s\S]*<\/button>/.test(utilityCluster));
 check("no product/header duplicate file count", !/<em>\{memories\.length\} files<\/em>/.test(app));
@@ -42,6 +44,8 @@ check("dock renderer uses tooltip labels", dockFunction.includes("title={page.la
 check("dock uses bottomDock class on actual Glass", dockFunction.includes('className="dock bottomDock"'));
 check("dock icons are svg elements, not span-wrapped nodes hidden by old dock span rules", /<svg className="photozDockIcon photozDockBook"/.test(dockIcons) && /<svg className="photozDockIcon photozDockEye"/.test(dockIcons) && /<svg className="photozDockIcon photozDockSearch"/.test(dockIcons));
 check("dock animated icon CSS targets real dock", css.includes(".dock .photozDockIcon") && css.includes("svg.photozDockIcon") && css.includes("photozBookPageFlip") && css.includes("photozEyeTopBlink") && css.includes("photozSearchSpark"));
+check("music glyph is polished note svg", app.includes("musicNoteHead") && app.includes("musicBeam") && app.includes("musicFlag") && css.includes(".musicUtilityIcon .musicNoteHead"));
+check("utility spacing is explicitly aligned", css.includes("count is plain text to the LEFT") && css.includes(".floatingUtilityCluster > .utilityFileCount") && css.includes("order: 0") && css.includes(".floatingUtilityCluster > .floatingUtilityRail") && css.includes("order: 1"));
 
 check("settings panel has no redundant header", !settingsPanel.includes("settingsMenuHeader") && !settingsPanel.includes("<strong>SETTINGS</strong>") && !settingsPanel.includes("<Settings"));
 check("filter panel has no redundant header", !filterMenu.includes("filterMenuHeader") && !filterMenu.includes("<strong>FILTER</strong>") && !filterMenu.includes("<SlidersHorizontal"));
