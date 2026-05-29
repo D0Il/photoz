@@ -2444,6 +2444,26 @@ function Modal(props) {
 
 
 
+
+function PzToastStack(props) {
+  const items = safeArray(props.items);
+  if (!items.length) return null;
+
+  return (
+    <div className="pzToastStack" aria-live="polite" aria-atomic="false">
+      {items.map(function (toast) {
+        const tone = toast && toast.type ? String(toast.type) : "info";
+        return (
+          <div key={toast.id || toast.title || toast.message} className={"pzToast " + tone}>
+            {toast.title ? <strong>{toast.title}</strong> : null}
+            {toast.message ? <span>{toast.message}</span> : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function PzFileDetailEditor(props) {
   const memory = props.memory ? normalizeMemoryRecord(props.memory) : null;
   const [draft, setDraft] = useState(memory || {});

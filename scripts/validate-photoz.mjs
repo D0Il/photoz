@@ -58,6 +58,7 @@ check("dock animated icon CSS targets real dock", css.includes(".dock .photozDoc
 check("eye blink is one cohesive group, not split eyelids", dockIcons.includes("eyeBlinkGroup") && dockIcons.includes("eyeOutline") && !dockIcons.includes("eyeTop") && !dockIcons.includes("eyeBottom") && css.includes("photozUnifiedEyeBlink"));
 check("music glyph is an actual music note", app.includes("musicNoteStem") && app.includes("musicNoteFlag") && app.includes("musicNoteHead") && !app.includes("musicDisc") && css.includes(".musicUtilityIcon .musicNoteStem"));
 check("AmbientMusicControl is defined before use", app.includes("function AmbientMusicControl()") && app.includes("<AmbientMusicControl />"));
+check("PzToastStack is defined before use", app.includes("function PzToastStack(props)") && app.includes("<PzToastStack items={pzToasts} />"));
 const ambientControl = app.match(/function AmbientMusicControl\(\) \{[\s\S]*?export default function App/)?.[0] || "";
 check("ambient music button has no native tooltip title", ambientControl.includes("ambientUtilityButton") && !ambientControl.includes("data-tooltip") && !ambientControl.includes("title={"));
 check("utility spacing is explicitly aligned", css.includes("count is plain text to the LEFT") && css.includes(".floatingUtilityCluster > .utilityFileCount") && css.includes("order: 0") && css.includes(".floatingUtilityCluster > .floatingUtilityRail") && css.includes("order: 1"));
