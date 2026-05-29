@@ -124,4 +124,6 @@ Added:
 
 - Forced dock icon visibility at render/CSS level: explicit icon wrapper, SVG sizing, stroke/fill, z-index, and forced PAGES mapping.
 
-- Removed visible page title headers for the three dock pages.
+- Hard removed visible page title headers across all dock pages.
+
+- Screenshot cleanup: removed actual page title path, added guaranteed dock glyph components, forced dock glyph visibility, hid saving banner, and tightened visible controls.

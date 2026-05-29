@@ -10852,18 +10852,175 @@ button[data-tooltip="Long-press files"] {
 }
 
 
-/* REMOVE PAGE TITLE HEADERS */
+/* HARD REMOVE PAGE TITLE HEADERS */
 .pageTitle,
 .pageHeader h1,
+.pageHeader > h1,
+.heroTitle,
 .viewTitle,
 .screenTitle,
+.titleBlock,
+.titleCluster,
 .mainPageTitle,
+.appChrome > h1,
+.appChrome h1:first-child,
+.pageScroll > h1:first-child,
+.glass > h1:first-child,
 [data-page-title="true"] {
+  display: none;
+  visibility: hidden;
+  height: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.pzStateBanner {
   display: none;
 }
 
-.pageHeader:has(h1:only-child),
-.viewTitle:empty,
-.screenTitle:empty {
+
+/* SCREENSHOT CLEANUP PASS */
+.appChrome > h1,
+.appChrome h1:first-child,
+.pageScroll > h1:first-child,
+.glass > h1:first-child,
+.pageTitle,
+.pageHeader h1,
+.heroTitle,
+.viewTitle,
+.screenTitle,
+.titleBlock,
+.titleCluster,
+.mainPageTitle,
+[data-page-title="true"] {
   display: none;
+  visibility: hidden;
+  height: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.pzStateBanner {
+  display: none;
+}
+
+/* Guaranteed dock glyph visibility */
+.bottomDock {
+  overflow: visible;
+}
+
+.bottomDock button {
+  display: grid;
+  place-items: center;
+}
+
+.bottomDock .dockGlyph {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  opacity: 1;
+  visibility: visible;
+  color: rgba(0,0,0,.74);
+  position: relative;
+  z-index: 5;
+  line-height: 0;
+}
+
+.bottomDock .dockGlyph svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  overflow: visible;
+}
+
+.bottomDock .dockGlyph path,
+.bottomDock .dockGlyph circle {
+  vector-effect: non-scaling-stroke;
+  stroke: currentColor;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bottomDock .dockGlyph path {
+  fill: none;
+}
+
+.bottomDock .dockGlyphAlbum path:first-child,
+.bottomDock .dockGlyphAlbum path:nth-child(2),
+.bottomDock .dockGlyphAlbum .flipPage {
+  fill: rgba(255,255,255,.16);
+}
+
+.bottomDock .dockGlyphEye .iris,
+.bottomDock .dockGlyphSearch .spark {
+  fill: currentColor;
+  stroke: none;
+}
+
+.bottomDock .dockGlyphAlbum .flipPage {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: dockGlyphBookFlip 3.4s ease-in-out infinite;
+}
+
+.bottomDock .dockGlyphEye .eyeTop {
+  transform-origin: 14px 14px;
+  animation: dockGlyphEyeTop 5s ease-in-out infinite;
+}
+
+.bottomDock .dockGlyphEye .eyeBottom {
+  transform-origin: 14px 14px;
+  animation: dockGlyphEyeBottom 5s ease-in-out infinite;
+}
+
+.bottomDock .dockGlyphSearch .spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dockGlyphSpark 2.6s ease-in-out infinite;
+}
+
+.bottomDock .dockGlyphSearch .small {
+  animation-delay: .35s;
+}
+
+@keyframes dockGlyphBookFlip {
+  0%, 25%, 100% { transform: perspective(54px) rotateY(0deg); opacity: .9; }
+  48% { transform: perspective(54px) rotateY(-120deg); opacity: .45; }
+  68% { transform: perspective(54px) rotateY(0deg); opacity: .9; }
+}
+
+@keyframes dockGlyphEyeTop {
+  0%, 88%, 100% { transform: translateY(0) scaleY(1); }
+  92%, 94% { transform: translateY(3px) scaleY(.2); }
+}
+
+@keyframes dockGlyphEyeBottom {
+  0%, 88%, 100% { transform: translateY(0) scaleY(1); }
+  92%, 94% { transform: translateY(-3px) scaleY(.2); }
+}
+
+@keyframes dockGlyphSpark {
+  0%, 65%, 100% { transform: scale(.6) rotate(0deg); opacity: .24; }
+  14% { transform: scale(1.08) rotate(12deg); opacity: .95; }
+  30% { transform: scale(.82) rotate(24deg); opacity: .55; }
+}
+
+/* clean the left control stack from screenshot without inventing new controls */
+.albumControlsRow,
+.albumSearchOnly,
+.searchBar.librarySearchBar {
+  min-height: 34px;
+}
+
+.albumSearchOnly input,
+.searchBar.librarySearchBar input {
+  font-size: 9px;
 }

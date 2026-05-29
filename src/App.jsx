@@ -11,9 +11,9 @@ const INITIAL_ALBUMS = [
 ];
 
 const PAGES = [
-  { id: "albums", icon: AnimatedBookDockIcon },
-  { id: "mirror", icon: LashEyeIcon },
-  { id: "search", icon: SparkSearchDockIcon },
+  { id: "albums", icon: DockAlbumGlyph },
+  { id: "mirror", icon: DockMirrorGlyph },
+  { id: "search", icon: DockSearchGlyph },
 ];
 
 const ARCHIVE_FILTERS = ["albums", "years", "months", "eras"];
@@ -3092,6 +3092,55 @@ function LashEyeIcon(props) {
         <path className="lash lash5" d="M17.8 8.2l1.3-1.7" />
         <circle className="lashEyeIris" cx="12" cy="12" r="2.45" />
         <circle className="lashEyeSpark" cx="11.15" cy="11.05" r=".55" />
+      </svg>
+    </span>
+  );
+}
+
+
+function DockAlbumGlyph(props) {
+  const size = props.size || 22;
+  return (
+    <span className="dockGlyph dockGlyphAlbum" aria-hidden="true" style={{ width: size, height: size }}>
+      <svg viewBox="0 0 28 28" focusable="false">
+        <path d="M4.7 7.2c3.3-.5 6.2.2 9.3 2v13c-3.05-1.75-6.1-2.3-9.3-1.55V7.2Z" />
+        <path d="M23.3 7.2c-3.3-.5-6.2.2-9.3 2v13c3.05-1.75 6.1-2.3 9.3-1.55V7.2Z" />
+        <path className="flipPage" d="M14 9.4c2.35-1.25 4.65-1.82 6.8-1.58v11.2c-2.1-.24-4.4.32-6.8 1.67V9.4Z" />
+        <path d="M14 9.3v13.1" />
+        <path d="M7.1 11.3c1.55-.13 3 .14 4.6.8" />
+        <path d="M16.3 12.1c1.6-.66 3.05-.93 4.6-.8" />
+      </svg>
+    </span>
+  );
+}
+
+function DockMirrorGlyph(props) {
+  const size = props.size || 22;
+  return (
+    <span className="dockGlyph dockGlyphEye" aria-hidden="true" style={{ width: size, height: size }}>
+      <svg viewBox="0 0 28 28" focusable="false">
+        <path className="eyeTop" d="M4.2 14c2.45-4.2 5.7-6.1 9.8-6.1s7.35 1.9 9.8 6.1" />
+        <path className="eyeBottom" d="M4.2 14c2.45 4.2 5.7 6.1 9.8 6.1s7.35-1.9 9.8-6.1" />
+        <path className="lash" d="M8.2 9.3 6.8 7.2" />
+        <path className="lash" d="M11.2 8.1 10.7 5.8" />
+        <path className="lash" d="M14 7.8V5.4" />
+        <path className="lash" d="M16.8 8.1l.5-2.3" />
+        <path className="lash" d="M19.8 9.3l1.4-2.1" />
+        <circle className="iris" cx="14" cy="14" r="2.55" />
+      </svg>
+    </span>
+  );
+}
+
+function DockSearchGlyph(props) {
+  const size = props.size || 22;
+  return (
+    <span className="dockGlyph dockGlyphSearch" aria-hidden="true" style={{ width: size, height: size }}>
+      <svg viewBox="0 0 28 28" focusable="false">
+        <circle cx="12.2" cy="12.2" r="6.25" />
+        <path d="M16.9 16.9 22.4 22.4" />
+        <path className="spark big" d="M21.2 4.4l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7.7-2Z" />
+        <path className="spark small" d="M6.2 4.3l.45 1.25 1.25.45-1.25.45L6.2 7.7l-.45-1.25L4.5 6l1.25-.45.45-1.25Z" />
       </svg>
     </span>
   );
