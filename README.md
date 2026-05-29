@@ -880,3 +880,17 @@ Fixed the scattered control-panel layout:
 - Header is more compact.
 - Utility rail is larger and intentional.
 - No `!important` rules.
+
+
+## Screenshot exact layout fix
+
+Fixed the visible layout problems from the screenshot:
+
+- Header is compact instead of giant.
+- Select no longer overlaps the album search.
+- Select stays in the top rail.
+- Tools menu is compact and clear.
+- Upload/Folder remain inside Tools with visible labels.
+- Tool subtitles stay hidden.
+- No blank-looking upload/folder cells.
+- No `!important` rules.

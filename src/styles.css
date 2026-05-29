@@ -5179,3 +5179,293 @@ input[type="file"] {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Screenshot exact layout fix */
+
+/* Header must stop acting like a hero banner */
+.productHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  min-height: 0;
+  padding-right: 100px;
+}
+
+.productHeader strong {
+  font-size: clamp(18px, 1.65vw, 26px);
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: -.045em;
+  color: rgba(0,0,0,.70);
+}
+
+.productHeader em {
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: .08em;
+}
+
+/* Controls must stay in a coherent stack, not float into each other */
+.shell {
+  position: relative;
+  gap: 8px;
+  padding-top: clamp(16px, 2vw, 24px);
+}
+
+/* Main top rail: tabs + select, no absolute overlap */
+.controlBar {
+  position: static;
+  width: fit-content;
+  max-width: calc(100% - 140px);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px;
+  margin: 0;
+  border-radius: 13px;
+}
+
+.controlBar .leftControls,
+.modeBar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.modeBar {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.modeBar button,
+.controlBar button {
+  height: 28px;
+  min-height: 28px;
+  border-radius: 8px;
+  padding: 0 9px;
+  font-size: 10px;
+}
+
+/* Select sits in the same top rail, not over the album search */
+.libraryActionCluster {
+  position: static;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.libraryActionCluster button {
+  height: 28px;
+  min-height: 28px;
+  border-radius: 8px;
+  padding: 0 11px;
+  font-size: 10px;
+  background: rgba(255,255,255,.035);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16);
+}
+
+/* Filter/cog: top-right only */
+.floatingUtilityRail {
+  position: absolute;
+  top: clamp(18px, 2vw, 24px);
+  right: clamp(18px, 2.4vw, 30px);
+  display: flex;
+  gap: 5px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.20);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.024)),
+    rgba(255,255,255,.020);
+  box-shadow:
+    0 8px 22px rgba(0,0,0,.06),
+    inset 0 1px 0 rgba(255,255,255,.20);
+  backdrop-filter: blur(10px) saturate(1.06);
+  z-index: 8;
+}
+
+.floatingUtilityRail button {
+  height: 28px;
+  min-height: 28px;
+  border-radius: 999px;
+  padding: 0 10px;
+  font-size: 10px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.floatingUtilityRail button:last-child {
+  width: 30px;
+  padding: 0;
+  font-size: 14px;
+}
+
+/* Tools menu: compact and clear, no blank slot */
+.toolsIconMenu,
+.toolsDropdown {
+  position: absolute;
+  top: clamp(54px, 5vw, 64px);
+  right: clamp(18px, 2.4vw, 30px);
+  width: 250px;
+  margin: 0;
+  padding: 7px;
+  border-radius: 15px;
+  z-index: 20;
+}
+
+.toolsIconMenu .toolsDropdownTop,
+.toolsDropdown .toolsDropdownTop {
+  display: none;
+}
+
+.toolsIconMenu .toolsDropdownList,
+.toolsDropdown .toolsDropdownList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.toolsIconMenu .toolsDropdownList button,
+.toolsIconMenu .toolsDropdownList .uploadButton,
+.toolsIconMenu .toolsDropdownList .importButton,
+.toolsDropdown .toolsDropdownList button,
+.toolsDropdown .toolsDropdownList .uploadButton,
+.toolsDropdown .toolsDropdownList .importButton {
+  height: 33px;
+  min-height: 33px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 8px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .01em;
+  background: rgba(255,255,255,.032);
+  box-shadow: none;
+}
+
+/* Hide subtitles only, not upload/folder labels */
+.toolsDropdownList button em,
+.toolsDropdownList .uploadButton em,
+.toolsDropdownList .importButton em {
+  display: none;
+}
+
+.toolsDropdownList button span,
+.toolsDropdownList .uploadButton span,
+.toolsDropdownList .importButton span {
+  display: inline;
+  font-size: 10px;
+  font-weight: 850;
+  color: rgba(0,0,0,.56);
+}
+
+/* Album search/create row aligns under tabs with no overlap */
+.albumEditor {
+  width: fit-content;
+  max-width: min(420px, 100%);
+  display: grid;
+  grid-template-columns: minmax(190px, 320px) 34px;
+  align-items: center;
+  gap: 6px;
+  padding: 5px;
+  border-radius: 13px;
+  margin-top: 8px;
+}
+
+.albumEditor.creating {
+  grid-template-columns: minmax(170px, 250px) minmax(140px, 220px) 34px;
+  max-width: min(560px, 100%);
+}
+
+.albumEditor .pill {
+  display: none;
+}
+
+.albumEditor input {
+  height: 30px;
+  min-height: 30px;
+  border-radius: 8px;
+  font-size: 10px;
+}
+
+.albumEditor .createAlbumButton,
+.albumEditor button {
+  height: 30px;
+  min-height: 30px;
+  width: 34px;
+  padding: 0;
+  border-radius: 9px;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+/* Utility rail is intentional and visible */
+.systemRail {
+  margin: 8px 0 14px;
+  gap: 8px;
+}
+
+.systemRailItem {
+  height: 34px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 11px;
+}
+
+.systemRailItem span {
+  font-size: 12px;
+}
+
+/* Preserve dock pill */
+.dock,
+.dock button,
+.dockButton {
+  border-radius: 999px;
+}
+
+/* Responsive */
+@media (max-width: 760px) {
+  .productHeader {
+    padding-right: 0;
+  }
+
+  .controlBar {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .floatingUtilityRail,
+  .toolsIconMenu,
+  .toolsDropdown,
+  .viewDropdown,
+  .viewPanel {
+    position: static;
+    width: fit-content;
+    max-width: 100%;
+    margin-left: auto;
+  }
+
+  .albumEditor,
+  .albumEditor.creating {
+    width: 100%;
+    max-width: 100%;
+    grid-template-columns: 1fr 34px;
+  }
+
+  .albumEditor.creating input:nth-of-type(2) {
+    grid-column: 1;
+  }
+}
