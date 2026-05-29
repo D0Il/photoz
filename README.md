@@ -52,4 +52,4 @@ The Worker guards `/api/index`, `/api/load-index`, `/api/backup-index`, `/api/sa
 
 ## Password gate
 
-The entry gate validates through `/api/unlock` against the Cloudflare Worker secret/env var named `PHOTOZ_ACCESS_CODE`. `wrangler.toml` sets `keep_vars = true` so dashboard-managed variables/secrets are preserved during `npx wrangler deploy`.
+Cloudflare Build variables are build-time only, so the build command runs `scripts/write-access-code.mjs` before Vite. It reads the Build secret `PHOTOZ_ACCESS_CODE` and writes `src/generated-access-code.js`, which is imported only by `src/worker.js`. The frontend app does not import this generated file. At runtime, `/api/unlock` checks `env.PHOTOZ_ACCESS_CODE` first, then the generated Worker-only build fallback.

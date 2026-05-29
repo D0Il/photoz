@@ -1,3 +1,4 @@
+import { BUILD_TIME_PHOTOZ_ACCESS_CODE } from "./generated-access-code.js";
 const INDEX_KEY = "index.json";
 
 function corsHeaders() {
@@ -138,7 +139,9 @@ async function handleFile(env, pathname) {
 
 
 function getConfiguredPassword(env) {
-  return String((env && env.PHOTOZ_ACCESS_CODE) || "").trim();
+  const runtimeValue = String((env && env.PHOTOZ_ACCESS_CODE) || "").trim();
+  const buildValue = String(BUILD_TIME_PHOTOZ_ACCESS_CODE || "").trim();
+  return runtimeValue || buildValue;
 }
 
 async function handleUnlock(request, env) {
