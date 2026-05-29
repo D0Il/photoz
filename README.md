@@ -652,3 +652,29 @@ Adjusted the visual language so the UI is glass, not bubbles:
 - Only true chips/badges remain pill-shaped.
 - Reduced puffy shadows/padding on controls.
 - Kept the glass depth/highlights while making the product feel less toy-like.
+
+
+## Tools and modal simplification
+
+Cleaned the remaining product bloat:
+
+- Tools are grouped into Import, Archive Care, and Backup.
+- Import panel now shows normal choices first.
+- Batch size and upload slots are hidden behind Advanced Import.
+- Health/repair buttons now use human language.
+- Modal file/storage details are hidden behind File Details.
+- Raw data stays behind Raw Data.
+- Legacy rating/label/review/private panel is removed from the visible modal.
+- Archive is labeled as Hidden in filter UI.
+
+
+## Final product polish pass
+
+Reduced remaining product/admin feel:
+
+- System folders now render as compact shortcut cards instead of full album cards.
+- Album/photo action clusters are quieter until hover.
+- Modal actions are grouped into a calmer grid.
+- Technical/raw details are visually contained.
+- Several admin labels were rewritten into normal photo-archive language.
+- Search/filter visual weight is reduced.

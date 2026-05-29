@@ -28,6 +28,12 @@ const INDEX_SCHEMA_VERSION = 3;
 const MEDIA_BASE = "/media";
 const MAX_PARALLEL_UPLOADS = 3;
 
+function filterLabel(value) {
+  if (value === "archive") return "HIDDEN";
+  if (value === "needs-file") return "RESELECT";
+  return up(value);
+}
+
 function up(value) {
   return String(value || "").toUpperCase();
 }
@@ -1209,19 +1215,29 @@ function ToolsPanel(props) {
   if (!props.open) return null;
 
   return (
-    <div className="toolsPanel">
+    <div className="toolsPanel simplifiedTools">
       <div className="statusPanelTop">
         <strong>TOOLS</strong>
         <button type="button" onClick={props.close}>CLOSE</button>
       </div>
-      <div className="toolsGrid">
-        <button type="button" onClick={props.toggleImportPanel}>IMPORT</button>
-        <button type="button" onClick={props.toggleUploadQueuePanel}>QUEUE</button>
-        <button type="button" onClick={props.toggleStatusPanel}>STATUS</button>
-        <button type="button" onClick={props.toggleDuplicatePanel}>DUPES</button>
-        <button type="button" onClick={props.toggleHealthPanel}>HEALTH</button>
-        <button type="button" onClick={props.exportVaultIndex}>EXPORT</button>
-        <button type="button" onClick={props.exportManifestCsv}>CSV</button>
+
+      <div className="toolSection">
+        <span>IMPORT</span>
+        <button type="button" onClick={props.toggleImportPanel}>Import photos</button>
+        <button type="button" onClick={props.toggleUploadQueuePanel}>Upload queue</button>
+      </div>
+
+      <div className="toolSection">
+        <span>ARCHIVE CARE</span>
+        <button type="button" onClick={props.toggleDuplicatePanel}>Review duplicates</button>
+        <button type="button" onClick={props.toggleStatusPanel}>Missing files</button>
+        <button type="button" onClick={props.toggleHealthPanel}>Check archive</button>
+      </div>
+
+      <div className="toolSection">
+        <span>BACKUP</span>
+        <button type="button" onClick={props.exportVaultIndex}>Export backup</button>
+        <button type="button" onClick={props.exportManifestCsv}>Export list</button>
         <ImportBackupButton onImport={props.importVaultIndex} />
       </div>
     </div>
@@ -1242,15 +1258,15 @@ function HealthPanel(props) {
         <span>{props.health && props.health.indexFound ? "INDEX FOUND" : "INDEX NEW"}</span>
         <span>{props.health && props.health.bucket ? "R2 " + props.health.bucket : "R2"}</span>
       </div>
-      {props.validation ? <div className="statusClean">INDEX: {props.validation.memories} FILES / {props.validation.albums} ALBUMS / {props.validation.orphanAlbumRefs} BAD REFS / {props.validation.missingHomes} MISSING HOMES</div> : null}
-      {props.health && props.health.repairReport ? <div className="statusClean">LAST REPAIR: {props.health.repairReport.orphanAlbumRefs} BAD REFS / {props.health.repairReport.missingHomes} MISSING HOMES</div> : null}
-      {props.health && props.health.routeCheck ? <div className="statusClean">ROUTES: ACCESS {String(props.health.routeCheck.access).toUpperCase()} / HEALTH {String(props.health.routeCheck.health).toUpperCase()}</div> : null}
+      {props.validation ? <div className="statusClean">INDEX: {props.validation.memories} FILES / {props.validation.albums} ALBUMS / {props.validation.orphanAlbumRefs} BROKEN LINKS / {props.validation.missingHomes} WITHOUT ALBUM</div> : null}
+      {props.health && props.health.repairReport ? <div className="statusClean">LAST REPAIR: {props.health.repairReport.orphanAlbumRefs} BROKEN LINKS / {props.health.repairReport.missingHomes} WITHOUT ALBUM</div> : null}
+      {props.health && props.health.routeCheck ? <div className="statusClean">APP CHECK: ACCESS {String(props.health.routeCheck.access).toUpperCase()} / HEALTH {String(props.health.routeCheck.health).toUpperCase()}</div> : null}
       {props.missingReport ? <div className="statusClean">MEDIA CHECK: {props.missingReport.missing} MISSING / {props.missingReport.checked} CHECKED</div> : null}
       {props.healthError ? <div className="statusClean">HEALTH CHECK FAILED.</div> : null}
-      <button type="button" onClick={props.runHealthCheck}>RUN CHECK</button>
-      <button type="button" onClick={props.runRouteCheck}>CHECK ROUTES</button>
-      <button type="button" onClick={props.runMissingCheck}>CHECK MEDIA</button>
-      <button type="button" onClick={props.repairIndex}>REPAIR INDEX</button>
+      <button type="button" onClick={props.runHealthCheck}>CHECK ARCHIVE</button>
+      <button type="button" onClick={props.runRouteCheck}>CHECK APP</button>
+      <button type="button" onClick={props.runMissingCheck}>CHECK FILES</button>
+      <button type="button" onClick={props.repairIndex}>REPAIR ALBUM LINKS</button>
     </div>
   );
 }
@@ -1264,7 +1280,7 @@ function DuplicatePanel(props) {
   return (
     <div className="duplicatePanel duplicateReviewPanel">
       <div className="statusPanelTop">
-        <strong>DUPLICATE REVIEW</strong>
+        <strong>DUPLICATES</strong>
         <button type="button" onClick={props.close}>CLOSE</button>
       </div>
       {!groups.length ? <div className="statusClean">NO DUPLICATES FOUND.</div> : null}
@@ -1276,7 +1292,7 @@ function DuplicatePanel(props) {
             <div className="duplicateGroupTop">
               <strong>{duplicateGroupTitle(cleanGroup)}</strong>
               <span>{cleanGroup.length} MATCHES</span>
-              {keeper ? <button type="button" onClick={function () { props.trashDuplicateOthers(cleanGroup, keeper.id); }}>TRASH OTHERS</button> : null}
+              {keeper ? <button type="button" onClick={function () { props.trashDuplicateOthers(cleanGroup, keeper.id); }}>MOVE EXTRAS TO TRASH</button> : null}
             </div>
             <div className="duplicateCandidates">
               {cleanGroup.map(function (memory, itemIndex) {
@@ -1300,25 +1316,44 @@ function ImportPanel(props) {
   if (!props.open) return null;
 
   return (
-    <div className="importPanel">
+    <div className="importPanel simplifiedImport">
       <div className="statusPanelTop">
-        <strong>IMPORT</strong>
+        <strong>IMPORT PHOTOS</strong>
         <button type="button" onClick={props.close}>CLOSE</button>
       </div>
-      <div className="importSettings">
+
+      <div className="importSettings primaryImportSettings">
         <label>
-          <span>BATCH</span>
-          <input value={props.uploadBatchSize} onChange={function (event) { props.setUploadBatchSize(event.target.value); }} />
-        </label>
-        <label>
-          <span>CONCURRENCY</span>
-          <input value={props.uploadConcurrency} onChange={function (event) { props.setUploadConcurrency(event.target.value); }} />
+          <span>ADD TO</span>
+          <select value={props.uploadAlbum} onChange={function (event) { props.setUploadAlbum(event.target.value); }}>
+            {assignableAlbums(props.albums).map(function (album) {
+              return <option key={album.id} value={album.id}>{album.title}</option>;
+            })}
+          </select>
         </label>
         <label className="toggleLine">
           <input type="checkbox" checked={props.skipDuplicates} onChange={function (event) { props.setSkipDuplicates(event.target.checked); }} />
           <span>SKIP DUPLICATES</span>
         </label>
       </div>
+
+      <button type="button" className="advancedToggle" onClick={function () { props.setImportAdvancedOpen(function (value) { return !value; }); }}>
+        {props.importAdvancedOpen ? "HIDE ADVANCED" : "ADVANCED IMPORT"}
+      </button>
+
+      {props.importAdvancedOpen ? (
+        <div className="importSettings advancedImportSettings">
+          <label>
+            <span>BATCH SIZE</span>
+            <input value={props.uploadBatchSize} onChange={function (event) { props.setUploadBatchSize(event.target.value); }} />
+          </label>
+          <label>
+            <span>UPLOAD SLOTS</span>
+            <input value={props.uploadConcurrency} onChange={function (event) { props.setUploadConcurrency(event.target.value); }} />
+          </label>
+        </div>
+      ) : null}
+
       {props.importSummary ? (
         <div className="statusStats">
           <span>FILES {props.importSummary.total}</span>
@@ -1327,7 +1362,7 @@ function ImportPanel(props) {
           <span>LARGE {props.importSummary.large}</span>
           <span>SIZE {formatBytes(props.importSummary.bytes)}</span>
         </div>
-      ) : <div className="statusClean">SELECT FILES OR A FOLDER TO START AN IMPORT.</div>}
+      ) : <div className="statusClean">Choose photos or a folder with the Upload button.</div>}
     </div>
   );
 }
@@ -1350,7 +1385,7 @@ function UploadQueuePanel(props) {
         <span>DONE {stats.done || 0}</span>
         <span>FAILED {stats.failed || 0}</span>
       </div>
-      {!active.length ? <div className="statusClean">NO ACTIVE UPLOAD QUEUE.</div> : null}
+      {!active.length ? <div className="statusClean">Nothing is uploading.</div> : null}
       {active.length ? (
         <div className="uploadQueueRows">
           {active.map(function (item) {
@@ -1392,8 +1427,8 @@ function StatusPanel(props) {
         <span>FAILED {stats.failed || 0}</span>
         <span>LOCAL {stats.local || 0}</span>
       </div>
-      <button type="button" className="statusCleanup" onClick={props.purgeTrash}>PURGE TRASH</button>
-      {issues.length ? <button type="button" className="statusCleanup" onClick={props.clearLocalFailedStatus}>MARK FOR RESELECT</button> : null}
+      <button type="button" className="statusCleanup" onClick={props.purgeTrash}>EMPTY TRASH</button>
+      {issues.length ? <button type="button" className="statusCleanup" onClick={props.clearLocalFailedStatus}>NEEDS RESELECT</button> : null}
       {issues.length ? (
         <div className="statusIssues">
           {issues.slice(0, 12).map(function (memory) {
@@ -1437,7 +1472,7 @@ function BulkBar(props) {
         })}
       </select>
       <button type="button" disabled={!count} onClick={props.bulkMoveToAlbum}>MOVE</button>
-      <button type="button" disabled={!count} onClick={props.bulkDelete}>TRASH</button>
+      <button type="button" disabled={!count} onClick={props.bulkDelete}>MOVE TO TRASH</button>
       <button type="button" className={props.bulkMoreOpen ? "active" : ""} onClick={props.toggleBulkMore}>MORE</button>
       <button type="button" onClick={props.clearSelection}>CLEAR</button>
 
@@ -1454,8 +1489,8 @@ function BulkBar(props) {
           <button type="button" disabled={!count} onClick={props.bulkUnmarkMe}>UNMARK ME</button>
           <button type="button" disabled={!count} onClick={props.bulkMoveToMirror}>MIRROR</button>
           <button type="button" disabled={!count} onClick={props.bulkRemoveFromMirror}>UNMIRROR</button>
-          <button type="button" disabled={!count} onClick={props.bulkArchive}>ARCHIVE</button>
-          <button type="button" disabled={!count} onClick={props.bulkUnarchive}>UNARCHIVE</button>
+          <button type="button" disabled={!count} onClick={props.bulkArchive}>HIDE</button>
+          <button type="button" disabled={!count} onClick={props.bulkUnarchive}>UNHIDE</button>
           <button type="button" disabled={!count} onClick={props.bulkRestore}>RESTORE</button>
           <button type="button" disabled={!count} onClick={props.bulkClearTags}>CLEAR TAGS</button>
           <button type="button" disabled={!count} onClick={props.bulkSetEra}>SET ERA</button>
@@ -1503,6 +1538,16 @@ function ControlBar(props) {
         <UploadButton onUpload={props.onUpload} folder />
       </div>
     </div>
+  );
+}
+
+function SystemShortcutCard(props) {
+  const group = props.group;
+  return (
+    <button type="button" className="systemShortcutCard" onClick={function () { props.openGroup(group); }}>
+      <span>{up(group.title)}</span>
+      <strong>{group.items.length}</strong>
+    </button>
   );
 }
 
@@ -1618,7 +1663,7 @@ function AlbumsView(props) {
         {archiveGroups.map(function (group) {
           const editing = isFolders && props.editingId === group.sourceId;
           if (!isFolders) {
-            return <GroupCard key={group.id} group={group} openGroup={props.openGroup} openMemory={props.openMemory} deleteMemory={props.deleteMemory} selectionMode={props.selectionMode} selectedIds={props.selectedIds} toggleSelected={props.toggleSelected} starredIds={props.starredIds} />;
+            return <SystemShortcutCard key={group.id} group={group} openGroup={props.openGroup} />;
           }
 
           return (
@@ -1684,7 +1729,7 @@ function SearchView(props) {
               className={props.filter === filter ? "active" : ""}
               onClick={function () { props.setFilter(filter); }}
             >
-              {up(filter)}
+              {filterLabel(filter)}
             </button>
           );
         })}
@@ -1703,7 +1748,7 @@ function SearchView(props) {
                 className={props.filter === filter ? "active" : ""}
                 onClick={function () { props.setFilter(filter); }}
               >
-                {up(filter)}
+                {filterLabel(filter)}
               </button>
             );
           })}
@@ -1754,6 +1799,7 @@ function Modal(props) {
   const [draftRating, setDraftRating] = useState("0");
   const [draftLabel, setDraftLabel] = useState("");
   const [showMetadata, setShowMetadata] = useState(false);
+  const [showTechnical, setShowTechnical] = useState(false);
 
   useEffect(function () {
     if (!props.memory) return;
@@ -1803,12 +1849,19 @@ function Modal(props) {
 
           <PhotoCard memory={{ ...props.memory, previewUrl: props.memory.storageUrl }} className="modalPhoto" isStarred={props.isStarred} />
 
-          <div className="fileInfoRow">
-            <span>{up(props.memory.kind || "file")}</span>
-            <span>{formatBytes(fileSizeBytes(props.memory))}</span>
-            <span>{props.memory.uploadStatus ? up(props.memory.uploadStatus) : "LOCAL"}</span>
-            <span>{props.memory.metadata && props.memory.metadata.webkitRelativePath ? props.memory.metadata.webkitRelativePath : props.memory.storageKey || "NO STORAGE KEY"}</span>
-          </div>
+          <button type="button" className="technicalToggle" onClick={function () { setShowTechnical(function (value) { return !value; }); }}>
+            {showTechnical ? "HIDE FILE DETAILS" : "FILE DETAILS"}
+          </button>
+
+          {showTechnical ? (
+            <div className="fileInfoRow technicalDetails">
+              <span>{up(props.memory.kind || "file")}</span>
+              <span>{formatBytes(fileSizeBytes(props.memory))}</span>
+              <span>{props.memory.uploadStatus ? up(props.memory.uploadStatus) : "LOCAL"}</span>
+              <span>{props.memory.metadata && props.memory.metadata.webkitRelativePath ? props.memory.metadata.webkitRelativePath : props.memory.storageKey || "NO STORAGE KEY"}</span>
+              {props.memory.takeoutMeta && props.memory.takeoutMeta.sidecarPath ? <span>TAKEOUT JSON {props.memory.takeoutMeta.sidecarPath}</span> : null}
+            </div>
+          ) : null}
 
           <div className="modalSectionTitle">DETAILS</div>
           <div className="detailsEditPanel">
@@ -1866,15 +1919,6 @@ function Modal(props) {
             </div>
           </div>
 
-          {(normalizeRating(props.memory.rating) || props.memory.label || props.memory.review || props.memory.private) ? (
-            <div className="legacyMetaPanel">
-              <span>{normalizeRating(props.memory.rating) ? "RATING " + normalizeRating(props.memory.rating) : ""}</span>
-              <span>{props.memory.label ? "LABEL " + up(props.memory.label) : ""}</span>
-              <span>{props.memory.review ? "REVIEW" : ""}</span>
-              <span>{props.memory.private ? "PRIVATE TAG" : ""}</span>
-            </div>
-          ) : null}
-
           {showMetadata ? <pre>{JSON.stringify(props.memory.metadata || {}, null, 2)}</pre> : null}
         </motion.div>
       </motion.div>
@@ -1894,6 +1938,18 @@ function verifyWorkflowCleanupModel() {
   console.assert(typeof UndoBar === "function", "Undo bar exists");
 }
 verifyWorkflowCleanupModel();
+
+function verifyFinalProductPolishModel() {
+  console.assert(typeof SystemShortcutCard === "function", "System shortcuts are compact cards");
+}
+verifyFinalProductPolishModel();
+
+function verifyToolsModalSimplifyModel() {
+  console.assert(typeof ToolsPanel === "function", "Tools panel exists");
+  console.assert(typeof ImportPanel === "function", "Import panel exists");
+  console.assert(filterLabel("archive") === "HIDDEN", "Archive label simplified");
+}
+verifyToolsModalSimplifyModel();
 
 function verifyHardDeclutterModel() {
   console.assert(PRIMARY_SEARCH_FILTERS.length === 6, "Primary search filters are reduced");
@@ -2089,6 +2145,7 @@ export default function App() {
   const [skipDuplicates, setSkipDuplicates] = useState(true);
   const [uploadPaused, setUploadPaused] = useState(false);
   const [importSummary, setImportSummary] = useState(null);
+  const [importAdvancedOpen, setImportAdvancedOpen] = useState(false);
   const [uploadQueueOpen, setUploadQueueOpen] = useState(false);
   const [uploadQueue, setUploadQueue] = useState([]);
   const uploadFileRefs = useRef({});
@@ -2661,7 +2718,7 @@ export default function App() {
 
   function trashDuplicateOthers(group, keepId) {
     if (!group || !group.length) return;
-    rememberUndo("DUPLICATE REVIEW");
+    rememberUndo("DUPLICATES");
     const ids = group.filter(function (memory) { return memory.id !== keepId; }).map(function (memory) { return memory.id; });
     if (!ids.length) return;
     const nextMemories = memories.map(function (memory) {

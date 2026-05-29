@@ -2404,3 +2404,184 @@ select {
 .legacyMetaPanel span {
   padding: 6px 8px;
 }
+
+
+/* Product simplification pass */
+.simplifiedTools {
+  gap: 12px;
+}
+.toolSection {
+  display: grid;
+  grid-template-columns: 120px repeat(3, minmax(0, auto));
+  align-items: center;
+  gap: 8px;
+  padding: 9px;
+  border-radius: var(--radius-panel, 20px);
+  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(255,255,255,.035);
+}
+.toolSection span {
+  color: rgba(0,0,0,.42);
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: .16em;
+}
+.toolSection button,
+.toolSection .importButton {
+  height: 34px;
+  border-radius: var(--radius-control, 12px);
+  border: 1px solid rgba(255,255,255,.36);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.035)),
+    rgba(0,0,0,.018);
+  color: rgba(0,0,0,.56);
+  padding: 0 10px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .10em;
+}
+.primaryImportSettings {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.advancedToggle,
+.technicalToggle {
+  justify-self: start;
+  height: 32px;
+  border-radius: var(--radius-control, 12px);
+  border: 1px solid rgba(255,255,255,.34);
+  background: rgba(255,255,255,.045);
+  color: rgba(0,0,0,.44);
+  padding: 0 10px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+.advancedImportSettings {
+  opacity: .92;
+}
+.technicalDetails {
+  margin-top: 8px;
+}
+.technicalDetails span {
+  color: rgba(0,0,0,.38);
+}
+.modalSectionTitle {
+  margin-top: 18px;
+}
+@media (max-width: 760px) {
+  .toolSection {
+    grid-template-columns: 1fr;
+  }
+  .primaryImportSettings {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Final product polish */
+.systemFolderStrip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(130px, 1fr));
+  gap: 9px;
+  margin: 4px 0 18px;
+}
+.systemShortcutCard {
+  min-height: 82px;
+  border-radius: var(--radius-card, 18px);
+  border: 1px solid rgba(255,255,255,.34);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.13), rgba(255,255,255,.035) 55%, rgba(0,0,0,.04)),
+    rgba(255,255,255,.028);
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.10),
+    inset 0 1px 0 rgba(255,255,255,.34),
+    inset 0 -1px 0 rgba(0,0,0,.10);
+  color: rgba(0,0,0,.58);
+  padding: 13px;
+  display: grid;
+  align-content: space-between;
+  text-align: left;
+  cursor: pointer;
+  backdrop-filter: blur(7px) saturate(1.05);
+}
+.systemShortcutCard span {
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: .16em;
+}
+.systemShortcutCard strong {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -.03em;
+  color: rgba(0,0,0,.66);
+}
+.systemShortcutCard:hover {
+  transform: translateY(-1px);
+}
+
+/* Cards should show title/count first, not badges first */
+.groupCardTop strong {
+  font-size: clamp(18px, 2.3vw, 28px);
+  letter-spacing: -.04em;
+}
+.groupDescription {
+  max-width: 100%;
+}
+
+/* Make album action buttons quieter until hover */
+.groupCard .albumActions,
+.photoCard .photoActions {
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity .16s ease, transform .16s ease;
+}
+.groupCard:hover .albumActions,
+.photoCard:hover .photoActions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Modal: calmer action layout */
+.modalActions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+.modalActions button {
+  min-width: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/* Raw/technical details should not dominate */
+.technicalDetails,
+.metadataPanel pre,
+pre {
+  max-height: 180px;
+  overflow: auto;
+  opacity: .82;
+}
+
+/* Filter rows become visually lighter */
+.searchFilters button:not(.active) {
+  opacity: .72;
+}
+.searchFilters button.active {
+  opacity: 1;
+}
+
+/* Keep system strip compact on tablet */
+@media (max-width: 900px) {
+  .systemFolderStrip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .modalActions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 620px) {
+  .systemFolderStrip,
+  .modalActions {
+    grid-template-columns: 1fr;
+  }
+}
