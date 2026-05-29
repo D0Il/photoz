@@ -2363,6 +2363,9 @@ function Modal(props) {
 
 const AMBIENT_AUDIO_SOURCES = [];
 
+const AMBIENT_YOUTUBE_URL = "https://www.youtube.com/watch?v=QH-CAuEfCAA";
+const AMBIENT_YOUTUBE_VIDEO_ID = "QH-CAuEfCAA";
+
 function createAmbientVoice(ctx, frequency, detune, gainValue) {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -2439,16 +2442,12 @@ function AmbientMusicControl() {
   const [enabled, setEnabled] = useState(function () {
     try { return window.localStorage.getItem("photozAmbientEnabled") === "true"; } catch (error) { return false; }
   });
-  const [volume, setVolume] = useState(function () {
-    try { return Number(window.localStorage.getItem("photozAmbientVolume") || "0.55"); } catch (error) { return 0.55; }
-  });
   const audioRef = useRef(null);
   const synthRef = useRef(null);
   const ctxRef = useRef(null);
 
   useEffect(function () {
     try { window.localStorage.setItem("photozAmbientEnabled", enabled ? "true" : "false"); } catch (error) {}
-    try { window.localStorage.setItem("photozAmbientVolume", String(volume)); } catch (error) {}
 
     if (!enabled) {
       if (audioRef.current) {
@@ -2462,6 +2461,8 @@ function AmbientMusicControl() {
       return;
     }
 
+    if (AMBIENT_YOUTUBE_VIDEO_ID) return;
+
     if (AMBIENT_AUDIO_SOURCES.length) {
       if (!audioRef.current) {
         const audio = new Audio(AMBIENT_AUDIO_SOURCES[0]);
@@ -2469,7 +2470,7 @@ function AmbientMusicControl() {
         audio.preload = "auto";
         audioRef.current = audio;
       }
-      audioRef.current.volume = Math.max(0, Math.min(1, volume));
+      audioRef.current.volume = 1;
       audioRef.current.play().catch(function () {
         setEnabled(false);
       });
@@ -2487,11 +2488,11 @@ function AmbientMusicControl() {
         synthRef.current.master.connect(ctx.destination);
         synthRef.current.start();
       }
-      synthRef.current.setVolume(0.020 + volume * 0.075);
+      synthRef.current.setVolume(0.095);
     } catch (error) {
       setEnabled(false);
     }
-  }, [enabled, volume]);
+  }, [enabled]);
 
   useEffect(function () {
     return function () {
@@ -2500,33 +2501,34 @@ function AmbientMusicControl() {
     };
   }, []);
 
+  const youtubeSrc = enabled && AMBIENT_YOUTUBE_VIDEO_ID
+    ? "https://www.youtube.com/embed/" + AMBIENT_YOUTUBE_VIDEO_ID + "?autoplay=1&loop=1&playlist=" + AMBIENT_YOUTUBE_VIDEO_ID + "&controls=0&modestbranding=1&playsinline=1"
+    : "";
+
   return (
-    <div className="ambientControl">
+    <>
       <button
         type="button"
-        className={enabled ? "ambientToggle active" : "ambientToggle"}
-        aria-label={enabled ? "Turn ambient music off" : "Turn ambient music on"}
-        title={enabled ? "Ambient off" : "Ambient on"}
-        data-tooltip={enabled ? "Ambient off" : "Ambient on"}
+        className={enabled ? "utilityRailButton iconUtilityButton ambientUtilityButton active" : "utilityRailButton iconUtilityButton ambientUtilityButton"}
+        aria-label={enabled ? "Ambient music on" : "Ambient music off"}
+        title={enabled ? "Ambient on" : "Ambient off"}
+        data-tooltip={enabled ? "Ambient on" : "Ambient off"}
         onClick={function () { setEnabled(function (value) { return !value; }); }}
       >
-        {enabled ? <Volume2 size={14} strokeWidth={2.1} /> : <Music2 size={14} strokeWidth={2.1} />}
+        <span className="ambientGlyph">
+          <Music2 size={13} strokeWidth={2.05} />
+        </span>
       </button>
-      {enabled ? (
-        <label className="ambientSlider" aria-label="Ambient volume" title="Ambient volume" data-tooltip="Ambient volume">
-          <VolumeX size={12} strokeWidth={2.1} />
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            value={volume}
-            onChange={function (event) { setVolume(Number(event.target.value)); }}
-          />
-          <Volume2 size={12} strokeWidth={2.1} />
-        </label>
+      {youtubeSrc ? (
+        <iframe
+          className="ambientYoutubeFrame"
+          src={youtubeSrc}
+          title="Ambient music"
+          allow="autoplay; encrypted-media"
+          referrerPolicy="strict-origin-when-cross-origin"
+        />
       ) : null}
-    </div>
+    </>
   );
 }
 
@@ -3798,11 +3800,11 @@ const [albumSort, setAlbumSort] = useState("recent");
                 </div>
                 <ControlBar activePage={activePage} archive={archive} archiveView={archiveView} setArchiveView={setArchiveView} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} viewControlsOpen={viewControlsOpen} toggleViewControls={function () { setViewControlsOpen(function (value) { return !value; }); }} toolsOpen={toolsOpen} toggleToolsPanel={function () { setToolsOpen(function (value) { return !value; }); }} />
                 <div className="floatingUtilityRail">
+                  <AmbientMusicControl />
                   <button type="button" aria-label="Filter" title="Filter" data-tooltip="Filter" className={viewControlsOpen ? "utilityRailButton iconUtilityButton active" : "utilityRailButton iconUtilityButton"} onClick={function () { setToolsOpen(false); setViewControlsOpen(function (value) { return !value; }); }}><SlidersHorizontal size={14} strokeWidth={2.1} /></button>
                   <button type="button" aria-label={selectionMode ? "Done selecting" : "Select"} title={selectionMode ? "Done" : "Select"} data-tooltip={selectionMode ? "Done" : "Select"} className={selectionMode ? "utilityRailButton selectUtilityButton iconUtilityButton active" : "utilityRailButton selectUtilityButton iconUtilityButton"} onClick={function () { setSelectionMode(function (value) { return !value; }); }}><CircleCheck size={14} strokeWidth={2.1} /></button>
                   <button type="button" aria-label="Tools" title="Tools" data-tooltip="Tools" className={toolsOpen ? "utilityRailButton cogUtilityButton iconUtilityButton active" : "utilityRailButton cogUtilityButton iconUtilityButton"} onClick={function () { setViewControlsOpen(false); setToolsOpen(function (value) { return !value; }); }}>⚙</button>
                 </div>
-                <AmbientMusicControl />
                 <ViewPanel open={viewControlsOpen} close={function () { setViewControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveView === "albums"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize} />
                 <UndoBar snapshot={undoSnapshot} undo={undoLastAction} clear={function () { setUndoSnapshot(null); }} />
                 <ToolsPanel onUpload={handleUpload} open={toolsOpen} close={function () { setToolsOpen(false); }} toggleImportPanel={function () { setImportPanelOpen(function (value) { return !value; }); }} toggleUploadQueuePanel={function () { setUploadQueueOpen(function (value) { return !value; }); }} toggleStatusPanel={function () { setStatusOpen(function (value) { return !value; }); }} toggleDuplicatePanel={function () { setDuplicatesOpen(function (value) { return !value; }); }} toggleHealthPanel={function () { setHealthOpen(function (value) { return !value; }); }} exportVaultIndex={exportVaultIndex} exportManifestCsv={exportManifestCsv} importVaultIndex={importVaultIndex} />
