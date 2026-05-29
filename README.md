@@ -79,3 +79,19 @@ Video mode is now a dedicated designed state:
 - video cards open playback instead of image detail by default
 - cinema playback modal with metadata/actions
 - SearchView/GroupView edit/play handlers are now passed as props instead of relying on out-of-scope state
+
+## Video playback correction
+
+Removed the accidental page-level video dashboard/header/featured module. Video mode now means the playback/viewing state only: video cards open a clean theater player with metadata/actions. The videos search filter remains a normal filtered file grid.
+
+## Workflow continuation pass
+
+Added:
+- Tools menu entry for upload queue/review
+- upload queue records selected files as READY before upload starts
+- upload queue summary counts
+- retry failed / clear complete / close actions
+- backup strip actions for saved/backup timestamps
+- file detail restore action for trashed files
+- clearer file detail header and trash ribbon
+- playback-only video view preserved

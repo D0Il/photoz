@@ -1,6 +1,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {ChevronLeft, Eye, Images, Search, Upload, X, Trash2, CircleHelp, SlidersHorizontal, CircleCheck, Music2, Volume2, VolumeX, LockKeyhole, UnlockKeyhole, FolderPen, ShieldCheck, Film, Download, PanelRightOpen, ArchiveRestore, Save, AlertTriangle, UploadCloud, Play, Clock3, HardDrive, Sparkles, Maximize2, CalendarDays} from "lucide-react";
+import {ChevronLeft, Eye, Images, Search, Upload, X, Trash2, CircleHelp, SlidersHorizontal, CircleCheck, Music2, Volume2, VolumeX, LockKeyhole, UnlockKeyhole, FolderPen, ShieldCheck, Film, Download, PanelRightOpen, ArchiveRestore, Save, AlertTriangle, UploadCloud, Play, Clock3, HardDrive, Sparkles, Maximize2, CalendarDays, RotateCcw, Undo2} from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 const UNASSIGNED_ALBUM_ID = "unassigned";
@@ -1362,7 +1362,7 @@ function PhotoCard(props) {
 
   return (
     <article
-      className={props.selected ? "photoCard selected" : video ? "photoCard videoCard pzDesignedVideoCard" : "photoCard"}
+      className={props.selected ? "photoCard selected" : video ? "photoCard videoCard" : "photoCard"}
       onClick={function (event) {
         if (props.selectionMode) {
           props.toggleSelected && props.toggleSelected(memory.id);
@@ -1379,7 +1379,7 @@ function PhotoCard(props) {
         {video ? <video src={source} muted playsInline preload="metadata" /> : <img src={source} alt="" loading="lazy" />}
         {video ? (
           <>
-            <span className="pzVideoPlayPlate"><Play size={15} fill="currentColor" /></span>
+            <span className="pzVideoPlayPlate"><Play size={14} fill="currentColor" /></span>
             <span className="pzVideoBadge"><Film size={11} />{pzVideoRuntime(memory)}</span>
           </>
         ) : null}
@@ -1524,6 +1524,9 @@ function ToolsPanel(props) {
       </div>
 
       <div className="panelSection">
+        <button type="button" {...withTooltip("Upload queue")} onClick={props.toggleUploadReviewPanel || props.toggleUploadQueuePanel}>
+          <UploadCloud size={13} /> Upload queue
+        </button>
         <button type="button" {...withTooltip("Import backup")} onClick={props.toggleImportPanel}>Import backup</button>
         <button type="button" {...withTooltip("Review duplicates")} onClick={props.toggleDuplicatePanel}>Duplicates</button>
         <button type="button" {...withTooltip("Find missing files")} onClick={props.toggleStatusPanel}>Missing files</button>
@@ -1531,7 +1534,7 @@ function ToolsPanel(props) {
       </div>
 
       <div className="panelSection secondary">
-        <button type="button" {...withTooltip("Open upload queue")} onClick={props.toggleUploadQueuePanel}>Upload queue</button>
+        <button type="button" {...withTooltip("Open upload queue")} onClick={props.toggleUploadQueuePanel}>System queue</button>
         <button type="button" {...withTooltip("Export backup index")} onClick={props.exportVaultIndex}>Backup index</button>
         <button type="button" {...withTooltip("Export file list")} onClick={props.exportManifestCsv}>Export list</button>
         <ImportBackupButton onImport={props.importVaultIndex} />
@@ -2064,48 +2067,13 @@ function matchesSearchQuery(memory, query, albums) {
 
 
 
-function PzVideoModeHeader(props) {
-  const items = safeArray(props.items).map(normalizeMemoryRecord).filter(pzIsVideo);
-  const stats = pzVideoStats(items);
-  const featured = items[0] || null;
 
-  if (!props.active) return null;
-
-  return (
-    <section className="pzVideoModeHeader">
-      <div className="pzVideoModeTitle">
-        <span><Film size={15} strokeWidth={2.1} /> VIDEO MODE</span>
-        <strong>{stats.count}</strong>
-      </div>
-      <div className="pzVideoModeStats">
-        <div><Play size={13} /><span>{stats.count} FILES</span></div>
-        <div><Sparkles size={13} /><span>{stats.starred} STARRED</span></div>
-        <div><CalendarDays size={13} /><span>{stats.me} ME</span></div>
-        <div><HardDrive size={13} /><span>{pzVideoSizeLabel({ size: stats.bytes })}</span></div>
-      </div>
-      {featured ? (
-        <button type="button" className="pzFeaturedVideo" onClick={function () { props.onPlayVideo && props.onPlayVideo(featured); }}>
-          <div>
-            <video src={featured.previewUrl || featured.storageUrl || featured.url} muted playsInline preload="metadata" />
-            <span><Maximize2 size={12} /> PLAY</span>
-          </div>
-          <aside>
-            <em>FEATURED</em>
-            <strong>{featured.title || featured.name || "VIDEO"}</strong>
-            <small>{pzVideoRuntime(featured)} · {pzVideoSizeLabel(featured)}</small>
-          </aside>
-        </button>
-      ) : null}
-    </section>
-  );
-}
 
 function SearchView(props) {
   const query = String(props.query || "").trim();
   const rawFilter = props.searchFilter || props.filter || "all";
   const activeSearchFilter = PRIMARY_SEARCH_FILTERS.indexOf(rawFilter) !== -1 ? rawFilter : "all";
   const setFilter = props.setSearchFilter || props.setFilter || function () {};
-  const videoMode = activeSearchFilter === "videos";
   const allMemories = safeArray(props.memories).map(normalizeMemoryRecord);
   const allAlbums = safeArray(props.albums).map(normalizeAlbumRecord);
   const baseItems = visibleAllMemories(allMemories, allAlbums).filter(function (memory) { return memory && !memory.trashed; });
@@ -2117,7 +2085,7 @@ function SearchView(props) {
   });
 
   return (
-    <div className={videoMode ? "pageScroll searchPage pzVideoModePage" : "pageScroll searchPage"}>
+    <div className="pageScroll searchPage">
       <VisibleReporter items={items} reportVisibleIds={props.reportVisibleIds} />
 
       <div className="searchBar librarySearchBar">
@@ -2125,7 +2093,7 @@ function SearchView(props) {
         <input
           value={props.query}
           onChange={function (event) { props.setQuery(event.target.value); }}
-          placeholder={videoMode ? "SEARCH VIDEOS" : "SEARCH FILES"}
+          placeholder={activeSearchFilter === "videos" ? "SEARCH VIDEOS" : "SEARCH FILES"}
         />
       </div>
 
@@ -2145,12 +2113,10 @@ function SearchView(props) {
         })}
       </div>
 
-      <PzVideoModeHeader active={videoMode} items={items} onPlayVideo={props.onPlayVideo} />
-
       {!items.length ? (
         <EmptyState title={query ? "NO MATCHES" : "X"}>{query ? "Nothing matched that search." : ""}</EmptyState>
       ) : (
-        <div className={videoMode ? "photoGrid searchGrid pzVideoGrid" : "photoGrid searchGrid"}>
+        <div className="photoGrid searchGrid">
           {items.map(function (memory) {
             return (
               <PhotoCard
@@ -2716,6 +2682,25 @@ function pzVideoStats(items) {
   return { count: videos.length, starred, me, bytes };
 }
 
+
+function pzMemoryDisplayName(memory) {
+  memory = normalizeMemoryRecord(memory);
+  return memory.title || memory.name || memory.filename || "FILE";
+}
+
+function pzAlbumDisplayName(album) {
+  album = normalizeAlbumRecord(album);
+  return album.title || album.name || "ALBUM";
+}
+
+function pzCanRestoreMemory(memory) {
+  return Boolean(memory && memory.trashed);
+}
+
+function pzActionStamp() {
+  return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
 function PzToastStack(props) {
   const items = safeArray(props.items);
   if (!items.length) return null;
@@ -2737,8 +2722,14 @@ function PzBackupStrip(props) {
   const state = props.state || {};
   return (
     <div className="pzConfidenceStrip">
-      <div><ShieldCheck size={13} /><span>{state.lastSavedAt ? "SAVED " + new Date(state.lastSavedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "READY"}</span></div>
-      <div><ArchiveRestore size={13} /><span>{state.lastBackupAt ? "BACKUP " + new Date(state.lastBackupAt).toLocaleDateString() : "BACKUP"}</span></div>
+      <button type="button" title="Saved state" data-tooltip="Saved" onClick={props.onMarkSaved}>
+        <ShieldCheck size={13} />
+        <span>{state.lastSavedAt ? "SAVED " + new Date(state.lastSavedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "READY"}</span>
+      </button>
+      <button type="button" title="Mark backup" data-tooltip="Backup" onClick={props.onMarkBackup}>
+        <ArchiveRestore size={13} />
+        <span>{state.lastBackupAt ? "BACKUP " + new Date(state.lastBackupAt).toLocaleDateString() : "BACKUP"}</span>
+      </button>
     </div>
   );
 }
@@ -2804,14 +2795,22 @@ function PzFileDetailEditor(props) {
 
   const tagsText = safeArray(draft.tags).join(", ");
   const source = memory.previewUrl || memory.storageUrl || memory.url;
+  const video = pzIsVideo(memory);
 
   return (
     <div className="modalBackdrop pzDetailBackdrop" onClick={props.onClose}>
       <section className="pzEditorSheet pzFileDetailEditor" onClick={function (event) { event.stopPropagation(); }}>
-        <header><strong>FILE</strong><button type="button" className="closeButton" onClick={props.onClose}>×</button></header>
+        <header>
+          <div>
+            <em>{video ? "VIDEO" : "FILE"}</em>
+            <strong>{pzMemoryDisplayName(memory)}</strong>
+          </div>
+          <button type="button" className="closeButton" onClick={props.onClose}>×</button>
+        </header>
         <div className="pzDetailPreview">
-          {pzIsVideo(memory) ? <video src={source} controls playsInline /> : <img src={source} alt="" />}
-          {pzIsVideo(memory) ? <span className="pzVideoBadge"><Film size={12} />{pzVideoLabel(memory)}</span> : null}
+          {video ? <video src={source} controls playsInline /> : <img src={source} alt="" />}
+          {video ? <span className="pzVideoBadge"><Film size={12} />{pzVideoRuntime(memory)}</span> : null}
+          {memory.trashed ? <span className="pzTrashRibbon">TRASH</span> : null}
         </div>
         <div className="pzDetailFieldsGrid">
           <label><span>TITLE</span><input value={draft.title || ""} onChange={function (event) { setField("title", event.target.value); }} /></label>
@@ -2827,10 +2826,14 @@ function PzFileDetailEditor(props) {
           <button type="button" className={draft.private ? "active" : ""} onClick={function () { setField("private", !draft.private); }}>PRIVATE</button>
           <button type="button" className={draft.review ? "active" : ""} onClick={function () { setField("review", !draft.review); }}>REVIEW</button>
         </div>
-        <div className="pzEditorActions">
+        <div className="pzEditorActions pzDetailActions">
           <button type="button" onClick={function () { props.onSave(memory.id, draft); props.onClose(); }}>SAVE</button>
           <button type="button" onClick={function () { props.onDownload(memory); }}>DOWNLOAD</button>
-          <button type="button" className="danger" onClick={function () { props.onTrash(memory.id); props.onClose(); }}>TRASH</button>
+          {memory.trashed ? (
+            <button type="button" onClick={function () { props.onRestore(memory.id); props.onClose(); }}>RESTORE</button>
+          ) : (
+            <button type="button" className="danger" onClick={function () { props.onTrash(memory.id); props.onClose(); }}>TRASH</button>
+          )}
         </div>
       </section>
     </div>
@@ -2840,15 +2843,31 @@ function PzFileDetailEditor(props) {
 function PzUploadReviewPanel(props) {
   const queue = safeArray(props.queue);
   if (!props.open) return null;
+  const failed = queue.filter(function (item) { return item.status === "FAILED"; }).length;
+  const done = queue.filter(function (item) { return item.status === "DONE"; }).length;
+
   return (
     <div className="floatingPanel pzUploadReviewPanel">
       <div className="panelSection">
         <div className="panelLabel">UPLOAD</div>
-        {queue.length ? queue.map(function (item) { return <div className="pzQueueRow" key={item.id || item.name}><span>{item.name}</span><em>{item.status || "READY"}</em></div>; }) : <div className="pzQueueRow muted"><span>NO QUEUE</span><em>—</em></div>}
+        <div className="pzQueueSummary">
+          <span>{queue.length} FILES</span>
+          <span>{failed} FAILED</span>
+          <span>{done} DONE</span>
+        </div>
+        {queue.length ? queue.map(function (item) {
+          return (
+            <div className={item.status === "FAILED" ? "pzQueueRow failed" : item.status === "DONE" ? "pzQueueRow done" : "pzQueueRow"} key={item.id || item.name}>
+              <span>{item.name}</span>
+              <em>{item.status || "READY"}</em>
+            </div>
+          );
+        }) : <div className="pzQueueRow muted"><span>NO QUEUE</span><em>—</em></div>}
       </div>
       <div className="panelSection">
         <button type="button" onClick={props.onRetryFailed}>RETRY FAILED</button>
         <button type="button" onClick={props.onClearComplete}>CLEAR COMPLETE</button>
+        <button type="button" onClick={props.onClose}>CLOSE</button>
       </div>
     </div>
   );
@@ -2864,7 +2883,7 @@ function PzVideoPlaybackModal(props) {
       <section className="pzVideoCinemaPanel" onClick={function (event) { event.stopPropagation(); }}>
         <header>
           <div>
-            <em>VIDEO</em>
+            <em>PLAYING</em>
             <strong>{memory.title || memory.name || "VIDEO"}</strong>
           </div>
           <button type="button" className="closeButton" onClick={props.onClose}>×</button>
@@ -2878,7 +2897,7 @@ function PzVideoPlaybackModal(props) {
             <div><span>SIZE</span><strong>{pzVideoSizeLabel(memory)}</strong></div>
             <div><span>DATE</span><strong>{memory.date || "—"}</strong></div>
             <div><span>LOCATION</span><strong>{memory.location || "—"}</strong></div>
-            <button type="button" onClick={function () { props.onEdit && props.onEdit(memory); }}>EDIT DETAILS</button>
+            <button type="button" onClick={function () { props.onEdit && props.onEdit(memory); }}>EDIT</button>
             <button type="button" onClick={function () { props.onDownload && props.onDownload(memory); }}>DOWNLOAD</button>
           </aside>
         </main>
@@ -2960,6 +2979,23 @@ export default function App() {
 
   function pzDownloadMemory(memory) {
     if (!pzDownload(memory)) pzPushToast("NO FILE", "Original file is unavailable.", "warn");
+  }
+
+
+  function pzRestoreMemory(id) {
+    setMemories(function (items) { return pzUpdateMemory(items, id, { trashed: false }); });
+    setPzBackupState(function (state) { return { ...state, lastSavedAt: pzNowIso() }; });
+    pzPushToast("RESTORED", "File restored.", "success");
+  }
+
+  function pzMarkSaved() {
+    setPzBackupState(function (state) { return { ...state, lastSavedAt: pzNowIso() }; });
+    pzPushToast("SAVED", "Library marked saved at " + pzActionStamp() + ".", "success");
+  }
+
+  function pzMarkBackup() {
+    setPzBackupState(function (state) { return { ...state, lastBackupAt: pzNowIso() }; });
+    pzPushToast("BACKUP", "Backup timestamp updated.", "success");
   }
 
   function pzRetryFailedUploads() {
@@ -4168,7 +4204,8 @@ const [albumSort, setAlbumSort] = useState("recent");
                 </div>
                 <ViewPanel open={viewControlsOpen} close={function () { setViewControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveView === "albums"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize} />
                 <UndoBar snapshot={undoSnapshot} undo={undoLastAction} clear={function () { setUndoSnapshot(null); }} />
-                <ToolsPanel onUpload={handleUpload} open={toolsOpen} close={function () { setToolsOpen(false); }} toggleImportPanel={function () { setImportPanelOpen(function (value) { return !value; }); }} toggleUploadQueuePanel={function () { setUploadQueueOpen(function (value) { return !value; }); }} toggleStatusPanel={function () { setStatusOpen(function (value) { return !value; }); }} toggleDuplicatePanel={function () { setDuplicatesOpen(function (value) { return !value; }); }} toggleHealthPanel={function () { setHealthOpen(function (value) { return !value; }); }} exportVaultIndex={exportVaultIndex} exportManifestCsv={exportManifestCsv} importVaultIndex={importVaultIndex} />
+                <ToolsPanel onUpload={handleUpload} open={toolsOpen} close={function () { setToolsOpen(false); }} toggleImportPanel={function () { setImportPanelOpen(function (value) { return !value; }); }} toggleUploadQueuePanel={function () { setUploadQueueOpen(function (value) { return !value; }); }} toggleStatusPanel={function () { setStatusOpen(function (value) { return !value; }); }} toggleDuplicatePanel={function () { setDuplicatesOpen(function (value) { return !value; }); }} toggleHealthPanel={function () { setHealthOpen(function (value) { return !value; }); }} exportVaultIndex={exportVaultIndex} exportManifestCsv={exportManifestCsv} importVaultIndex={importVaultIndex} 
+                toggleUploadReviewPanel={function () { setPzUploadReviewOpen(function (value) { return !value; }); }}/>
                 <ImportPanel open={importPanelOpen} close={function () { setImportPanelOpen(false); }} uploadBatchSize={uploadBatchSize} setUploadBatchSize={setUploadBatchSize} uploadConcurrency={uploadConcurrency} setUploadConcurrency={setUploadConcurrency} skipDuplicates={skipDuplicates} setSkipDuplicates={setSkipDuplicates} importSummary={importSummary} />
                 <UploadQueuePanel open={uploadQueueOpen} queue={uploadQueue} paused={uploadPaused} togglePause={function () { setUploadPaused(function (value) { return !value; }); }} retryFailed={retryFailedUploads} close={function () { setUploadQueueOpen(false); }} clearFinished={function () { setUploadQueue(function (items) { return items.filter(function (item) { return item.status === "queued" || item.status === "uploading"; }); }); }} />
                 <StatusPanel open={statusOpen} memories={memories} close={function () { setStatusOpen(false); }} retryUpload={retryUpload} clearLocalFailedStatus={clearLocalFailedStatus} purgeTrash={purgeTrash} />
@@ -4186,7 +4223,7 @@ const [albumSort, setAlbumSort] = useState("recent");
       </main>
       <Modal memory={activeMemory} close={function () { setActiveMemory(null); }} deleteMemory={deleteMemory} restoreMemory={restoreMemory} toggleMeFlag={toggleMeFlag} toggleMirror={toggleMirror} toggleArchive={toggleArchive} toggleReview={toggleReview} togglePrivate={togglePrivate} albums={albums} addToAlbum={addToAlbum} moveToAlbum={moveToAlbum} removeFromAlbum={removeFromAlbum} updateMemoryDetails={updateMemoryDetails} downloadOriginal={downloadOriginal} openOriginal={openOriginal} copyMediaUrl={copyMediaUrl} copyStorageKey={copyStorageKey} toggleStar={toggleStar} isStarred={activeMemory ? albumHasMemory(albums, "star", activeMemory.id) : false} setAlbumCover={setAlbumCover} clearAlbumCover={clearAlbumCover} />
       <PzStateBanner loading={pzLibraryLoading} saving={saving} error={pzLibraryError} />
-      <PzBackupStrip state={pzBackupState} />
+      <PzBackupStrip state={pzBackupState} onMarkSaved={pzMarkSaved} onMarkBackup={pzMarkBackup} />
       <PzToastStack items={pzToasts} />
       <PzAlbumEditorPanel
         open={Boolean(pzActiveAlbumEditor)}
@@ -4203,6 +4240,7 @@ const [albumSort, setAlbumSort] = useState("recent");
         onClose={function () { setPzDetailEditorId(null); }}
         onSave={pzSaveMemoryDetail}
         onTrash={pzTrashMemory}
+        onRestore={pzRestoreMemory}
         onDownload={pzDownloadMemory}
       />
       <PzVideoPlaybackModal
@@ -4217,6 +4255,7 @@ const [albumSort, setAlbumSort] = useState("recent");
         queue={pzUploadQueue}
         onRetryFailed={pzRetryFailedUploads}
         onClearComplete={pzClearCompleteUploads}
+        onClose={function () { setPzUploadReviewOpen(false); }}
       />
 
     </div>
