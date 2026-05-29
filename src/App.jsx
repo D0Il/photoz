@@ -1431,21 +1431,23 @@ function ToolsPanel(props) {
   if (!props.open) return null;
 
   return (
-    <div className="toolsDropdown toolsMenuPopover">
-      <div className="toolsMenuGroup">
+    <div className="settingsPopover">
+      <div className="settingsMenuSection primary">
         <UploadButton onUpload={props.onUpload} />
         <UploadButton onUpload={props.onUpload} folder />
       </div>
-      <div className="toolsMenuGroup">
-        <button type="button" onClick={props.toggleImportPanel}>Import</button>
-        <button type="button" onClick={props.toggleUploadQueuePanel}>Queue</button>
+
+      <div className="settingsMenuSection">
+        <button type="button" onClick={props.toggleImportPanel}>Import backup</button>
         <button type="button" onClick={props.toggleDuplicatePanel}>Duplicates</button>
+        <button type="button" onClick={props.toggleStatusPanel}>Missing files</button>
+        <button type="button" onClick={props.toggleHealthPanel}>Repair library</button>
       </div>
-      <div className="toolsMenuGroup secondary">
-        <button type="button" onClick={props.toggleStatusPanel}>Missing</button>
-        <button type="button" onClick={props.toggleHealthPanel}>Repair</button>
-        <button type="button" onClick={props.exportVaultIndex}>Backup</button>
-        <button type="button" onClick={props.exportManifestCsv}>List</button>
+
+      <div className="settingsMenuSection secondary">
+        <button type="button" onClick={props.toggleUploadQueuePanel}>Upload queue</button>
+        <button type="button" onClick={props.exportVaultIndex}>Backup index</button>
+        <button type="button" onClick={props.exportManifestCsv}>Export list</button>
         <ImportBackupButton onImport={props.importVaultIndex} />
       </div>
     </div>
@@ -1668,47 +1670,16 @@ function UndoBar(props) {
 }
 
 function BulkBar(props) {
-  const count = selectedCount(props.selectedIds);
   if (!props.selectionMode) return null;
+  const count = Object.keys(props.selectedIds || {}).filter(function (id) { return props.selectedIds[id]; }).length;
 
   return (
-    <div className="bulkBar simplifiedBulk">
-      <Pill>{count}</Pill>
-      <select value={props.bulkAlbum} onChange={function (event) { props.setBulkAlbum(event.target.value); }}>
-        {assignableAlbums(props.albums).map(function (album) {
-          return <option key={album.id} value={album.id}>{album.title}</option>;
-        })}
-      </select>
-      <button type="button" disabled={!count} onClick={props.bulkMoveToAlbum}>MOVE</button>
-      <button type="button" disabled={!count} onClick={props.bulkDelete}>Trash</button>
-      <button type="button" className={props.bulkMoreOpen ? "active" : ""} onClick={props.toggleBulkMore}>MORE</button>
-      <button type="button" onClick={props.clearSelection}>CLEAR</button>
-
-      {props.bulkMoreOpen ? (
-        <div className="bulkMore">
-          <input value={props.bulkText} onChange={function (event) { props.setBulkText(event.target.value); }} placeholder="TAGS / ERA / CAPTION / LOCATION / EVENT" />
-          <button type="button" onClick={props.selectAll}>SELECT ALL</button>
-          <button type="button" onClick={props.selectVisible}>SELECT VIEW</button>
-          <button type="button" onClick={props.invertSelection}>INVERT</button>
-          <button type="button" disabled={!count} onClick={props.bulkAddToAlbum}>ADD TO ALBUM</button>
-          <button type="button" disabled={!count} onClick={props.bulkStar}>Star</button>
-          <button type="button" disabled={!count} onClick={props.bulkUnstar}>Unstar</button>
-          <button type="button" disabled={!count} onClick={props.bulkMarkMe}>MARK ME</button>
-          <button type="button" disabled={!count} onClick={props.bulkUnmarkMe}>Unmark me</button>
-          <button type="button" disabled={!count} onClick={props.bulkMoveToMirror}>Mirror</button>
-          <button type="button" disabled={!count} onClick={props.bulkRemoveFromMirror}>Unmirror</button>
-          <button type="button" disabled={!count} onClick={props.bulkArchive}>Hide</button>
-          <button type="button" disabled={!count} onClick={props.bulkUnarchive}>Unhide</button>
-          <button type="button" disabled={!count} onClick={props.bulkRestore}>Restore</button>
-          <button type="button" disabled={!count} onClick={props.bulkClearTags}>CLEAR TAGS</button>
-          <button type="button" disabled={!count} onClick={props.bulkSetEra}>SET ERA</button>
-          <button type="button" disabled={!count} onClick={props.bulkSetCaption}>CAPTION</button>
-          <button type="button" disabled={!count} onClick={props.bulkSetLocation}>LOCATION</button>
-          <button type="button" disabled={!count} onClick={props.bulkSetEvent}>EVENT</button>
-          <button type="button" disabled={!count} onClick={props.bulkClearTextFields}>CLEAR TEXT</button>
-          <button type="button" disabled={!count} onClick={props.exportSelectedJson}>EXPORT SELECTED</button>
-        </div>
-      ) : null}
+    <div className="selectTray">
+      <span>{count} selected</span>
+      <button type="button" disabled={!count} onClick={props.moveSelected}>Move</button>
+      <button type="button" disabled={!count} onClick={props.archiveSelected}>Hide</button>
+      <button type="button" disabled={!count} onClick={props.trashSelected}>Trash</button>
+      <button type="button" onClick={props.clearSelection}>Clear</button>
     </div>
   );
 }
@@ -1796,40 +1767,67 @@ function GroupCard(props) {
   );
 }
 
+function isMirrorMemory(memory) {
+  return Boolean(memory && (memory.inMirror || memory.me || memory.isMe || memory.mirror || memory.favoriteMirror));
+}
+
+function mirrorAllMemories(memories) {
+  return newest(safeArray(memories).map(normalizeMemoryRecord).filter(function (memory) {
+    return isMirrorMemory(memory) && !memory.trashed && !memory.archived;
+  }));
+}
+
+function mirrorFeaturedMemories(memories) {
+  const all = mirrorAllMemories(memories);
+  const featured = all.filter(function (memory) {
+    return memory.starred || memory.favorite || memory.fav || memory.primaryMirror;
+  });
+  return featured.length ? featured : all;
+}
+
+
 function MirrorView(props) {
-  const items = sortMemories(mirrorItems(props.memories), props.sortMode);
-  const mirrorOnly = newest(items.filter(function (memory) { return Boolean(memory.inMirror); }));
-  const marked = newest(items.filter(function (memory) { return Boolean(memory.isMe) && !memory.inMirror; }));
-  const allGroup = { id: "mirror-all", title: "ALL", items: items, sort: items[0] ? items[0].sort : 0 };
+  const allMirror = mirrorAllMemories(props.memories);
+  const featuredMirror = mirrorFeaturedMemories(props.memories);
+  const items = props.mirrorAllMode ? allMirror : featuredMirror;
+  const total = allMirror.length;
 
   return (
     <div className="pageScroll mirrorPage">
       <VisibleReporter items={items} reportVisibleIds={props.reportVisibleIds} />
-      <div className="mirrorControl">
-        <button type="button" onClick={function () { props.openGroup(allGroup); }}>
-          <Eye size={20} />
+      <div className="mirrorModeRail">
+        <button
+          type="button"
+          className={props.mirrorAllMode ? "active" : ""}
+          onClick={function () { props.setMirrorAllMode(function (value) { return !value; }); }}
+        >
+          <Eye size={14} />
           <span>All</span>
-          <b>{items.length}</b>
-          <em>›</em>
+          <em>{total}</em>
         </button>
       </div>
 
-      {mirrorOnly.length ? <div className="archiveLabel">Mirror</div> : null}
-      {!items.length ? <EmptyState title="MIRROR EMPTY">Move photos to Mirror or mark them ME.</EmptyState> : null}
-      <div className="photoGrid">
-        {mirrorOnly.map(function (memory) {
-          return <PhotoCard key={memory.id} memory={memory} showText selectionMode={props.selectionMode} selected={props.selectedIds && props.selectedIds[memory.id]} toggleSelected={props.toggleSelected} isStarred={props.starredIds && props.starredIds[memory.id]} onDelete={props.deleteMemory} onClick={function () { props.openMemory(memory); }} />;
-        })}
-      </div>
-
-      {marked.length ? <div className="archiveLabel">MARKED ME</div> : null}
-      {marked.length ? (
-        <div className="photoGrid mirrorAlbumGrid">
-          {marked.map(function (memory) {
-            return <PhotoCard key={memory.id} memory={memory} showText selectionMode={props.selectionMode} selected={props.selectedIds && props.selectedIds[memory.id]} toggleSelected={props.toggleSelected} isStarred={props.starredIds && props.starredIds[memory.id]} onDelete={props.deleteMemory} onClick={function () { props.openMemory(memory); }} />;
+      {!items.length ? (
+        <EmptyState title="MIRROR EMPTY">Move photos to Mirror or mark them ME.</EmptyState>
+      ) : (
+        <div className="photoGrid mirrorGrid">
+          {items.map(function (memory) {
+            return (
+              <PhotoCard
+                key={memory.id}
+                memory={memory}
+                showText
+                selectionMode={props.selectionMode}
+                selected={props.selectedIds && props.selectedIds[memory.id]}
+                toggleSelected={props.toggleSelected}
+                isStarred={props.starredIds && props.starredIds[memory.id]}
+                onDelete={props.deleteMemory}
+                onClick={function () { props.openMemory(memory); }}
+              />
+            );
           })}
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
@@ -2224,7 +2222,8 @@ function Modal(props) {
 export default function App() {
   const [archiveView, setArchiveView] = useState("albums");
   const [activePage, setActivePage] = useState("albums");
-  const [screen, setScreen] = useState("home");
+    const [mirrorAllMode, setMirrorAllMode] = useState(false);
+const [screen, setScreen] = useState("home");
   const [activeGroup, setActiveGroup] = useState(null);
   const [activeMemory, setActiveMemory] = useState(null);
   const [memories, setMemories] = useState([]);
@@ -3424,7 +3423,7 @@ const [albumSort, setAlbumSort] = useState("recent");
                 <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} repairIndex={repairIndex} />
                 <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { setBulkMoreOpen(function (value) { return !value; }); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkReview={bulkMarkReview} bulkClearReview={bulkClearReview} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDelete={bulkDelete} clearSelection={clearSelection} />
                 {activePage === "albums" ? <AlbumsView currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateOpen} archiveView={archiveView} memories={memories} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
-                {activePage === "mirror" ? <MirrorView memories={memories} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
+                {activePage === "mirror" ? <MirrorView mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={memories} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
                 {activePage === "search" ? <SearchView memories={memories} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={setAdvancedSearchOpen} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
               </Glass>
             ) : null}

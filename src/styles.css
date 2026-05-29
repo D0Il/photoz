@@ -3518,11 +3518,11 @@ pre {
   justify-content: space-between;
 }
 .photozProUI .productHeader strong {
-  color: var(--ink-strong);
-  font-size: clamp(38px, 5.4vw, 72px);
-  line-height: .82;
-  font-weight: 950;
-  letter-spacing: -.085em;
+  color: rgba(0,0,0,.62);
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 720;
+  letter-spacing: -.026em;
 }
 .photozProUI .productHeader em {
   color: rgba(0,0,0,.34);
@@ -8077,4 +8077,484 @@ button,
     height: 39px;
     min-height: 39px;
   }
+}
+
+
+/* REAL HEADER FIX: beats the actual `.photozProUI .productHeader strong` rule */
+.photozProUI .productHeader strong.actualPageTitle,
+.photozProUI .productHeader > strong.actualPageTitle,
+.photozProUI .shell .productHeader strong.actualPageTitle,
+.photozProUI main .productHeader strong.actualPageTitle,
+.photozProUI .productHeader > strong,
+.photozProUI .shell .productHeader > strong {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 720;
+  letter-spacing: -.026em;
+  color: rgba(0,0,0,.62);
+  text-transform: none;
+  margin: 0;
+  padding: 0;
+}
+
+.photozProUI .productHeader,
+.photozProUI .shell .productHeader,
+.photozProUI main .productHeader {
+  min-height: 25px;
+  height: 25px;
+  margin: 0 0 7px;
+  padding: 0 170px 0 0;
+  align-items: center;
+}
+
+.photozProUI .productHeader em,
+.photozProUI .shell .productHeader em {
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 760;
+  letter-spacing: .12em;
+  color: rgba(0,0,0,.25);
+}
+
+/* Keep the chrome redesign intact while the real header rule is fixed */
+.photozProUI .bulkBar {
+  display: none;
+}
+
+.photozProUI:has(.selectUtilityButton.active) .bulkBar,
+.photozProUI .shell:has(.selectUtilityButton.active) .bulkBar {
+  display: flex;
+}
+
+@media (max-width: 760px) {
+  .photozProUI .productHeader,
+  .photozProUI .shell .productHeader,
+  .photozProUI main .productHeader {
+    height: auto;
+    min-height: 22px;
+    padding-right: 0;
+  }
+
+  .photozProUI .productHeader strong.actualPageTitle,
+  .photozProUI .productHeader > strong.actualPageTitle,
+  .photozProUI .shell .productHeader strong.actualPageTitle,
+  .photozProUI .productHeader > strong {
+    font-size: 20px;
+  }
+}
+
+
+/* SELECT / SETTINGS / SIZE SYSTEM FIX */
+
+/* Consistent scale tokens applied directly */
+.photozProUI {
+  --ui-h: 30px;
+  --ui-radius: 10px;
+  --ui-pill: 999px;
+  --ui-font: 10px;
+  --ui-gap: 7px;
+}
+
+/* Real rendered title remains fixed */
+.photozProUI .productHeader strong.actualPageTitle,
+.photozProUI .productHeader > strong.actualPageTitle,
+.photozProUI .shell .productHeader strong.actualPageTitle,
+.photozProUI main .productHeader strong.actualPageTitle,
+.photozProUI .productHeader > strong,
+.photozProUI .shell .productHeader > strong {
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 720;
+  letter-spacing: -.026em;
+  color: rgba(0,0,0,.62);
+}
+
+/* Select should be a mode toggle, not a chunky toolbar launcher */
+.floatingUtilityRail {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px;
+  border-radius: var(--ui-pill);
+  z-index: 60;
+}
+
+.floatingUtilityRail .utilityRailButton,
+.floatingUtilityRail button {
+  height: var(--ui-h);
+  min-height: var(--ui-h);
+  border-radius: var(--ui-pill);
+  padding: 0 11px;
+  font-size: var(--ui-font);
+  font-weight: 850;
+  line-height: 1;
+  color: rgba(0,0,0,.56);
+  background: transparent;
+  border-color: rgba(255,255,255,.24);
+  box-shadow: none;
+}
+
+.floatingUtilityRail .selectUtilityButton {
+  min-width: 56px;
+  text-align: center;
+}
+
+.floatingUtilityRail .selectUtilityButton.active {
+  min-width: 50px;
+}
+
+.floatingUtilityRail .cogUtilityButton,
+.floatingUtilityRail button:last-child {
+  width: var(--ui-h);
+  min-width: var(--ui-h);
+  padding: 0;
+  font-size: 14px;
+}
+
+.floatingUtilityRail .utilityRailButton.active,
+.floatingUtilityRail button.active {
+  color: rgba(0,0,0,.72);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.045)),
+    rgba(255,255,255,.040);
+  border-color: rgba(255,255,255,.36);
+}
+
+/* Selection tray: small contextual strip only, not a giant admin toolbar */
+.bulkBar {
+  display: none;
+}
+
+.selectTray,
+body:has(.selectUtilityButton.active) .bulkBar,
+.photozProUI:has(.selectUtilityButton.active) .bulkBar,
+.photozProUI .shell:has(.selectUtilityButton.active) .bulkBar {
+  display: inline-flex;
+  width: fit-content;
+  max-width: min(520px, 100%);
+  min-height: 0;
+  height: 36px;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 5px;
+  margin: 6px 0 0;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.18);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.020)),
+    rgba(255,255,255,.018);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+.selectTray span,
+.bulkBar .pill,
+.bulkBar > span {
+  height: 28px;
+  min-width: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 9px;
+  border-radius: var(--ui-pill);
+  font-size: var(--ui-font);
+  font-weight: 850;
+  color: rgba(0,0,0,.50);
+  background: rgba(255,255,255,.040);
+  border: 1px solid rgba(255,255,255,.15);
+}
+
+.selectTray button,
+.bulkBar button,
+.bulkBar select {
+  height: 28px;
+  min-height: 28px;
+  border-radius: 9px;
+  padding: 0 10px;
+  font-size: var(--ui-font);
+  font-weight: 850;
+}
+
+.bulkBar select {
+  min-width: 112px;
+}
+
+/* Hide low-priority bulk buttons that made it look like a file manager */
+.bulkBar button:nth-of-type(2),
+.bulkBar button:nth-of-type(4) {
+  display: none;
+}
+
+/* Settings menu: logical, grouped, vertical */
+.toolsDropdown,
+.toolsIconMenu,
+.settingsPopover {
+  position: absolute;
+  top: 62px;
+  right: 24px;
+  width: 260px;
+  max-width: calc(100vw - 48px);
+  margin: 0;
+  padding: 9px;
+  border-radius: 16px;
+  z-index: 55;
+  border: 1px solid rgba(255,255,255,.22);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.095), rgba(255,255,255,.026)),
+    rgba(255,255,255,.022);
+  box-shadow:
+    0 18px 42px rgba(0,0,0,.12),
+    inset 0 1px 0 rgba(255,255,255,.22);
+  backdrop-filter: blur(14px) saturate(1.08);
+}
+
+.toolsDropdownTop {
+  display: none;
+}
+
+.settingsMenuSection,
+.toolsMenuGroup,
+.toolsDropdownList {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  padding: 0 0 8px;
+  margin: 0 0 8px;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+}
+
+.settingsMenuSection:last-child,
+.toolsMenuGroup:last-child {
+  border-bottom: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.settingsMenuSection.secondary,
+.toolsMenuGroup.secondary {
+  opacity: .86;
+}
+
+.settingsMenuSection button,
+.settingsMenuSection .uploadButton,
+.settingsMenuSection .importButton,
+.toolsMenuGroup button,
+.toolsMenuGroup .uploadButton,
+.toolsMenuGroup .importButton,
+.toolsDropdownList button,
+.toolsDropdownList .uploadButton,
+.toolsDropdownList .importButton {
+  width: 100%;
+  height: 34px;
+  min-height: 34px;
+  justify-content: flex-start;
+  text-align: left;
+  gap: 8px;
+  padding: 0 11px;
+  border-radius: 10px;
+  font-size: var(--ui-font);
+  font-weight: 850;
+  background: rgba(255,255,255,.038);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16);
+}
+
+.settingsMenuSection.primary button,
+.settingsMenuSection.primary .uploadButton,
+.toolsMenuGroup.primary button,
+.toolsMenuGroup.primary .uploadButton {
+  height: 36px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.105), rgba(255,255,255,.035)),
+    rgba(255,255,255,.045);
+}
+
+.settingsMenuSection em,
+.toolsMenuGroup em,
+.toolsDropdownList em {
+  display: none;
+}
+
+/* Filter panel should be the same scale as settings */
+.viewDropdown,
+.viewPanel {
+  position: absolute;
+  top: 62px;
+  right: 24px;
+  width: 286px;
+  max-width: calc(100vw - 48px);
+  padding: 9px;
+  border-radius: 16px;
+  z-index: 55;
+}
+
+.viewDropdown button,
+.viewPanel button,
+.sortControl button,
+.gridSizeControl button {
+  height: 28px;
+  min-height: 28px;
+  border-radius: 9px;
+  padding: 0 10px;
+  font-size: var(--ui-font);
+  font-weight: 850;
+}
+
+/* Global size normalization */
+.modeBar button,
+.controlBar button,
+.systemRailItem,
+.searchFilters button,
+.albumPathBar button,
+.newAlbumTrigger,
+.newAlbumPanel button,
+.mirrorControl button {
+  height: var(--ui-h);
+  min-height: var(--ui-h);
+  border-radius: var(--ui-radius);
+  font-size: var(--ui-font);
+  font-weight: 850;
+}
+
+/* Album controls: same height and relationship */
+.albumControlsRow {
+  gap: var(--ui-gap);
+  margin-top: 7px;
+}
+
+.albumSearchOnly {
+  width: 276px;
+}
+
+.albumSearchOnly input {
+  height: var(--ui-h);
+  min-height: var(--ui-h);
+  border-radius: var(--ui-radius);
+  font-size: var(--ui-font);
+}
+
+.newAlbumTrigger {
+  border-radius: var(--ui-pill);
+  padding: 0 12px;
+}
+
+/* System chips smaller and secondary */
+.systemRail {
+  gap: 7px;
+  margin: 8px 0 12px;
+}
+
+.systemRailItem {
+  height: 29px;
+  min-height: 29px;
+  padding: 0 10px;
+  opacity: .88;
+}
+
+.systemRailItem span {
+  font-size: 10px;
+}
+
+/* Empty states and content should stop feeling like massive dead slabs */
+.emptyState,
+.brokenMedia {
+  min-height: 116px;
+  border-radius: 18px;
+  padding: 18px;
+}
+
+/* Dock remains restored but aligned with scale */
+.dock {
+  min-width: 214px;
+  height: 54px;
+  gap: 7px;
+  padding: 7px;
+  border-radius: 28px;
+}
+
+.dock button,
+.dockButton {
+  width: 62px;
+  height: 40px;
+  min-width: 62px;
+  min-height: 40px;
+  border-radius: 20px;
+}
+
+.dock span,
+.dock em,
+.dockButton span,
+.dockButton em {
+  display: none;
+}
+
+
+/* MIRROR ALL FIX: inline toggle, not folder navigation */
+.mirrorModeRail {
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 6px 0 10px;
+  padding: 5px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.18);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.070), rgba(255,255,255,.020)),
+    rgba(255,255,255,.018);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+.mirrorModeRail button {
+  height: 32px;
+  min-height: 32px;
+  min-width: 108px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 0 13px;
+  font-size: 10px;
+  font-weight: 900;
+  color: rgba(0,0,0,.58);
+  border-color: rgba(255,255,255,.22);
+  background: rgba(255,255,255,.035);
+  box-shadow: none;
+}
+
+.mirrorModeRail button.active {
+  color: rgba(0,0,0,.74);
+  border-color: rgba(255,255,255,.38);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.17), rgba(255,255,255,.055)),
+    rgba(255,255,255,.040);
+}
+
+.mirrorModeRail button em {
+  min-width: 20px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-style: normal;
+  font-size: 9px;
+  color: rgba(0,0,0,.44);
+  background: rgba(255,255,255,.045);
+  border: 1px solid rgba(255,255,255,.14);
+}
+
+/* Kill the old Mirror shortcut/folder-card feel */
+.mirrorPage .systemRail,
+.mirrorPage .systemRailItem,
+.mirrorPage .mirrorControl {
+  display: none;
+}
+
+.mirrorGrid {
+  margin-top: 4px;
 }

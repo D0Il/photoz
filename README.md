@@ -1043,3 +1043,32 @@ Applied the screenshot analysis:
 - Search/Mirror are less bulky.
 - Restored dock is preserved.
 - Upload/index hardening preserved.
+
+
+## Real header specificity fix
+
+Fixed the actual rule that kept the headers huge:
+- Replaced `.photozProUI .productHeader strong { font-size: clamp(38px, 5.4vw, 72px); font-weight: 950; }`
+- Added a higher-specificity `.photozProUI .productHeader strong.actualPageTitle` lock.
+- No `!important`.
+
+
+## Select toolbar / settings / sizing fix
+
+Fixed:
+- Select no longer presents as a giant file-management toolbar.
+- Selection actions are reduced to a compact contextual tray.
+- Settings/cog menu is grouped logically: add/import/repair/export.
+- Settings menu is vertical and readable instead of a strange grid.
+- Control heights/radii/font sizes are normalized.
+- Header specificity fix remains.
+
+
+## Mirror All toggle fix
+
+Changed Mirror “All”:
+- All is now an inline toggle on the Mirror page.
+- It no longer opens a folder/group page.
+- Off state shows featured/fav-style Mirror/ME photos.
+- On state shows all Mirror/ME photos.
+- Old Mirror shortcut/folder-card UI is hidden.
