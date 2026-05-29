@@ -1,0 +1,13 @@
+name = "photoz"
+main = "src/worker.js"
+compatibility_date = "2026-05-29"
+workers_dev = true
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[[r2_buckets]]
+binding = "photoz"
+bucket_name = "photoz"
