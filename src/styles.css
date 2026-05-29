@@ -7556,3 +7556,525 @@ button,
     min-height: 39px;
   }
 }
+
+
+/* SOURCE-LEVEL CHROME REDESIGN FINAL */
+
+/* Actual page title */
+.actualPageTitle,
+.productHeader > strong,
+.productHeader strong,
+.productHeader h1,
+.shell h1:first-child,
+.pageScroll h1:first-child {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 720;
+  letter-spacing: -.026em;
+  color: rgba(0,0,0,.62);
+  text-transform: none;
+  margin: 0;
+  padding: 0;
+}
+
+.productHeader {
+  min-height: 25px;
+  height: 25px;
+  margin: 0 0 7px;
+  padding: 0 170px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.productHeader em {
+  font-size: 8px;
+  font-weight: 760;
+  letter-spacing: .12em;
+  color: rgba(0,0,0,.25);
+}
+
+/* overall rhythm */
+.shell {
+  position: relative;
+  padding-top: 18px;
+  gap: 7px;
+}
+
+.pageScroll {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+/* top tabs */
+.controlBar {
+  position: static;
+  width: fit-content;
+  max-width: min(620px, calc(100% - 190px));
+  padding: 5px;
+  margin: 0;
+  border-radius: 14px;
+}
+
+.controlBar .pill {
+  display: none;
+}
+
+.modeBar {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.modeBar button,
+.controlBar button {
+  height: 28px;
+  min-height: 28px;
+  border-radius: 9px;
+  padding: 0 10px;
+  font-size: 10px;
+}
+
+/* selection bulk bar only while Select is active */
+.bulkBar {
+  display: none;
+}
+
+body:has(.selectUtilityButton.active) .bulkBar,
+.shell:has(.selectUtilityButton.active) .bulkBar {
+  display: flex;
+}
+
+/* Utility rail */
+.floatingUtilityRail {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  width: fit-content;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px;
+  border-radius: 999px;
+  z-index: 60;
+  border: 1px solid rgba(255,255,255,.22);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.105), rgba(255,255,255,.030)),
+    rgba(255,255,255,.024);
+  box-shadow: 0 10px 24px rgba(0,0,0,.07), inset 0 1px 0 rgba(255,255,255,.22);
+  backdrop-filter: blur(12px) saturate(1.08);
+}
+
+.floatingUtilityRail .utilityRailButton,
+.floatingUtilityRail button {
+  height: 28px;
+  min-height: 28px;
+  border-radius: 999px;
+  padding: 0 11px;
+  font-size: 10px;
+  font-weight: 850;
+  color: rgba(0,0,0,.56);
+  border-color: rgba(255,255,255,.24);
+  background: transparent;
+  box-shadow: none;
+}
+
+.floatingUtilityRail .utilityRailButton.active,
+.floatingUtilityRail button.active {
+  color: rgba(0,0,0,.72);
+  border-color: rgba(255,255,255,.38);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.050)),
+    rgba(255,255,255,.040);
+}
+
+.floatingUtilityRail .selectUtilityButton {
+  min-width: 54px;
+}
+
+.floatingUtilityRail .cogUtilityButton,
+.floatingUtilityRail button:last-child {
+  width: 28px;
+  min-width: 28px;
+  padding: 0;
+  font-size: 14px;
+}
+
+/* popovers */
+.toolsIconMenu,
+.toolsDropdown,
+.viewDropdown,
+.viewPanel {
+  position: absolute;
+  top: 58px;
+  right: 24px;
+  margin: 0;
+  z-index: 55;
+  max-width: calc(100vw - 48px);
+  border-radius: 16px;
+}
+
+.toolsMenuPopover,
+.toolsIconMenu,
+.toolsDropdown {
+  width: 236px;
+  padding: 8px;
+}
+
+.viewDropdown,
+.viewPanel {
+  width: 284px;
+  padding: 8px;
+}
+
+.toolsDropdownTop {
+  display: none;
+}
+
+.toolsMenuGroup {
+  display: grid;
+  gap: 6px;
+  padding: 0 0 7px;
+  margin: 0 0 7px;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+}
+
+.toolsMenuGroup:last-child {
+  border-bottom: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.toolsMenuGroup.secondary {
+  opacity: .88;
+}
+
+.toolsMenuGroup button,
+.toolsMenuGroup .uploadButton,
+.toolsMenuGroup .importButton,
+.toolsDropdownList button,
+.toolsDropdownList .uploadButton,
+.toolsDropdownList .importButton {
+  height: 32px;
+  min-height: 32px;
+  width: 100%;
+  border-radius: 10px;
+  padding: 0 10px;
+  display: inline-flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 850;
+  background: rgba(255,255,255,.035);
+  box-shadow: none;
+}
+
+.toolsMenuGroup em,
+.toolsDropdownList em {
+  display: none;
+}
+
+/* album controls */
+.albumEditor,
+.albumEditor.creating {
+  display: none;
+}
+
+.albumControlsRow {
+  width: fit-content;
+  max-width: min(680px, 100%);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.albumSearchOnly {
+  width: 260px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.albumSearchOnly input {
+  width: 100%;
+  height: 32px;
+  min-height: 32px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.24);
+  background: rgba(255,255,255,.055);
+  font-size: 10px;
+  padding: 0 11px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 6px 14px rgba(0,0,0,.035);
+}
+
+.newAlbumTrigger {
+  height: 32px;
+  min-height: 32px;
+  border-radius: 999px;
+  padding: 0 13px;
+  font-size: 10px;
+  background: rgba(255,255,255,.045);
+}
+
+.newAlbumPanel {
+  flex-basis: 100%;
+  width: fit-content;
+  max-width: min(440px, 100%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.026);
+}
+
+/* chips/shortcuts */
+.systemRail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin: 8px 0 12px;
+}
+
+.systemRailItem {
+  height: 30px;
+  min-height: 30px;
+  border-radius: 10px;
+  padding: 0 10px;
+  opacity: .92;
+}
+
+.systemRailItem span {
+  font-size: 10px;
+}
+
+.archiveLabel {
+  margin: 8px 0 6px;
+  font-size: 9px;
+  letter-spacing: .13em;
+  color: rgba(0,0,0,.30);
+}
+
+/* search and mirror */
+.searchBar {
+  width: min(520px, 100%);
+  padding: 5px;
+  border-radius: 14px;
+}
+
+.searchBar input {
+  height: 34px;
+  min-height: 34px;
+  border-radius: 10px;
+}
+
+.searchFilters {
+  gap: 6px;
+}
+
+.emptyState,
+.brokenMedia {
+  min-height: 120px;
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.emptyState h2,
+.emptyState strong {
+  font-size: 12px;
+  letter-spacing: .12em;
+}
+
+.emptyState p {
+  font-size: 10px;
+}
+
+.mirrorControl {
+  width: fit-content;
+  padding: 5px;
+  border-radius: 14px;
+}
+
+.mirrorControl button {
+  min-width: 104px;
+  height: 34px;
+  min-height: 34px;
+  border-radius: 999px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* buttons no black outline */
+button,
+[role="button"],
+.uploadButton,
+.importButton,
+.dockButton,
+.systemRailItem,
+.modeBar button,
+.controlBar button,
+.floatingUtilityRail button,
+.toolsDropdownList button,
+.albumSortControl button,
+.sortControl button,
+.gridSizeControl button,
+.searchFilters button,
+.albumPathBar button,
+.newAlbumTrigger,
+.newAlbumPanel button,
+.mirrorControl button {
+  outline: 0;
+  border-color: rgba(255,255,255,.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.18),
+    0 5px 14px rgba(0,0,0,.035);
+}
+
+/* dock */
+.dockWrap {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 90;
+  width: auto;
+  height: auto;
+  border: 0;
+  background: transparent;
+  pointer-events: none;
+}
+
+.dock {
+  pointer-events: auto;
+  width: auto;
+  min-width: 214px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 7px;
+  border-radius: 28px;
+  border: 1px solid rgba(255,255,255,.30);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255,255,255,.20), transparent 36%),
+    linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.040)),
+    rgba(255,255,255,.050);
+  box-shadow:
+    0 18px 42px rgba(0,0,0,.16),
+    inset 0 1px 0 rgba(255,255,255,.38),
+    inset 0 -1px 0 rgba(0,0,0,.09);
+  backdrop-filter: blur(16px) saturate(1.10);
+}
+
+.dock button,
+.dockButton {
+  all: unset;
+  box-sizing: border-box;
+  width: 62px;
+  height: 40px;
+  min-width: 62px;
+  min-height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  color: rgba(0,0,0,.42);
+  background: transparent;
+  border: 1px solid transparent;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.dock button.active,
+.dockButton.active {
+  color: rgba(0,0,0,.76);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.070)),
+    rgba(255,255,255,.045);
+  border-color: rgba(255,255,255,.38);
+}
+
+.dock svg,
+.dockButton svg {
+  width: 18px;
+  height: 18px;
+}
+
+.dock span,
+.dock em,
+.dockButton span,
+.dockButton em {
+  display: none;
+}
+
+/* media */
+@media (max-width: 760px) {
+  .productHeader {
+    height: auto;
+    min-height: 22px;
+    padding-right: 0;
+  }
+
+  .actualPageTitle,
+  .productHeader > strong,
+  .productHeader strong,
+  .productHeader h1,
+  .shell h1:first-child {
+    font-size: 20px;
+  }
+
+  .floatingUtilityRail,
+  .toolsIconMenu,
+  .toolsDropdown,
+  .viewDropdown,
+  .viewPanel {
+    position: static;
+    width: fit-content;
+    max-width: 100%;
+    margin-left: auto;
+  }
+
+  .controlBar {
+    max-width: 100%;
+  }
+
+  .albumControlsRow,
+  .albumSearchOnly,
+  .newAlbumPanel,
+  .searchBar {
+    width: 100%;
+  }
+
+  .dockWrap {
+    bottom: 10px;
+  }
+
+  .dock {
+    min-width: 198px;
+    height: 52px;
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .dock button,
+  .dockButton {
+    width: 58px;
+    min-width: 58px;
+    height: 39px;
+    min-height: 39px;
+  }
+}

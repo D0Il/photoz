@@ -1028,3 +1028,18 @@ This build audits and preserves the requested behavior/design fixes together:
 - Button dark outline cleanup.
 - Upload/index hardening.
 - No `!important`.
+
+
+## Source-level chrome redesign
+
+Applied the screenshot analysis:
+- Actual rendered page title is explicitly targeted and reduced.
+- Normal-mode bulk/admin bar is hidden unless selection mode is active.
+- Filter, Select, and cog are the compact utility rail.
+- Tools is a compact grouped menu.
+- Album search and New Album are separate controls.
+- System chips are reduced and deduped.
+- Empty states are smaller.
+- Search/Mirror are less bulky.
+- Restored dock is preserved.
+- Upload/index hardening preserved.

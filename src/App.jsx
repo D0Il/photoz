@@ -422,31 +422,15 @@ function isSystemAlbumGroup(group) {
   const id = String((group && (group.id || group.sourceId)) || "").toLowerCase();
   const title = String((group && group.title) || "").toLowerCase();
   return Boolean(group && group.virtual) ||
-    id === "all" ||
-    id === "virtual-all" ||
-    id === "star" ||
-    id === "starred" ||
-    id === "virtual-starred" ||
-    id === "archive" ||
-    id === "archived" ||
-    id === "virtual-archived" ||
-    id === "trash" ||
-    id === "trashed" ||
-    id === "virtual-trash" ||
-    id === "unassigned" ||
-    id === "virtual-unassigned" ||
-    id === "videos" ||
-    id === "virtual-videos" ||
-    title === "all" ||
-    title === "star" ||
-    title === "starred" ||
-    title === "archive" ||
-    title === "archived" ||
-    title === "hidden" ||
-    title === "trash" ||
-    title === "unassigned" ||
-    title === "videos" ||
-    title === "★";
+    id === "all" || id === "virtual-all" ||
+    id === "star" || id === "starred" || id === "virtual-starred" ||
+    id === "archive" || id === "archived" || id === "virtual-archived" ||
+    id === "trash" || id === "trashed" || id === "virtual-trash" ||
+    id === "unassigned" || id === "virtual-unassigned" ||
+    id === "videos" || id === "virtual-videos" ||
+    title === "all" || title === "star" || title === "starred" || title === "archive" ||
+    title === "archived" || title === "hidden" || title === "trash" ||
+    title === "unassigned" || title === "videos" || title === "★";
 }
 
 function virtualAlbumGroups(albums, memories) {
@@ -1447,13 +1431,17 @@ function ToolsPanel(props) {
   if (!props.open) return null;
 
   return (
-    <div className="toolsDropdown toolsIconMenu">
-      <div className="toolsDropdownList">
+    <div className="toolsDropdown toolsMenuPopover">
+      <div className="toolsMenuGroup">
         <UploadButton onUpload={props.onUpload} />
         <UploadButton onUpload={props.onUpload} folder />
+      </div>
+      <div className="toolsMenuGroup">
         <button type="button" onClick={props.toggleImportPanel}>Import</button>
         <button type="button" onClick={props.toggleUploadQueuePanel}>Queue</button>
         <button type="button" onClick={props.toggleDuplicatePanel}>Duplicates</button>
+      </div>
+      <div className="toolsMenuGroup secondary">
         <button type="button" onClick={props.toggleStatusPanel}>Missing</button>
         <button type="button" onClick={props.toggleHealthPanel}>Repair</button>
         <button type="button" onClick={props.exportVaultIndex}>Backup</button>
@@ -1858,7 +1846,6 @@ function AlbumsView(props) {
   });
   const archiveGroups = props.archiveView === "albums" ? albums : groupBy(props.archiveView, safeArray(props.memories));
   const virtualGroups = props.archiveView === "albums" && !props.currentAlbumId ? archiveGroups.filter(isSystemAlbumGroup) : [];
-  const realGroups = props.archiveView === "albums" ? archiveGroups.filter(function (group) { return !isSystemAlbumGroup(group); }) : archiveGroups;
   const seenVirtualLabels = {};
   const dedupedVirtualGroups = virtualGroups.filter(function (group) {
     const label = cleanSystemLabel(group.title || group.id);
@@ -1866,6 +1853,7 @@ function AlbumsView(props) {
     seenVirtualLabels[label] = true;
     return true;
   });
+  const realGroups = props.archiveView === "albums" ? archiveGroups.filter(function (group) { return !isSystemAlbumGroup(group); }) : archiveGroups;
   const isAlbums = props.archiveView === "albums";
   const currentAlbum = props.currentAlbumId ? albumById(props.albums, props.currentAlbumId) : null;
   const currentPhotos = currentAlbum ? directAlbumMemories(props.albums, props.memories, props.currentAlbumId) : [];
@@ -1875,16 +1863,16 @@ function AlbumsView(props) {
       <VisibleReporter items={props.currentAlbumId ? currentPhotos : props.memories} reportVisibleIds={props.reportVisibleIds} />
       {isAlbums ? (
         <div className="albumControlsRow">
-          <div className="albumSearchOnly">
+          <label className="albumSearchOnly" aria-label={props.currentAlbumId ? "Search inside album" : "Search albums"}>
             <input
               value={props.albumQuery}
               onChange={function (event) { props.setAlbumQuery(event.target.value); }}
               placeholder={props.currentAlbumId ? "Search inside album" : "Search albums"}
             />
-          </div>
+          </label>
           {!props.albumCreateOpen ? (
             <button type="button" className="newAlbumTrigger" onClick={function () { props.setAlbumCreateOpen(true); }}>
-              {props.currentAlbumId ? "New nested album" : "New album"}
+              {props.currentAlbumId ? "+ Nested album" : "+ New album"}
             </button>
           ) : null}
           {props.albumCreateOpen ? (
@@ -3417,7 +3405,7 @@ const [albumSort, setAlbumSort] = useState("recent");
             {screen === "home" ? (
               <Glass className={"shell grid-" + gridSize + (toolsOpen || viewControlsOpen || importPanelOpen || uploadQueueOpen || statusOpen || duplicatesOpen || healthOpen ? " has-panel-open" : "")}>
                 <div className="productHeader">
-                  <strong>{activePage === "albums" ? "Albums" : activePage === "mirror" ? "Mirror" : "Search"}</strong>
+                  <strong className="actualPageTitle">{activePage === "albums" ? "Albums" : activePage === "mirror" ? "Mirror" : "Search"}</strong>
                   <em>{memories.length} files</em>
                 </div>
                 <ControlBar archive={archive} archiveView={archiveView} setArchiveView={setArchiveView} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} viewControlsOpen={viewControlsOpen} toggleViewControls={function () { setViewControlsOpen(function (value) { return !value; }); }} toolsOpen={toolsOpen} toggleToolsPanel={function () { setToolsOpen(function (value) { return !value; }); }} />
