@@ -232,6 +232,8 @@ check("google takeout importer keeps JSON sidecars for metadata", app.includes('
 check("bulk import uses stable retry-safe ids and keys", app.includes('function stableFileImportId(file)') && app.includes('id: "memory-" + stableFileImportId(file)') && app.includes('stableFileImportId(file) + "-" + safeName'));
 check("import summary reports takeout sidecars and remaining files", app.includes('TAKEOUT {props.importSummary.takeout || 0}') && app.includes('JSON {props.importSummary.sidecars || 0}') && app.includes('LEFT {props.importSummary.remaining || 0}'));
 check("upload filtering accepts media plus takeout json sidecars", app.includes('const sidecarFiles = incomingFiles.filter(isTakeoutSidecarFile);') && app.includes('const files = incomingFiles.filter(isMediaUploadFile);') && app.includes('accept={props.folder ? undefined : "image/*,video/*,.json"}'));
+check("year month era grouping excludes trash", app.includes('items = safeArray(items).map(normalizeMemoryRecord).filter(function (memory) {') && app.includes('return !memory.trashed;') && app.includes('const archiveGroups = props.archiveFilter === "albums" ? albums : groupBy(props.archiveFilter, safeArray(props.memories));'));
+check("trashed viewer exposes delete forever in main action rail", app.includes('aria-label="Delete forever" data-tooltip="Delete forever"') && app.includes('permanentDeleteRailButton') && app.includes('props.permanentDeleteMemory(memory);'));
 
 if (failures.length) {
   console.error("PHOTOZ validation failed:");

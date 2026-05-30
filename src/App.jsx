@@ -676,7 +676,9 @@ function pageItems(page, memories) {
 }
 
 function groupBy(mode, items) {
-  items = safeArray(items).map(normalizeMemoryRecord);
+  items = safeArray(items).map(normalizeMemoryRecord).filter(function (memory) {
+    return !memory.trashed;
+  });
 
   const key = mode === "months" ? "month" : mode === "eras" ? "era" : "year";
   const groups = {};
@@ -2887,7 +2889,7 @@ function Modal(props) {
               <h2>{displayTitle}</h2>
               <em>{titleMetaLine}</em>
             </div>
-            <div className="fileViewerChromeActions"><button type="button" className={"fileViewerInfoButton" + (inspectorOpen ? " active" : "")} aria-label="Info" data-tooltip="Info" onClick={function () { setInspectorOpen(function (value) { return !value; }); }}><PanelRightOpen size={15} /> INFO</button><button type="button" className="fileInfoClose" aria-label="Close" data-tooltip="Close" onClick={props.close}><X size={18} /></button></div>
+            <div className="fileViewerChromeActions">{memory.trashed ? <button type="button" className="fileViewerDeleteForeverButton" aria-label="Delete forever" onClick={function () { props.permanentDeleteMemory(memory); }}><Trash2 size={15} /> DELETE FOREVER</button> : null}<button type="button" className={"fileViewerInfoButton" + (inspectorOpen ? " active" : "")} aria-label="Info" data-tooltip="Info" onClick={function () { setInspectorOpen(function (value) { return !value; }); }}><PanelRightOpen size={15} /> INFO</button><button type="button" className="fileInfoClose" aria-label="Close" data-tooltip="Close" onClick={props.close}><X size={18} /></button></div>
           </header>
 
           <main className={"fileInfoLayout" + (inspectorOpen ? " inspectorOpen" : "")}>
@@ -2910,7 +2912,10 @@ function Modal(props) {
                 <button type="button" aria-label="Zoom in" data-tooltip="Zoom in" onClick={function () { adjustPhotoZoom(0.35); }}><span aria-hidden="true" className="zoomGlyph">+</span></button>
                 <button type="button" aria-label="Favorite" data-tooltip="Favorite" className={props.isStarred ? "active" : ""} onClick={function () { props.toggleStar(memory); }}><Star size={17} /></button>
                 <button type="button" aria-label="Me" data-tooltip="Me" className={isMeMemory(memory) ? "active" : ""} onClick={function () { props.toggleMeFlag(memory); }}><UserRound size={17} /></button>
-                {memory.trashed ? <button type="button" aria-label="Restore" data-tooltip="Restore" onClick={function () { props.restoreMemory(memory); }}><RotateCcw size={17} /></button> : <button type="button" aria-label="Trash" data-tooltip="Trash" className="danger" onClick={function () { props.deleteMemory(memory); }}><Trash2 size={17} /></button>}
+                {memory.trashed ? <>
+                  <button type="button" aria-label="Restore" data-tooltip="Restore" className="viewerTrashTextButton" onClick={function () { props.restoreMemory(memory); }}><RotateCcw size={17} /><span>RESTORE</span></button>
+                  <button type="button" aria-label="Delete forever" data-tooltip="Delete forever" className="danger viewerTrashTextButton permanentDeleteRailButton" onClick={function () { props.permanentDeleteMemory(memory); }}><Trash2 size={17} /><span>DELETE FOREVER</span></button>
+                </> : <button type="button" aria-label="Trash" data-tooltip="Trash" className="danger" onClick={function () { props.deleteMemory(memory); }}><Trash2 size={17} /></button>}
               </div>
             </section>
 
@@ -2958,15 +2963,13 @@ function Modal(props) {
                 </div>
               </section>
 
-              <section className="fileInfoPanel fileInfoUtilityPanel">
-                <button type="button" onClick={function () { props.openOriginal(memory); }}>OPEN</button>
-                <button type="button" onClick={function () { props.downloadOriginal(memory); }}>DOWNLOAD</button>
-                <button type="button" onClick={function () { props.copyMediaUrl(memory); }}>COPY LINK</button>
-                <button type="button" onClick={function () { setShowTechnical(function (value) { return !value; }); }}>FILE INFO</button>
-                <button type="button" onClick={function () { setShowMetadata(function (value) { return !value; }); }}>METADATA</button>
-                {memory.trashed ? <button type="button" onClick={function () { props.restoreMemory(memory); }}>RESTORE</button> : <button type="button" className="danger" onClick={function () { props.deleteMemory(memory); }}>TRASH</button>}
-                <button type="button" className="danger permaDeleteButton" onClick={function () { props.permanentDeleteMemory(memory); }}>DELETE FOREVER</button>
-              </section>
+              {memory.trashed ? <section className="fileInfoPanel fileInfoDeletePanel">
+                <div className="fileInfoPanelTop"><strong>TRASH</strong><span>Removed from PHOTOZ views</span></div>
+                <div className="fileInfoDeleteActions">
+                  <button type="button" onClick={function () { props.restoreMemory(memory); }}>RESTORE</button>
+                  <button type="button" className="danger permaDeleteButton" onClick={function () { props.permanentDeleteMemory(memory); }}>DELETE FOREVER</button>
+                </div>
+              </section> : null}
 
               {showTechnical ? (
                 <section className="fileInfoPanel fileInfoTechnicalPanel">
