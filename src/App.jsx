@@ -2950,6 +2950,16 @@ function Modal(props) {
 
               <section className="fileInfoPanel fileInfoAlbumPanel">
                 <div className="fileInfoPanelTop"><strong>PHOTO ALBUM</strong><span>{albumLabel}</span></div>
+                <div className="fileInfoAlbumControls">
+                  <select value={selectedAlbum} aria-label="Choose photo album" onChange={function (event) { setSelectedAlbum(event.target.value); }}>
+                    {availableAlbums.map(function (album) {
+                      return <option value={album.id} key={album.id}>{album.title || "PHOTO ALBUM"}</option>;
+                    })}
+                  </select>
+                  <button type="button" disabled={!selectedAlbum || albumHasMemory(props.albums, selectedAlbum, memory.id)} onClick={function () { props.addToAlbum(memory, selectedAlbum); }}>ADD</button>
+                  <button type="button" disabled={!selectedAlbum} onClick={function () { props.moveToAlbum(memory, selectedAlbum); }}>MOVE</button>
+                  <button type="button" className="danger" disabled={!selectedAlbum || !albumHasMemory(props.albums, selectedAlbum, memory.id)} onClick={function () { props.removeFromAlbum(memory, selectedAlbum); }}>REMOVE</button>
+                </div>
               </section>
 
               {showTechnical ? (

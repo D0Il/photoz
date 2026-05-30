@@ -17543,9 +17543,14 @@ body:has(.fileInfoModal) {
   color: rgba(255,255,255,.95);
 }
 
-/* PHOTOZ info panel cleanup: info is facts/details only; destructive actions stay in viewer controls. */
-.fileInfoInspector .fileInfoAlbumControls,
+/* PHOTOZ info panel cleanup: destructive actions stay in viewer controls; album placement stays usable. */
 .fileInfoInspector .fileInfoDeletePanel,
 .fileInfoInspector .fileInfoDeleteActions {
   display: none;
+}
+
+.fileInfoInspector .fileInfoAlbumControls button:disabled {
+  opacity: .38;
+  cursor: default;
+  transform: none;
 }
