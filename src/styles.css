@@ -15429,3 +15429,1944 @@ svg.photozDockIcon {
     overflow: visible;
   }
 }
+
+/* PHOTOZ final media viewer reset: stop treating file info as a form sheet. */
+.photozProUI .fileInfoModal.modal,
+.photozProUI .fileInfoModal,
+.fileInfoModal.modal,
+.fileInfoModal {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: clamp(28px, 4vw, 54px);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 50% -12%, rgba(255,255,255,.16), transparent 40%),
+    linear-gradient(135deg, rgba(15,15,15,.58), rgba(118,118,118,.26) 48%, rgba(6,6,6,.52)),
+    rgba(32,32,32,.48);
+  backdrop-filter: blur(2px) saturate(1.04);
+  -webkit-backdrop-filter: blur(2px) saturate(1.04);
+  z-index: 220;
+}
+
+.photozProUI .fileInfoModal .fileInfoCard,
+.photozProUI .fileInfoCard,
+.fileInfoModal .fileInfoCard,
+.fileInfoCard {
+  position: relative;
+  width: min(1240px, calc(100vw - clamp(56px, 8vw, 112px)));
+  height: min(760px, calc(100vh - clamp(56px, 8vw, 112px)));
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  display: block;
+  border-radius: 34px;
+  border: 1px solid rgba(255,255,255,.50);
+  background:
+    radial-gradient(circle at 26% 0%, rgba(255,255,255,.17), transparent 30%),
+    linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.028) 44%, rgba(0,0,0,.24)),
+    rgba(148,148,148,.12);
+  box-shadow:
+    0 54px 150px rgba(0,0,0,.42),
+    0 16px 42px rgba(0,0,0,.26),
+    inset 0 1px 0 rgba(255,255,255,.70),
+    inset 0 -1px 0 rgba(0,0,0,.30);
+}
+
+.photozProUI .fileInfoModal .fileInfoHeader,
+.fileInfoModal .fileInfoHeader {
+  position: absolute;
+  left: 24px;
+  top: 20px;
+  right: 24px;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.photozProUI .fileInfoModal .fileInfoTitleBlock,
+.fileInfoModal .fileInfoTitleBlock {
+  pointer-events: auto;
+  max-width: min(650px, 58vw);
+  padding: 12px 14px 11px;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.24), rgba(255,255,255,.06)),
+    rgba(210,210,210,.14);
+  border: 1px solid rgba(255,255,255,.42);
+  box-shadow: 0 12px 34px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.58);
+  backdrop-filter: blur(8px) saturate(1.06);
+  -webkit-backdrop-filter: blur(8px) saturate(1.06);
+}
+
+.photozProUI .fileInfoModal .fileInfoTitleBlock span,
+.fileInfoModal .fileInfoTitleBlock span {
+  display: inline-flex;
+  margin-bottom: 5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.18);
+  color: rgba(0,0,0,.50);
+  font-size: 7px;
+  font-weight: 950;
+  letter-spacing: .18em;
+}
+
+.photozProUI .fileInfoModal .fileInfoTitleBlock h2,
+.fileInfoModal .fileInfoTitleBlock h2 {
+  max-width: 100%;
+  margin: 0;
+  font-size: clamp(20px, 2.1vw, 32px);
+  line-height: .95;
+  letter-spacing: -.035em;
+  color: rgba(18,18,18,.82);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.photozProUI .fileInfoModal .fileInfoTitleBlock em,
+.fileInfoModal .fileInfoTitleBlock em {
+  display: block;
+  max-width: 100%;
+  margin-top: 5px;
+  color: rgba(0,0,0,.42);
+  font-style: normal;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.photozProUI .fileInfoModal .fileInfoClose,
+.fileInfoModal .fileInfoClose {
+  pointer-events: auto;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.24), rgba(255,255,255,.055)),
+    rgba(210,210,210,.12);
+  border: 1px solid rgba(255,255,255,.48);
+  color: rgba(0,0,0,.62);
+  box-shadow: 0 12px 34px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.66);
+}
+
+.photozProUI .fileInfoModal .fileInfoLayout,
+.fileInfoModal .fileInfoLayout {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 0;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.photozProUI .fileInfoModal .fileInfoPreviewPanel,
+.fileInfoModal .fileInfoPreviewPanel {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding: clamp(86px, 9vh, 112px) 28px 82px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  border: 0;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(255,255,255,.10), transparent 38%),
+    linear-gradient(135deg, rgba(0,0,0,.23), rgba(255,255,255,.03) 52%, rgba(0,0,0,.24)),
+    rgba(18,18,18,.16);
+  box-shadow: inset -1px 0 0 rgba(255,255,255,.18), inset 1px 0 0 rgba(0,0,0,.12);
+}
+
+.photozProUI .fileInfoModal .fileInfoPreview,
+.fileInfoModal .fileInfoPreview {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  max-height: none;
+  aspect-ratio: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.photozProUI .fileInfoModal .fileInfoPreview img,
+.photozProUI .fileInfoModal .fileInfoPreview video,
+.fileInfoModal .fileInfoPreview img,
+.fileInfoModal .fileInfoPreview video {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  border-radius: 16px;
+  box-shadow:
+    0 38px 88px rgba(0,0,0,.34),
+    0 10px 26px rgba(0,0,0,.22),
+    0 0 0 1px rgba(255,255,255,.16);
+}
+
+.photozProUI .fileInfoModal .fileInfoActionRail,
+.fileInfoModal .fileInfoActionRail {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 22px;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.045)),
+    rgba(190,190,190,.10);
+  border: 1px solid rgba(255,255,255,.32);
+  box-shadow: 0 18px 40px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.52);
+  backdrop-filter: blur(8px) saturate(1.04);
+  -webkit-backdrop-filter: blur(8px) saturate(1.04);
+}
+
+.photozProUI .fileInfoModal .fileInfoActionRail button,
+.fileInfoModal .fileInfoActionRail button {
+  height: 38px;
+  border-radius: 15px;
+  background: rgba(255,255,255,.075);
+  border: 1px solid rgba(255,255,255,.24);
+  color: rgba(0,0,0,.62);
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: .16em;
+}
+
+.photozProUI .fileInfoModal .fileInfoActionRail button.active,
+.fileInfoModal .fileInfoActionRail button.active {
+  background: rgba(255,255,255,.24);
+  color: rgba(0,0,0,.82);
+}
+
+.photozProUI .fileInfoModal .fileInfoInspector,
+.fileInfoModal .fileInfoInspector {
+  position: relative;
+  min-height: 0;
+  height: auto;
+  max-height: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: block;
+  margin: 12px 12px 12px 0;
+  padding: 18px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.20), transparent 33%),
+    linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.040)),
+    rgba(196,196,196,.13);
+  border: 1px solid rgba(255,255,255,.42);
+  box-shadow:
+    0 20px 54px rgba(0,0,0,.16),
+    inset 0 1px 0 rgba(255,255,255,.62),
+    inset 0 -1px 0 rgba(0,0,0,.16);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,.20) transparent;
+}
+
+.photozProUI .fileInfoModal .fileInfoInspector::-webkit-scrollbar,
+.fileInfoModal .fileInfoInspector::-webkit-scrollbar { width: 4px; }
+.photozProUI .fileInfoModal .fileInfoInspector::-webkit-scrollbar-thumb,
+.fileInfoModal .fileInfoInspector::-webkit-scrollbar-thumb { background: rgba(0,0,0,.18); border-radius: 999px; }
+
+.photozProUI .fileInfoModal .fileInfoStats,
+.fileInfoModal .fileInfoStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.photozProUI .fileInfoModal .fileInfoStats span,
+.fileInfoModal .fileInfoStats span,
+.photozProUI .fileInfoModal .fileInfoPanel,
+.fileInfoModal .fileInfoPanel {
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.19), rgba(255,255,255,.055)),
+    rgba(255,255,255,.035);
+  border: 1px solid rgba(255,255,255,.31);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 8px 22px rgba(0,0,0,.045);
+}
+
+.photozProUI .fileInfoModal .fileInfoPanel,
+.fileInfoModal .fileInfoPanel { margin-bottom: 10px; padding: 12px; }
+
+.photozProUI .fileInfoModal .fileInfoCoreMetaPanel,
+.fileInfoModal .fileInfoCoreMetaPanel { display: grid; gap: 6px; }
+
+.photozProUI .fileInfoModal .fileInfoDetailsPanel,
+.fileInfoModal .fileInfoDetailsPanel {
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+  padding-right: 12px;
+}
+
+.photozProUI .fileInfoModal .fileInfoFormGrid,
+.fileInfoModal .fileInfoFormGrid { gap: 7px; }
+
+.photozProUI .fileInfoModal .fileInfoFormGrid textarea,
+.fileInfoModal .fileInfoFormGrid textarea { min-height: 54px; }
+
+.photozProUI .fileInfoModal .fileInfoUtilityPanel,
+.fileInfoModal .fileInfoUtilityPanel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 7px;
+}
+
+.photozProUI .fileInfoModal .fileInfoUtilityPanel .permaDeleteButton,
+.fileInfoModal .fileInfoUtilityPanel .permaDeleteButton { grid-column: 1 / -1; }
+
+@media (max-width: 980px) {
+  .photozProUI .fileInfoModal .fileInfoCard,
+  .fileInfoModal .fileInfoCard {
+    width: calc(100vw - 28px);
+    height: calc(100vh - 28px);
+  }
+  .photozProUI .fileInfoModal .fileInfoLayout,
+  .fileInfoModal .fileInfoLayout {
+    grid-template-columns: 1fr;
+    overflow: auto;
+  }
+  .photozProUI .fileInfoModal .fileInfoPreviewPanel,
+  .fileInfoModal .fileInfoPreviewPanel { min-height: 64vh; }
+  .photozProUI .fileInfoModal .fileInfoInspector,
+  .fileInfoModal .fileInfoInspector { margin: 0 12px 12px; }
+}
+
+/* =========================================================
+   PHOTOZ YES PASS: media viewer must feel like premium photo software.
+   This is source-level final structure, not a foggy form-modal override.
+   ========================================================= */
+body:has(.fileInfoModal) {
+  overflow: hidden;
+}
+
+.fileInfoModal.modal,
+.fileInfoModal {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: clamp(18px, 2.8vw, 44px);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.13), transparent 42%),
+    linear-gradient(135deg, rgba(11,11,11,.72), rgba(88,88,88,.34) 48%, rgba(8,8,8,.68));
+  backdrop-filter: blur(1.5px) saturate(1.05);
+  -webkit-backdrop-filter: blur(1.5px) saturate(1.05);
+  z-index: 10000;
+  overflow: hidden;
+  border-radius: 0;
+}
+
+.fileInfoModal .fileInfoCard,
+.fileInfoCard {
+  width: min(1540px, calc(100vw - 56px));
+  height: min(900px, calc(100vh - 56px));
+  margin: 0;
+  max-width: none;
+  max-height: none;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(320px, 24vw, 390px);
+  grid-template-rows: 1fr;
+  overflow: hidden;
+  padding: 0;
+  border-radius: 32px;
+  border: 1px solid rgba(255,255,255,.42);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255,255,255,.12), transparent 36%),
+    linear-gradient(135deg, rgba(26,26,26,.58), rgba(116,116,116,.16) 48%, rgba(18,18,18,.52));
+  box-shadow:
+    0 60px 160px rgba(0,0,0,.50),
+    0 20px 50px rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.58),
+    inset 0 -1px 0 rgba(0,0,0,.35);
+}
+
+.fileInfoModal .fileInfoHeader {
+  position: absolute;
+  top: 22px;
+  left: 22px;
+  right: 22px;
+  z-index: 6;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+  padding: 0;
+}
+
+.fileInfoModal .fileInfoTitleBlock {
+  pointer-events: auto;
+  max-width: min(680px, calc(100vw - 520px));
+  padding: 12px 14px 11px;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(245,245,245,.20), rgba(255,255,255,.055)),
+    rgba(44,44,44,.18);
+  border: 1px solid rgba(255,255,255,.30);
+  box-shadow: 0 18px 50px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.46);
+  backdrop-filter: blur(10px) saturate(1.05);
+  -webkit-backdrop-filter: blur(10px) saturate(1.05);
+}
+
+.fileInfoModal .fileInfoTitleBlock span {
+  display: inline-flex;
+  margin-bottom: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.13);
+  color: rgba(255,255,255,.78);
+  font-size: 7px;
+  font-weight: 950;
+  letter-spacing: .18em;
+}
+
+.fileInfoModal .fileInfoTitleBlock h2 {
+  margin: 0;
+  max-width: 100%;
+  color: rgba(255,255,255,.92);
+  font-size: clamp(20px, 2vw, 34px);
+  line-height: .96;
+  letter-spacing: -.035em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 10px 28px rgba(0,0,0,.35);
+}
+
+.fileInfoModal .fileInfoTitleBlock em {
+  display: block;
+  max-width: 100%;
+  margin-top: 5px;
+  color: rgba(255,255,255,.48);
+  font-style: normal;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fileInfoModal .fileInfoClose {
+  pointer-events: auto;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.32);
+  color: rgba(255,255,255,.86);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.035)),
+    rgba(40,40,40,.22);
+  box-shadow: 0 16px 48px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.44);
+  backdrop-filter: blur(10px) saturate(1.05);
+}
+
+.fileInfoModal .fileInfoLayout {
+  position: static;
+  inset: auto;
+  display: contents;
+  width: auto;
+  height: auto;
+}
+
+.fileInfoModal .fileInfoPreviewPanel {
+  grid-column: 1;
+  grid-row: 1;
+  position: relative;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(96px, 12vh, 128px) clamp(34px, 5vw, 76px) 92px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,.10), transparent 45%),
+    linear-gradient(135deg, rgba(0,0,0,.34), rgba(255,255,255,.025) 52%, rgba(0,0,0,.30));
+  box-shadow: inset -1px 0 0 rgba(255,255,255,.16);
+}
+
+.fileInfoModal .fileInfoPreview {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.fileInfoModal .fileInfoPreview img,
+.fileInfoModal .fileInfoPreview video {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  border-radius: 16px;
+  background: rgba(0,0,0,.08);
+  box-shadow:
+    0 46px 120px rgba(0,0,0,.44),
+    0 14px 36px rgba(0,0,0,.28),
+    0 0 0 1px rgba(255,255,255,.14);
+}
+
+.fileInfoModal .fileInfoActionRail {
+  position: absolute;
+  left: clamp(24px, 3vw, 42px);
+  right: clamp(24px, 3vw, 42px);
+  bottom: 24px;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.035)),
+    rgba(32,32,32,.18);
+  border: 1px solid rgba(255,255,255,.24);
+  box-shadow: 0 22px 62px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.42);
+  backdrop-filter: blur(10px) saturate(1.06);
+}
+
+.fileInfoModal .fileInfoActionRail button,
+.fileInfoModal .fileInfoUtilityPanel button,
+.fileInfoModal .fileInfoAlbumControls button,
+.fileInfoModal .fileInfoPanelTop button {
+  min-height: 36px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.22);
+  background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.045));
+  color: rgba(255,255,255,.84);
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: .14em;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.30), 0 8px 20px rgba(0,0,0,.10);
+}
+
+.fileInfoModal .fileInfoActionRail button.active {
+  color: rgba(15,15,15,.82);
+  background: linear-gradient(180deg, rgba(255,255,255,.54), rgba(255,255,255,.22));
+}
+
+.fileInfoModal .fileInfoInspector {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  height: calc(100% - 24px);
+  min-height: 0;
+  margin: 12px 12px 12px 0;
+  padding: 14px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.16), transparent 32%),
+    linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.026)),
+    rgba(38,38,38,.24);
+  border: 1px solid rgba(255,255,255,.28);
+  box-shadow: 0 24px 70px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.42);
+  backdrop-filter: blur(12px) saturate(1.06);
+  scrollbar-width: none;
+}
+.fileInfoModal .fileInfoInspector::-webkit-scrollbar { width: 0; height: 0; }
+
+.fileInfoModal .fileInfoStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+.fileInfoModal .fileInfoStats span,
+.fileInfoModal .fileInfoPanel {
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.15), rgba(255,255,255,.035)),
+    rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.22);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.30), 0 10px 26px rgba(0,0,0,.08);
+}
+.fileInfoModal .fileInfoStats span { padding: 10px 11px; }
+.fileInfoModal .fileInfoStats em,
+.fileInfoModal .fileInfoMetaLine span,
+.fileInfoModal .fileInfoFormGrid label span,
+.fileInfoModal .fileInfoPanelTop strong {
+  color: rgba(255,255,255,.45);
+  font-size: 7px;
+  font-weight: 950;
+  letter-spacing: .16em;
+  font-style: normal;
+}
+.fileInfoModal .fileInfoStats strong,
+.fileInfoModal .fileInfoMetaLine strong,
+.fileInfoModal .fileInfoDetailsSummary span,
+.fileInfoModal .fileInfoPanelTop span {
+  color: rgba(255,255,255,.82);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .05em;
+}
+
+.fileInfoModal .fileInfoPanel { margin: 0 0 10px; padding: 12px; }
+.fileInfoModal .fileInfoCoreMetaPanel { display: grid; gap: 7px; }
+.fileInfoModal .fileInfoMetaLine {
+  display: grid;
+  grid-template-columns: 78px minmax(0,1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.05);
+}
+.fileInfoModal .fileInfoMetaLine strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.fileInfoModal .fileInfoPanelTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 10px;
+}
+.fileInfoModal .fileInfoDetailsSummary {
+  display: grid;
+  gap: 7px;
+}
+.fileInfoModal .fileInfoDetailsSummary span {
+  padding: 8px 9px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.05);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileInfoModal .fileInfoFormGrid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+.fileInfoModal .fileInfoFormGrid .wide { grid-column: 1 / -1; }
+.fileInfoModal .fileInfoFormGrid input,
+.fileInfoModal .fileInfoFormGrid textarea,
+.fileInfoModal .fileInfoAlbumControls select {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.20);
+  background: rgba(255,255,255,.075);
+  color: rgba(255,255,255,.86);
+  padding: 8px 9px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+}
+.fileInfoModal .fileInfoFormGrid textarea { min-height: 58px; resize: vertical; }
+.fileInfoModal .fileInfoAlbumControls,
+.fileInfoModal .fileInfoUtilityPanel { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+.fileInfoModal .fileInfoAlbumControls select { grid-column: 1 / -1; }
+.fileInfoModal .fileInfoUtilityPanel .permaDeleteButton { grid-column: 1 / -1; color: rgba(255,255,255,.92); background: linear-gradient(180deg, rgba(90,90,90,.34), rgba(30,30,30,.28)); }
+.fileInfoModal .fileInfoMetadata { max-height: 150px; overflow: auto; color: rgba(255,255,255,.72); background: rgba(0,0,0,.24); border-radius: 16px; padding: 12px; }
+
+@media (max-width: 1050px) {
+  .fileInfoModal .fileInfoCard { grid-template-columns: 1fr; overflow: auto; }
+  .fileInfoModal .fileInfoPreviewPanel { min-height: 68vh; }
+  .fileInfoModal .fileInfoInspector { grid-column: 1; height: auto; margin: 0 12px 12px; overflow: visible; }
+  .fileInfoModal .fileInfoTitleBlock { max-width: calc(100vw - 128px); }
+}
+
+/* =========================================================
+   LUXURY FILE VIEWER PASS: quiet media, not command center.
+   Default view is photo-first; inspector is an optional drawer.
+   ========================================================= */
+.fileInfoModal.modal,
+.fileInfoModal {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.10), transparent 38%),
+    linear-gradient(135deg, rgba(8,8,8,.76), rgba(40,40,40,.42) 48%, rgba(5,5,5,.76));
+  backdrop-filter: blur(2px) saturate(1.08);
+  -webkit-backdrop-filter: blur(2px) saturate(1.08);
+}
+
+.fileInfoModal .fileInfoCard,
+.fileInfoCard {
+  width: min(1560px, calc(100vw - 44px));
+  height: min(910px, calc(100vh - 44px));
+  grid-template-columns: minmax(0, 1fr);
+  background:
+    radial-gradient(circle at 48% 48%, rgba(255,255,255,.055), transparent 42%),
+    linear-gradient(135deg, rgba(18,18,18,.72), rgba(86,86,86,.14) 50%, rgba(14,14,14,.72));
+  border-color: rgba(255,255,255,.32);
+  box-shadow:
+    0 70px 180px rgba(0,0,0,.58),
+    0 24px 70px rgba(0,0,0,.34),
+    inset 0 1px 0 rgba(255,255,255,.46),
+    inset 0 -1px 0 rgba(0,0,0,.36);
+}
+
+.fileInfoModal .fileInfoCard.inspectorOpen {
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 21vw, 350px);
+}
+
+.fileInfoModal .fileInfoHeader {
+  top: 20px;
+  left: 24px;
+  right: 24px;
+}
+
+.fileInfoModal .fileInfoTitleBlock {
+  max-width: min(620px, calc(100vw - 620px));
+  padding: 10px 12px 9px;
+  border-radius: 17px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.035)),
+    rgba(14,14,14,.22);
+  border-color: rgba(255,255,255,.20);
+  box-shadow: 0 16px 44px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.30);
+  backdrop-filter: blur(14px) saturate(1.08);
+}
+
+.fileInfoModal .fileInfoTitleBlock h2 {
+  font-size: clamp(18px, 1.55vw, 26px);
+  letter-spacing: -.025em;
+}
+
+.fileInfoModal .fileInfoTitleBlock em {
+  color: rgba(255,255,255,.42);
+  font-size: 8px;
+  letter-spacing: .08em;
+}
+
+.fileViewerChromeActions {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fileViewerInfoButton,
+.fileInfoModal .fileInfoClose {
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.24);
+  color: rgba(255,255,255,.82);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.035)),
+    rgba(18,18,18,.20);
+  box-shadow: 0 14px 42px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.34);
+  backdrop-filter: blur(12px) saturate(1.08);
+}
+
+.fileViewerInfoButton {
+  padding: 0 15px;
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: .15em;
+}
+
+.fileViewerInfoButton.active,
+.fileViewerInfoButton:hover,
+.fileInfoModal .fileInfoClose:hover {
+  background: linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,.08)), rgba(255,255,255,.08);
+  color: rgba(255,255,255,.96);
+}
+
+.fileInfoModal .fileInfoPreviewPanel {
+  grid-column: 1;
+  padding: 88px clamp(46px, 7vw, 118px) 92px;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(255,255,255,.075), transparent 42%),
+    radial-gradient(circle at 50% 50%, rgba(0,0,0,.18), transparent 66%),
+    linear-gradient(135deg, rgba(0,0,0,.24), rgba(255,255,255,.018) 52%, rgba(0,0,0,.27));
+  box-shadow: none;
+}
+
+.fileInfoModal .fileInfoPreview {
+  isolation: isolate;
+}
+
+.fileInfoModal .fileInfoPreview img,
+.fileInfoModal .fileInfoPreview video {
+  border-radius: 18px;
+  max-width: min(100%, 980px);
+  max-height: min(100%, 690px);
+  background: rgba(0,0,0,.10);
+  box-shadow:
+    0 58px 150px rgba(0,0,0,.54),
+    0 18px 50px rgba(0,0,0,.34),
+    0 0 0 1px rgba(255,255,255,.12);
+}
+
+.fileInfoModal .fileInfoActionRail {
+  left: 50%;
+  right: auto;
+  bottom: 24px;
+  width: min(680px, calc(100% - 70px));
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  grid-template-columns: none;
+  gap: 8px;
+  padding: 7px;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.030)),
+    rgba(18,18,18,.26);
+  border-color: rgba(255,255,255,.22);
+  box-shadow: 0 22px 68px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.33);
+}
+
+.fileInfoModal .fileInfoActionRail button {
+  min-width: 76px;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  color: rgba(255,255,255,.75);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.fileInfoModal .fileInfoActionRail button:hover,
+.fileInfoModal .fileInfoActionRail button.active {
+  color: rgba(20,20,20,.84);
+  background: linear-gradient(180deg, rgba(255,255,255,.58), rgba(255,255,255,.24));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 10px 28px rgba(0,0,0,.20);
+}
+
+.fileInfoModal .fileInfoInspector {
+  grid-column: 2;
+  transform: translateX(112%);
+  opacity: 0;
+  pointer-events: none;
+  margin: 12px 12px 12px 0;
+  padding: 12px;
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.12), transparent 30%),
+    linear-gradient(180deg, rgba(255,255,255,.095), rgba(255,255,255,.024)),
+    rgba(20,20,20,.30);
+  border-color: rgba(255,255,255,.21);
+  box-shadow: 0 30px 90px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.32);
+  transition: transform .28s ease, opacity .22s ease;
+}
+
+.fileInfoModal .fileInfoInspector.open,
+.fileInfoModal .fileInfoCard.inspectorOpen .fileInfoInspector {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.fileInfoModal .fileInfoStats,
+.fileInfoModal .fileInfoCoreMetaPanel,
+.fileInfoModal .fileInfoDetailsPanel,
+.fileInfoModal .fileInfoAlbumPanel,
+.fileInfoModal .fileInfoUtilityPanel,
+.fileInfoModal .fileInfoTechnicalPanel,
+.fileInfoModal .fileInfoMetadata {
+  font-size: 10px;
+}
+
+.fileInfoModal .fileInfoStats span,
+.fileInfoModal .fileInfoPanel {
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.105), rgba(255,255,255,.025)),
+    rgba(255,255,255,.018);
+  border-color: rgba(255,255,255,.17);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.22);
+}
+
+.fileInfoModal .fileInfoUtilityPanel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.fileInfoModal .fileInfoUtilityPanel button,
+.fileInfoModal .fileInfoAlbumControls button,
+.fileInfoModal .fileInfoPanelTop button {
+  min-height: 34px;
+  color: rgba(255,255,255,.78);
+  background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.030));
+  border-color: rgba(255,255,255,.17);
+}
+
+.fileInfoModal .fileInfoUtilityPanel .permaDeleteButton {
+  grid-column: 1 / -1;
+  color: rgba(255,255,255,.82);
+  background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.035)), rgba(0,0,0,.06);
+}
+
+.fileInfoModal .fileInfoCoreMetaPanel .fileInfoMetaLine:nth-child(n+3),
+.fileInfoModal .fileInfoTechnicalPanel,
+.fileInfoModal .fileInfoMetadata {
+  opacity: .74;
+}
+
+@media (max-width: 1050px) {
+  .fileInfoModal .fileInfoCard,
+  .fileInfoModal .fileInfoCard.inspectorOpen { grid-template-columns: 1fr; }
+  .fileInfoModal .fileInfoInspector {
+    position: absolute;
+    top: 78px;
+    right: 12px;
+    bottom: 86px;
+    width: min(350px, calc(100vw - 44px));
+    z-index: 9;
+  }
+  .fileInfoModal .fileInfoTitleBlock { max-width: calc(100vw - 160px); }
+}
+
+/* =========================================================
+   PHOTOZ LIGHT LUXURY MEDIA VIEWER PASS:
+   Silver personal photo archive, not dark technical software.
+   ========================================================= */
+.fileInfoModal.modal,
+.fileInfoModal {
+  background:
+    radial-gradient(circle at 22% 18%, rgba(255,255,255,.70), transparent 31%),
+    radial-gradient(circle at 78% 5%, rgba(214,214,214,.46), transparent 30%),
+    linear-gradient(135deg, rgba(248,248,248,.86), rgba(222,222,222,.54) 48%, rgba(250,250,250,.82));
+  backdrop-filter: blur(4px) saturate(1.08);
+  -webkit-backdrop-filter: blur(4px) saturate(1.08);
+}
+
+.fileInfoModal .fileInfoCard,
+.fileInfoCard {
+  width: min(1500px, calc(100vw - 52px));
+  height: min(900px, calc(100vh - 52px));
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 8%, rgba(255,255,255,.88), transparent 33%),
+    linear-gradient(135deg, rgba(255,255,255,.72), rgba(236,236,236,.34) 48%, rgba(255,255,255,.62));
+  border: 1px solid rgba(255,255,255,.78);
+  box-shadow:
+    0 54px 150px rgba(0,0,0,.22),
+    0 18px 60px rgba(0,0,0,.12),
+    inset 0 1px 0 rgba(255,255,255,.92),
+    inset 0 -1px 0 rgba(0,0,0,.10);
+}
+
+.fileInfoModal .fileInfoCard::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(120deg, rgba(255,255,255,.72), transparent 22%, transparent 72%, rgba(255,255,255,.28)),
+    radial-gradient(circle at 50% 100%, rgba(0,0,0,.075), transparent 48%);
+  mix-blend-mode: normal;
+}
+
+.fileInfoModal .fileInfoPreviewPanel {
+  padding: 88px clamp(46px, 8vw, 132px) 92px;
+  background:
+    radial-gradient(ellipse at center, rgba(255,255,255,.92), rgba(255,255,255,.50) 36%, rgba(212,212,212,.22) 74%, rgba(255,255,255,.42)),
+    linear-gradient(135deg, rgba(255,255,255,.40), rgba(225,225,225,.18));
+}
+
+.fileInfoModal .fileInfoPreview {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.fileInfoModal .fileInfoPreview::before {
+  content: "";
+  position: absolute;
+  width: min(70vw, 920px);
+  height: min(58vh, 600px);
+  border-radius: 44px;
+  background: radial-gradient(ellipse at center, rgba(255,255,255,.66), transparent 64%);
+  filter: blur(18px);
+  pointer-events: none;
+}
+
+.fileInfoModal .fileInfoPreview img,
+.fileInfoModal .fileInfoPreview video {
+  position: relative;
+  z-index: 1;
+  max-width: min(100%, 1040px);
+  max-height: min(100%, 720px);
+  object-fit: contain;
+  border-radius: 16px;
+  background: transparent;
+  box-shadow:
+    0 46px 120px rgba(0,0,0,.24),
+    0 12px 38px rgba(0,0,0,.14),
+    0 0 0 1px rgba(255,255,255,.62);
+}
+
+.fileInfoModal .fileInfoHeader {
+  top: 18px;
+  left: 22px;
+  right: 22px;
+  color: rgba(20,20,20,.86);
+}
+
+.fileInfoModal .fileInfoTitleBlock {
+  max-width: min(620px, calc(100vw - 210px));
+  padding: 9px 12px 8px;
+  border-radius: 18px;
+  color: rgba(20,20,20,.86);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.76), rgba(255,255,255,.30)),
+    rgba(245,245,245,.42);
+  border: 1px solid rgba(255,255,255,.76);
+  box-shadow: 0 16px 48px rgba(0,0,0,.10), inset 0 1px 0 rgba(255,255,255,.92);
+  backdrop-filter: blur(14px) saturate(1.08);
+}
+
+.fileInfoModal .fileInfoTitleBlock span,
+.fileInfoModal .fileInfoTitleBlock em {
+  color: rgba(20,20,20,.44);
+}
+
+.fileInfoModal .fileInfoTitleBlock h2 {
+  color: rgba(15,15,15,.90);
+  font-size: clamp(17px, 1.45vw, 24px);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileViewerChromeActions { gap: 8px; }
+.fileViewerInfoButton,
+.fileInfoModal .fileInfoClose {
+  min-width: 42px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.76);
+  color: rgba(20,20,20,.74);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.76), rgba(255,255,255,.28)),
+    rgba(242,242,242,.42);
+  box-shadow: 0 14px 40px rgba(0,0,0,.10), inset 0 1px 0 rgba(255,255,255,.94);
+  backdrop-filter: blur(12px) saturate(1.08);
+}
+.fileViewerInfoButton { display: inline-flex; align-items: center; gap: 7px; padding: 0 14px; }
+.fileViewerInfoButton.active,
+.fileViewerInfoButton:hover,
+.fileInfoModal .fileInfoClose:hover {
+  color: rgba(0,0,0,.90);
+  background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.46));
+  box-shadow: 0 16px 46px rgba(0,0,0,.13), inset 0 1px 0 rgba(255,255,255,1);
+}
+
+.fileInfoModal .fileInfoActionRail {
+  width: auto;
+  min-width: 0;
+  gap: 7px;
+  padding: 7px;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.74), rgba(255,255,255,.24)),
+    rgba(240,240,240,.38);
+  border: 1px solid rgba(255,255,255,.76);
+  box-shadow: 0 22px 70px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.92);
+  backdrop-filter: blur(14px) saturate(1.10);
+}
+.fileInfoModal .fileInfoActionRail button {
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  min-height: 38px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: rgba(20,20,20,.62);
+  background: transparent;
+  border: 1px solid transparent;
+}
+.fileInfoModal .fileInfoActionRail button svg { stroke-width: 2.15; }
+.fileInfoModal .fileInfoActionRail button:hover,
+.fileInfoModal .fileInfoActionRail button.active {
+  color: rgba(0,0,0,.88);
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.54));
+  border-color: rgba(255,255,255,.86);
+  box-shadow: 0 10px 28px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,1);
+}
+
+.fileInfoModal .fileInfoInspector {
+  margin: 12px 12px 12px 0;
+  border-radius: 28px;
+  color: rgba(22,22,22,.82);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.86), transparent 32%),
+    linear-gradient(180deg, rgba(255,255,255,.70), rgba(255,255,255,.24)),
+    rgba(235,235,235,.36);
+  border: 1px solid rgba(255,255,255,.78);
+  box-shadow: 0 30px 90px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.94);
+  backdrop-filter: blur(18px) saturate(1.10);
+}
+.fileInfoModal .fileInfoInspector::-webkit-scrollbar { width: 7px; }
+.fileInfoModal .fileInfoInspector::-webkit-scrollbar-thumb { background: rgba(0,0,0,.16); border-radius: 999px; }
+.fileInfoModal .fileInfoStats span,
+.fileInfoModal .fileInfoPanel {
+  color: rgba(22,22,22,.80);
+  border: 1px solid rgba(255,255,255,.72);
+  background: linear-gradient(180deg, rgba(255,255,255,.60), rgba(255,255,255,.18));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.88);
+}
+.fileInfoModal .fileInfoStats em,
+.fileInfoModal .fileInfoMetaLine span,
+.fileInfoModal .fileInfoPanelTop span {
+  color: rgba(20,20,20,.42);
+}
+.fileInfoModal .fileInfoStats strong,
+.fileInfoModal .fileInfoMetaLine strong,
+.fileInfoModal .fileInfoPanelTop strong,
+.fileInfoModal .fileInfoDetailsSummary span {
+  color: rgba(18,18,18,.84);
+}
+.fileInfoModal .fileInfoUtilityPanel button,
+.fileInfoModal .fileInfoAlbumControls button,
+.fileInfoModal .fileInfoPanelTop button,
+.fileInfoModal .fileInfoAlbumControls select,
+.fileInfoModal .fileInfoFormGrid input,
+.fileInfoModal .fileInfoFormGrid textarea {
+  color: rgba(18,18,18,.76);
+  border: 1px solid rgba(255,255,255,.76);
+  background: linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,255,255,.22));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.86);
+}
+.fileInfoModal .fileInfoUtilityPanel button:hover,
+.fileInfoModal .fileInfoAlbumControls button:hover,
+.fileInfoModal .fileInfoPanelTop button:hover {
+  color: rgba(0,0,0,.92);
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.44));
+}
+.fileInfoModal .fileInfoUtilityPanel .danger,
+.fileInfoModal .fileInfoUtilityPanel .permaDeleteButton {
+  color: rgba(70,20,20,.74);
+  background: linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,235,235,.28));
+}
+.fileInfoModal .fileInfoTechnicalPanel,
+.fileInfoModal .fileInfoMetadata {
+  color: rgba(20,20,20,.58);
+  background: rgba(255,255,255,.34);
+}
+
+@media (max-width: 1050px) {
+  .fileInfoModal .fileInfoCard,
+  .fileInfoModal .fileInfoCard.inspectorOpen { grid-template-columns: 1fr; }
+  .fileInfoModal .fileInfoPreviewPanel { padding: 86px 24px 92px; }
+  .fileInfoModal .fileInfoInspector {
+    position: absolute;
+    top: 76px;
+    right: 12px;
+    bottom: 84px;
+    width: min(350px, calc(100vw - 44px));
+    z-index: 9;
+  }
+}
+
+/* PHOTOZ card media layering fix: titles/labels must never render behind photos. */
+.photoCard {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  isolation: isolate;
+  contain: paint;
+}
+
+.photoCard .photoThumb {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.18), transparent 34%),
+    linear-gradient(135deg, rgba(255,255,255,.10), rgba(0,0,0,.065)),
+    rgba(255,255,255,.035);
+}
+
+.photoCard:has(.photoMeta) .photoThumb {
+  border-radius: 20px 20px 14px 14px;
+}
+
+.photoCard .photoThumb img,
+.photoCard .photoThumb video {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center center;
+}
+
+.photoCard .photoMeta {
+  position: relative;
+  z-index: 5;
+  min-width: 0;
+  overflow: hidden;
+  border-top: 1px solid rgba(255,255,255,.34);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.24), rgba(255,255,255,.075)),
+    rgba(226,226,226,.16);
+  backdrop-filter: blur(10px) saturate(1.06);
+  -webkit-backdrop-filter: blur(10px) saturate(1.06);
+}
+
+.photoCard .photoMeta strong,
+.photoCard .photoMeta span {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.photoCard .pzCardQuickActions,
+.photoCard .selectionDot,
+.photoCard .starBadge,
+.photoCard .pendingUploadBadge,
+.photoCard .pzVideoBadge,
+.photoCard .pzVideoPlayPlate {
+  z-index: 8;
+}
+
+.photoCard > img,
+.photoCard > video {
+  display: none;
+}
+
+/* PHOTOZ luxury file viewer behavior pass: user title, symbol facts, real tooltips, no backend bloat. */
+.fileInfoModal .fileInfoTitleBlock {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 9px;
+  row-gap: 2px;
+  align-items: center;
+}
+.fileInfoModal .fileInfoTitleBlock .fileInfoTypeGlyph {
+  grid-row: 1 / span 2;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: rgba(18,18,18,.58);
+  background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.32));
+  border: 1px solid rgba(255,255,255,.80);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.96), 0 8px 20px rgba(0,0,0,.08);
+}
+.fileInfoModal .fileInfoTitleBlock > span:not(.fileInfoTypeGlyph) { display: none; }
+.fileInfoModal .fileInfoTitleBlock h2 {
+  grid-column: 2;
+  margin: 0;
+}
+.fileInfoModal .fileInfoTitleBlock em {
+  grid-column: 2;
+}
+.fileInfoModal .fileInfoFacts {
+  grid-template-columns: 40px repeat(3, minmax(0,1fr));
+}
+.fileInfoModal .fileInfoFacts .fileInfoMediaSymbol {
+  padding: 0;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  color: rgba(18,18,18,.62);
+}
+.fileInfoModal .fileInfoFacts .fileInfoMediaSymbol svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.25;
+}
+.fileInfoModal .fileInfoFacts span em {
+  display: block;
+  margin-bottom: 4px;
+}
+.fileInfoModal .fileInfoFacts span strong {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fileInfoModal .fileInfoActionRail button,
+.fileViewerChromeActions button {
+  position: relative;
+}
+.fileInfoModal .fileInfoActionRail button[data-tooltip]::after,
+.fileViewerChromeActions button[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  transform: translateX(-50%) translateY(4px);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5000;
+  padding: 7px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  color: rgba(20,20,20,.78);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.44)), rgba(240,240,240,.46);
+  border: 1px solid rgba(255,255,255,.84);
+  box-shadow: 0 14px 38px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.98);
+  backdrop-filter: blur(12px) saturate(1.08);
+  transition: opacity .16s ease, transform .16s ease;
+}
+.fileInfoModal .fileInfoActionRail button[data-tooltip]:hover::after,
+.fileInfoModal .fileInfoActionRail button[data-tooltip]:focus-visible::after,
+.fileViewerChromeActions button[data-tooltip]:hover::after,
+.fileViewerChromeActions button[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.fileViewerChromeActions .fileInfoClose[data-tooltip]::after,
+.fileViewerChromeActions .fileViewerInfoButton[data-tooltip]::after {
+  bottom: auto;
+  top: calc(100% + 9px);
+}
+.fileInfoModal .fileInfoCoreMetaPanel .fileInfoMetaLine:nth-child(1) span::after { content: " NAME"; }
+.fileInfoModal .fileInfoTechnicalPanel { display: none; }
+.fileInfoModal .fileInfoUtilityPanel button:nth-child(4),
+.fileInfoModal .fileInfoUtilityPanel button:nth-child(5) {
+  opacity: .82;
+}
+
+/* PHOTOZ final luxury viewer: no reserved drawer space, photo-first, light glass. */
+.fileInfoModal.modal,
+.fileInfoModal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: clamp(20px, 3vw, 48px);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 24% 16%, rgba(255,255,255,.60), transparent 34%),
+    radial-gradient(circle at 80% 76%, rgba(255,255,255,.36), transparent 40%),
+    rgba(232,232,232,.46);
+  backdrop-filter: blur(10px) saturate(1.06);
+  -webkit-backdrop-filter: blur(10px) saturate(1.06);
+}
+
+.fileInfoModal .fileInfoCard,
+.fileInfoModal .fileInfoCard.inspectorOpen {
+  position: relative;
+  width: min(1380px, calc(100vw - 72px));
+  height: min(820px, calc(100vh - 72px));
+  max-width: none;
+  max-height: none;
+  display: block;
+  overflow: hidden;
+  border-radius: 30px;
+  border: 1px solid rgba(255,255,255,.82);
+  color: rgba(20,20,20,.86);
+  background:
+    radial-gradient(circle at 38% 16%, rgba(255,255,255,.72), transparent 36%),
+    linear-gradient(120deg, rgba(255,255,255,.80) 0%, rgba(247,247,247,.60) 58%, rgba(238,238,238,.38) 100%),
+    rgba(245,245,245,.64);
+  box-shadow:
+    0 54px 140px rgba(0,0,0,.24),
+    0 18px 48px rgba(0,0,0,.16),
+    inset 0 1px 0 rgba(255,255,255,.96),
+    inset 0 -1px 0 rgba(0,0,0,.08);
+  backdrop-filter: blur(16px) saturate(1.08);
+  -webkit-backdrop-filter: blur(16px) saturate(1.08);
+}
+
+.fileInfoModal .fileInfoCard::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  pointer-events: none;
+  border-radius: 29px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.72), transparent 18%),
+    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.48), transparent 34%);
+  opacity: .72;
+  z-index: 0;
+}
+
+.fileInfoModal .fileInfoHeader {
+  position: absolute;
+  z-index: 8;
+  left: 28px;
+  right: 28px;
+  top: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 0;
+  pointer-events: none;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.fileInfoModal .fileInfoTitleBlock,
+.fileInfoModal .fileInfoHeader .fileInfoTitleBlock {
+  pointer-events: auto;
+  width: auto;
+  max-width: min(420px, 46vw);
+  min-height: 54px;
+  padding: 13px 18px 13px 14px;
+  border-radius: 20px;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px 10px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.40)),
+    rgba(245,245,245,.52);
+  border: 1px solid rgba(255,255,255,.82);
+  box-shadow: 0 18px 48px rgba(0,0,0,.13), inset 0 1px 0 rgba(255,255,255,1);
+  backdrop-filter: blur(14px) saturate(1.08);
+  -webkit-backdrop-filter: blur(14px) saturate(1.08);
+}
+
+.fileInfoModal .fileInfoTitleBlock .fileInfoTypeGlyph {
+  grid-row: 1 / span 2;
+  width: 28px;
+  height: 28px;
+}
+
+.fileInfoModal .fileInfoTitleBlock h2 {
+  font-size: clamp(19px, 1.7vw, 30px);
+  line-height: .95;
+  letter-spacing: -.045em;
+  font-weight: 950;
+  color: rgba(16,16,16,.90);
+  margin: 0;
+  max-width: 100%;
+}
+
+.fileInfoModal .fileInfoTitleBlock em {
+  font-size: 8px;
+  line-height: 1.15;
+  letter-spacing: .045em;
+  color: rgba(20,20,20,.40);
+  font-style: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fileInfoModal .fileViewerChromeActions {
+  pointer-events: auto;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.fileInfoModal .fileInfoLayout,
+.fileInfoModal .fileInfoLayout.inspectorOpen {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.fileInfoModal .fileInfoPreviewPanel {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: clamp(92px, 11vh, 132px) clamp(70px, 7vw, 110px) clamp(86px, 10vh, 118px);
+  transition: padding-right .28s ease, transform .28s ease;
+}
+
+.fileInfoModal .fileInfoCard.inspectorOpen .fileInfoPreviewPanel {
+  padding-right: min(440px, 31vw);
+}
+
+.fileInfoModal .fileInfoPreview {
+  width: auto;
+  height: auto;
+  max-width: min(88vw, 980px);
+  max-height: min(72vh, 650px);
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  border-radius: 22px;
+  overflow: visible;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  box-shadow: none;
+}
+
+.fileInfoModal .fileInfoPreview::before,
+.fileInfoModal .fileInfoPreview::after { display: none; }
+
+.fileInfoModal .fileInfoPreview img,
+.fileInfoModal .fileInfoPreview video {
+  position: relative;
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(88vw, 980px);
+  max-height: min(72vh, 650px);
+  object-fit: contain;
+  object-position: center center;
+  border-radius: 18px;
+  background: rgba(245,245,245,.18);
+  box-shadow:
+    0 36px 96px rgba(0,0,0,.26),
+    0 14px 34px rgba(0,0,0,.14),
+    0 0 0 1px rgba(255,255,255,.32);
+}
+
+.fileInfoModal .fileInfoActionRail {
+  position: absolute;
+  z-index: 7;
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%);
+  margin: 0;
+}
+
+.fileInfoModal .fileInfoInspector {
+  position: absolute;
+  z-index: 9;
+  top: 88px;
+  right: 26px;
+  bottom: 28px;
+  width: min(350px, calc(100vw - 80px));
+  margin: 0;
+  padding: 14px;
+  overflow: auto;
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.36)),
+    rgba(246,246,246,.46);
+  border: 1px solid rgba(255,255,255,.82);
+  box-shadow: 0 28px 82px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.96);
+  backdrop-filter: blur(18px) saturate(1.08);
+  -webkit-backdrop-filter: blur(18px) saturate(1.08);
+}
+
+.fileInfoModal .fileInfoInspector:not(.open) { display: none; }
+
+.fileInfoModal .fileInfoStats,
+.fileInfoModal .fileInfoFacts {
+  display: grid;
+  grid-template-columns: 40px 1fr 1fr;
+  gap: 8px;
+}
+
+.fileInfoModal .fileInfoStats span,
+.fileInfoModal .fileInfoPanel {
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.24));
+  border: 1px solid rgba(255,255,255,.74);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.92);
+}
+
+.fileInfoModal .fileInfoCoreMetaPanel,
+.fileInfoModal .fileInfoDetailsPanel,
+.fileInfoModal .fileInfoAlbumPanel,
+.fileInfoModal .fileInfoUtilityPanel {
+  margin-top: 10px;
+}
+
+.fileInfoModal .fileInfoCoreMetaPanel .fileInfoMetaLine:nth-child(1) span::after { content: ""; }
+
+.fileInfoModal .fileInfoUtilityPanel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.fileInfoModal .fileInfoUtilityPanel button,
+.fileInfoModal .fileInfoAlbumControls button,
+.fileInfoModal .fileInfoPanelTop button,
+.fileInfoModal .fileInfoAlbumControls select,
+.fileInfoModal .fileInfoFormGrid input,
+.fileInfoModal .fileInfoFormGrid textarea {
+  border-radius: 14px;
+}
+
+.fileInfoModal .fileInfoUtilityPanel .permaDeleteButton { grid-column: 1 / -1; }
+
+@media (max-width: 980px) {
+  .fileInfoModal { padding: 16px; }
+  .fileInfoModal .fileInfoCard,
+  .fileInfoModal .fileInfoCard.inspectorOpen {
+    width: calc(100vw - 28px);
+    height: calc(100vh - 28px);
+  }
+  .fileInfoModal .fileInfoPreviewPanel,
+  .fileInfoModal .fileInfoCard.inspectorOpen .fileInfoPreviewPanel {
+    padding: 100px 22px 92px;
+  }
+  .fileInfoModal .fileInfoPreview img,
+  .fileInfoModal .fileInfoPreview video {
+    max-width: calc(100vw - 68px);
+    max-height: 62vh;
+  }
+  .fileInfoModal .fileInfoInspector {
+    top: 84px;
+    right: 18px;
+    bottom: 84px;
+    width: min(340px, calc(100vw - 52px));
+  }
+}
+
+/* PHOTOZ card luxury cleanup: cards read as photo objects, not title overlays. */
+.photoGrid {
+  align-items: start;
+}
+.photoCard:has(.photoMeta) {
+  grid-template-rows: minmax(118px, 1fr) 44px;
+  border-radius: 18px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.34), rgba(255,255,255,.12)),
+    rgba(235,235,235,.20);
+  box-shadow: 0 16px 38px rgba(0,0,0,.13), inset 0 1px 0 rgba(255,255,255,.66);
+}
+.photoCard:has(.photoMeta) .photoThumb {
+  border-radius: 17px 17px 8px 8px;
+}
+.photoCard:has(.photoMeta) .photoMeta {
+  min-height: 44px;
+  padding: 8px 10px 9px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.48), rgba(255,255,255,.22)),
+    rgba(238,238,238,.36);
+  border-top: 1px solid rgba(255,255,255,.50);
+}
+.photoCard .photoMeta strong {
+  color: rgba(20,20,20,.78);
+  font-size: 12px;
+  letter-spacing: -.01em;
+  font-weight: 900;
+}
+.photoCard .photoMeta span {
+  color: rgba(20,20,20,.42);
+  font-size: 8px;
+  letter-spacing: .04em;
+}
+
+
+/* PHOTOZ file-viewer action correction: no archive in the primary rail; refined quiet tooltips. */
+.fileInfoModal .fileInfoActionRail button[aria-label="Archive"],
+.fileInfoModal .fileInfoActionRail button[aria-label="Unarchive"] {
+  display: none;
+}
+.fileInfoModal .fileInfoActionRail button.danger {
+  color: rgba(36, 20, 20, .78);
+}
+.fileInfoModal .fileInfoActionRail button.danger:hover,
+.fileInfoModal .fileInfoActionRail button.danger:focus-visible {
+  background: linear-gradient(180deg, rgba(255,255,255,.84), rgba(255,255,255,.28)), rgba(120, 35, 35, .075);
+  border-color: rgba(120, 35, 35, .20);
+}
+.fileInfoModal .fileInfoActionRail button[data-tooltip]::after,
+.fileViewerChromeActions button[data-tooltip]::after {
+  padding: 6px 9px;
+  border-radius: 999px;
+  color: rgba(248,248,248,.96);
+  font-size: 8.5px;
+  font-weight: 850;
+  letter-spacing: .105em;
+  text-transform: uppercase;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.04)),
+    rgba(22,22,22,.72);
+  border: 1px solid rgba(255,255,255,.28);
+  box-shadow: 0 10px 26px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.20);
+  backdrop-filter: blur(10px) saturate(1.12);
+  -webkit-backdrop-filter: blur(10px) saturate(1.12);
+}
+.fileInfoModal .fileInfoActionRail button[data-tooltip]::before,
+.fileViewerChromeActions button[data-tooltip]::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 4px);
+  width: 6px;
+  height: 6px;
+  transform: translateX(-50%) rotate(45deg);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 4999;
+  background: rgba(22,22,22,.72);
+  border-right: 1px solid rgba(255,255,255,.20);
+  border-bottom: 1px solid rgba(255,255,255,.20);
+  transition: opacity .14s ease;
+}
+.fileInfoModal .fileInfoActionRail button[data-tooltip]:hover::before,
+.fileInfoModal .fileInfoActionRail button[data-tooltip]:focus-visible::before,
+.fileViewerChromeActions button[data-tooltip]:hover::before,
+.fileViewerChromeActions button[data-tooltip]:focus-visible::before {
+  opacity: 1;
+}
+.fileViewerChromeActions .fileInfoClose[data-tooltip]::before,
+.fileViewerChromeActions .fileViewerInfoButton[data-tooltip]::before {
+  bottom: auto;
+  top: calc(100% + 4px);
+}
+.fileViewerChromeActions .fileInfoClose[data-tooltip]::before,
+.fileViewerChromeActions .fileViewerInfoButton[data-tooltip]::before {
+  transform: translateX(-50%) rotate(225deg);
+}
+
+/* PHOTOZ tablet-grade photo viewer pass: real zoom/pan, one info button, polished touch rail. */
+.fileInfoModal .fileInfoPreview {
+  touch-action: none;
+  user-select: none;
+  cursor: zoom-in;
+  overscroll-behavior: contain;
+}
+.fileInfoModal .fileInfoPreview.zoomed {
+  cursor: grab;
+}
+.fileInfoModal .fileInfoPreview.zoomed:active {
+  cursor: grabbing;
+}
+.fileInfoModal .fileInfoPreview img {
+  transform-origin: center center;
+  transition: transform .16s ease, box-shadow .18s ease;
+  will-change: transform;
+  -webkit-user-drag: none;
+  user-select: none;
+  touch-action: none;
+}
+.fileInfoModal .fileInfoPreview.zoomed img {
+  transition: transform .04s linear, box-shadow .18s ease;
+  box-shadow:
+    0 60px 150px rgba(0,0,0,.30),
+    0 18px 50px rgba(0,0,0,.18),
+    0 0 0 1px rgba(255,255,255,.46);
+}
+.fileInfoModal .fileInfoActionRail {
+  width: auto;
+  min-width: 316px;
+  max-width: calc(100% - 72px);
+  grid-template-columns: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.fileInfoModal .fileInfoActionRail button {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+}
+.fileInfoModal .fileInfoActionRail .zoomLevelButton {
+  width: auto;
+  min-width: 72px;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  gap: 6px;
+  padding: 0 12px;
+}
+.fileInfoModal .fileInfoActionRail .zoomLevelButton span {
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: .04em;
+  line-height: 1;
+}
+.fileInfoModal .fileInfoActionRail .zoomGlyph {
+  display: block;
+  font-size: 23px;
+  font-weight: 800;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+.fileInfoModal .fileInfoActionRail button[aria-label="Info"] {
+  display: none;
+}
+.fileInfoModal .fileViewerInfoButton {
+  min-width: 42px;
+}
+.fileInfoModal .fileViewerInfoButton svg {
+  margin-right: 0;
+}
+@media (hover: none) and (pointer: coarse) {
+  .fileInfoModal .fileInfoActionRail button[data-tooltip]::before,
+  .fileInfoModal .fileInfoActionRail button[data-tooltip]::after,
+  .fileViewerChromeActions button[data-tooltip]::before,
+  .fileViewerChromeActions button[data-tooltip]::after {
+    display: none;
+  }
+  .fileInfoModal .fileInfoActionRail button {
+    width: 46px;
+    min-width: 46px;
+    height: 46px;
+    min-height: 46px;
+  }
+  .fileInfoModal .fileInfoActionRail .zoomLevelButton {
+    min-width: 82px;
+  }
+}
+@media (max-width: 760px) {
+  .fileInfoModal .fileInfoActionRail {
+    max-width: calc(100% - 36px);
+    overflow-x: auto;
+    justify-content: flex-start;
+    scrollbar-width: none;
+  }
+  .fileInfoModal .fileInfoActionRail::-webkit-scrollbar { display: none; }
+}
+
+
+/* PHOTOZ viewer tooltip + zoom-out correction: clear captions, no button overlap, 25% minimum zoom. */
+.fileInfoModal .fileInfoActionRail button[data-tooltip]::after,
+.fileViewerChromeActions button[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 12050;
+  width: max-content;
+  max-width: 180px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  color: rgba(255,255,255,.92);
+  font-size: 8px;
+  font-weight: 850;
+  line-height: 1;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background:
+    linear-gradient(180deg, rgba(42,42,42,.82), rgba(14,14,14,.76)),
+    rgba(20,20,20,.70);
+  border: 1px solid rgba(255,255,255,.22);
+  box-shadow:
+    0 16px 36px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.18);
+  backdrop-filter: blur(8px) saturate(1.05);
+  -webkit-backdrop-filter: blur(8px) saturate(1.05);
+  transition: opacity .12s ease, transform .12s ease;
+}
+
+.fileInfoModal .fileInfoActionRail button[data-tooltip]::before,
+.fileViewerChromeActions button[data-tooltip]::before {
+  display: none;
+  content: none;
+}
+
+.fileInfoModal .fileInfoActionRail button[data-tooltip]::after {
+  bottom: calc(100% + 18px);
+  top: auto;
+  transform: translateX(-50%) translateY(6px);
+}
+
+.fileInfoModal .fileInfoActionRail button[data-tooltip]:hover::after,
+.fileInfoModal .fileInfoActionRail button[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.fileViewerChromeActions .fileInfoClose[data-tooltip]::after,
+.fileViewerChromeActions .fileViewerInfoButton[data-tooltip]::after,
+.fileViewerChromeActions button[data-tooltip]::after {
+  top: calc(100% + 14px);
+  bottom: auto;
+  transform: translateX(-50%) translateY(-5px);
+}
+
+.fileViewerChromeActions .fileInfoClose[data-tooltip]:hover::after,
+.fileViewerChromeActions .fileInfoClose[data-tooltip]:focus-visible::after,
+.fileViewerChromeActions .fileViewerInfoButton[data-tooltip]:hover::after,
+.fileViewerChromeActions .fileViewerInfoButton[data-tooltip]:focus-visible::after,
+.fileViewerChromeActions button[data-tooltip]:hover::after,
+.fileViewerChromeActions button[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.fileInfoModal .fileInfoPreview img {
+  transform-origin: center center;
+}
+
+.fileInfoModal .fileInfoActionRail .zoomLevelButton span {
+  min-width: 34px;
+  text-align: center;
+}

@@ -1,5 +1,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {ChevronLeft, Eye, Images, Search, Upload, X, Trash2, CircleHelp, SlidersHorizontal, CircleCheck, Music2, Volume2, VolumeX, LockKeyhole, UnlockKeyhole, FolderPen, ShieldCheck, Film, Download, PanelRightOpen, ArchiveRestore, Save, AlertTriangle, UploadCloud, Play, Clock3, HardDrive, Sparkles, Maximize2, CalendarDays, RotateCcw, Undo2, Settings, FolderUp, FileDown, Wrench, Star, Image, UserRound, ChevronDown, Glasses} from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -2151,11 +2152,16 @@ function GroupCard(props) {
 
 
 function mirrorAllMemories(memories) {
+  // MIRROR all layer: every file marked ME, regardless of whether it is also starred.
   return meMemories(memories);
 }
 
 function mirrorFeaturedMemories(memories, albums) {
-  return starredMeMemories(memories, albums);
+  // MIRROR first layer: only files that are BOTH marked ME and starred.
+  // ME and STARRED are tags, not exclusive folders, so the same file must live in both views.
+  return newest(safeArray(memories).map(normalizeMemoryRecord).filter(function (memory) {
+    return isMeMemory(memory) && isStarredMemory(memory, albums) && !memory.trashed && !memory.archived;
+  }));
 }
 
 
@@ -2521,6 +2527,13 @@ function Modal(props) {
   const [draftLabel, setDraftLabel] = useState("");
   const [showMetadata, setShowMetadata] = useState(false);
   const [showTechnical, setShowTechnical] = useState(false);
+  const [editDetailsOpen, setEditDetailsOpen] = useState(false);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [photoZoom, setPhotoZoom] = useState(1);
+  const [photoPan, setPhotoPan] = useState({ x: 0, y: 0 });
+  const viewerPointersRef = useRef(new Map());
+  const pinchRef = useRef(null);
+  const lastTapRef = useRef(0);
 
   useEffect(function () {
     if (!props.memory) return;
@@ -2535,6 +2548,12 @@ function Modal(props) {
     setDraftLabel(props.memory.label || "");
     setShowMetadata(false);
     setShowTechnical(false);
+    setEditDetailsOpen(false);
+    setInspectorOpen(false);
+    setPhotoZoom(1);
+    setPhotoPan({ x: 0, y: 0 });
+    viewerPointersRef.current.clear();
+    pinchRef.current = null;
   }, [props.memory]);
 
   if (!props.memory) return null;
@@ -2548,10 +2567,97 @@ function Modal(props) {
   const availableAlbums = assignableAlbums(props.albums);
   const albumLabel = currentAlbums.length ? currentAlbums.map(function (album) { return album.title; }).join(" / ") : "NONE";
   const sizeLabel = formatBytes(fileSizeBytes(memory));
-  const statusLabel = memory.trashed ? "TRASH" : memory.archived ? "ARCHIVE" : memory.uploadStatus ? up(memory.uploadStatus) : "LOCAL";
+  const displayTitle = String(draftTitle || memory.title || memory.label || "").trim() || pzMemoryDisplayName(memory);
+  const originalName = memory.metadata?.originalName || memory.metadata?.name || memory.fileName || "";
+  const titleMetaLine = [originalName && originalName !== displayTitle ? originalName : "", sizeLabel, dimensionsLabel(memory), readableDateTime(memory.metadata?.lastModifiedISO || memory.metadata?.lastModified || memory.createdAt || memory.date)].filter(Boolean).join("  •  ");
+  const importedLabel = readableDateTime(memory.createdAt || memory.importedAt || memory.date) || memory.date || "";
+
+  function clampZoom(value) {
+    return Math.max(0.25, Math.min(6, Number(value) || 1));
+  }
+
+  function resetPhotoZoom() {
+    setPhotoZoom(1);
+    setPhotoPan({ x: 0, y: 0 });
+    viewerPointersRef.current.clear();
+    pinchRef.current = null;
+  }
+
+  function adjustPhotoZoom(delta) {
+    setPhotoZoom(function (current) {
+      const next = clampZoom(current + delta);
+      if (next <= 1) setPhotoPan({ x: 0, y: 0 });
+      return next;
+    });
+  }
+
+  function handleViewerPointerDown(event) {
+    if (video) return;
+    viewerPointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (event.currentTarget.setPointerCapture) event.currentTarget.setPointerCapture(event.pointerId);
+
+    const now = Date.now();
+    if (now - lastTapRef.current < 280 && viewerPointersRef.current.size === 1) {
+      event.preventDefault();
+      setPhotoZoom(function (current) {
+        const next = current > 1 ? 1 : 2.25;
+        if (next <= 1) setPhotoPan({ x: 0, y: 0 });
+        return next;
+      });
+    }
+    lastTapRef.current = now;
+
+    if (viewerPointersRef.current.size === 2) {
+      const points = Array.from(viewerPointersRef.current.values());
+      pinchRef.current = {
+        distance: Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y),
+        zoom: photoZoom
+      };
+    }
+  }
+
+  function handleViewerPointerMove(event) {
+    if (video || !viewerPointersRef.current.has(event.pointerId)) return;
+    event.preventDefault();
+    const previous = viewerPointersRef.current.get(event.pointerId);
+    viewerPointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    if (viewerPointersRef.current.size === 2) {
+      const points = Array.from(viewerPointersRef.current.values());
+      const distance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+      const pinch = pinchRef.current || { distance, zoom: photoZoom };
+      const next = clampZoom(pinch.zoom * (distance / Math.max(1, pinch.distance)));
+      setPhotoZoom(next);
+      if (next <= 1) setPhotoPan({ x: 0, y: 0 });
+      return;
+    }
+
+    if (photoZoom > 1 && previous) {
+      const dx = event.clientX - previous.x;
+      const dy = event.clientY - previous.y;
+      setPhotoPan(function (current) {
+        return { x: current.x + dx, y: current.y + dy };
+      });
+    }
+  }
+
+  function handleViewerPointerEnd(event) {
+    viewerPointersRef.current.delete(event.pointerId);
+    if (viewerPointersRef.current.size < 2) pinchRef.current = null;
+    if (photoZoom <= 1.001) {
+      setPhotoPan({ x: 0, y: 0 });
+    }
+  }
+
+  function handleViewerWheel(event) {
+    if (video) return;
+    if (!event.ctrlKey && Math.abs(event.deltaY) < 40) return;
+    event.preventDefault();
+    adjustPhotoZoom(event.deltaY > 0 ? -0.25 : 0.25);
+  }
 
   function saveDetails() {
-    props.updateMemoryDetails(memory, {
+    const nextPatch = {
       title: draftTitle,
       date: draftDate,
       era: draftEra,
@@ -2561,54 +2667,68 @@ function Modal(props) {
       event: draftEvent,
       rating: draftRating,
       label: draftLabel
-    });
+    };
+    props.updateMemoryDetails(memory, nextPatch);
+    setEditDetailsOpen(false);
   }
 
-  return (
+  const photoTransform = video ? undefined : { transform: `translate3d(${photoPan.x}px, ${photoPan.y}px, 0) scale(${photoZoom})` };
+
+  const modalNode = (
     <AnimatePresence>
       <motion.div className="modal fileInfoModal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={props.close}>
-        <motion.div className="modalCard fileInfoCard" initial={{ y: 18, scale: 0.985 }} animate={{ y: 0, scale: 1 }} onClick={function (event) { event.stopPropagation(); }}>
+        <motion.div className={"modalCard fileInfoCard" + (inspectorOpen ? " inspectorOpen" : "")} initial={{ y: 18, scale: 0.985 }} animate={{ y: 0, scale: 1 }} onClick={function (event) { event.stopPropagation(); }}>
           <header className="fileInfoHeader">
             <div className="fileInfoTitleBlock">
-              <span>{video ? "VIDEO" : "PHOTO"}</span>
-              <h2>{memory.fileName || memory.metadata?.originalName || pzMemoryDisplayName(memory)}</h2>
-              <em>{memory.title && memory.title !== fileBaseName(memory.fileName) ? memory.title : (memory.metadata?.webkitRelativePath || memory.storageKey || "ORIGINAL FILE")}</em>
+              <span className="fileInfoTypeGlyph" aria-label={video ? "Video" : "Photo"}>{video ? <Film size={13} /> : <Image size={13} />}</span>
+              <h2>{displayTitle}</h2>
+              <em>{titleMetaLine}</em>
             </div>
-            <button type="button" className="fileInfoClose" aria-label="Close" onClick={props.close}><X size={18} /></button>
+            <div className="fileViewerChromeActions"><button type="button" className={"fileViewerInfoButton" + (inspectorOpen ? " active" : "")} aria-label="Info" data-tooltip="Info" onClick={function () { setInspectorOpen(function (value) { return !value; }); }}><PanelRightOpen size={15} /> INFO</button><button type="button" className="fileInfoClose" aria-label="Close" data-tooltip="Close" onClick={props.close}><X size={18} /></button></div>
           </header>
 
-          <main className="fileInfoLayout">
+          <main className={"fileInfoLayout" + (inspectorOpen ? " inspectorOpen" : "")}>
             <section className="fileInfoPreviewPanel">
-              <div className="fileInfoPreview">
-                {video ? <video src={source} controls playsInline /> : <img src={source} alt="" />}
+              <div
+                className={"fileInfoPreview" + (photoZoom > 1 ? " zoomed" : "")}
+                onPointerDown={handleViewerPointerDown}
+                onPointerMove={handleViewerPointerMove}
+                onPointerUp={handleViewerPointerEnd}
+                onPointerCancel={handleViewerPointerEnd}
+                onWheel={handleViewerWheel}
+                onDoubleClick={function (event) { event.preventDefault(); setPhotoZoom(function (current) { const next = current > 1 ? 1 : 2.25; if (next <= 1) setPhotoPan({ x: 0, y: 0 }); return next; }); }}
+              >
+                {video ? <video src={source} controls playsInline /> : <img src={source} alt="" draggable="false" style={photoTransform} />}
                 {memory.trashed ? <span className="pzTrashRibbon">TRASH</span> : null}
               </div>
-              <div className="fileInfoActionRail">
-                <button type="button" className={props.isStarred ? "active" : ""} onClick={function () { props.toggleStar(memory); }}>★</button>
-                <button type="button" className={memory.isMe ? "active" : ""} onClick={function () { props.toggleMeFlag(memory); }}>ME</button>
-                <button type="button" className={memory.inMirror ? "active" : ""} onClick={function () { props.toggleMirror(memory); }}>MIRROR</button>
-                <button type="button" className={memory.archived ? "active" : ""} onClick={function () { props.toggleArchive(memory); }}>{memory.archived ? "UNARCHIVE" : "ARCHIVE"}</button>
+              <div className="fileInfoActionRail" aria-label="Photo actions">
+                <button type="button" aria-label="Zoom out" data-tooltip="Zoom out" onClick={function () { adjustPhotoZoom(-0.35); }}><span aria-hidden="true" className="zoomGlyph">−</span></button>
+                <button type="button" aria-label="Fit photo" data-tooltip={photoZoom > 1 ? "Fit" : "Fit"} className="zoomLevelButton" onClick={resetPhotoZoom}><Maximize2 size={16} /><span>{Math.round(photoZoom * 100)}%</span></button>
+                <button type="button" aria-label="Zoom in" data-tooltip="Zoom in" onClick={function () { adjustPhotoZoom(0.35); }}><span aria-hidden="true" className="zoomGlyph">+</span></button>
+                <button type="button" aria-label="Favorite" data-tooltip="Favorite" className={props.isStarred ? "active" : ""} onClick={function () { props.toggleStar(memory); }}><Star size={17} /></button>
+                <button type="button" aria-label="Mirror" data-tooltip="Mirror" className={memory.inMirror ? "active" : ""} onClick={function () { props.toggleMirror(memory); }}><Eye size={18} /></button>
+                {memory.trashed ? <button type="button" aria-label="Restore" data-tooltip="Restore" onClick={function () { props.restoreMemory(memory); }}><RotateCcw size={17} /></button> : <button type="button" aria-label="Trash" data-tooltip="Trash" className="danger" onClick={function () { props.deleteMemory(memory); }}><Trash2 size={17} /></button>}
               </div>
             </section>
 
-            <aside className="fileInfoInspector">
-              <div className="fileInfoStats">
-                <span><em>TYPE</em><strong>{up(memory.kind || (video ? "video" : "photo"))}</strong></span>
+            {inspectorOpen ? <aside className="fileInfoInspector open">
+              <div className="fileInfoStats fileInfoFacts">
+                <span className="fileInfoMediaSymbol" aria-label={video ? "Video" : "Photo"}>{video ? <Film size={16} /> : <Image size={16} />}</span>
                 <span><em>SIZE</em><strong>{sizeLabel}</strong></span>
                 <span><em>DIMENSIONS</em><strong>{dimensionsLabel(memory)}</strong></span>
-                <span><em>STATUS</em><strong>{statusLabel}</strong></span>
+                <span><em>IMPORTED</em><strong>{importedLabel || "—"}</strong></span>
               </div>
 
               <section className="fileInfoPanel fileInfoCoreMetaPanel">
-                <div className="fileInfoMetaLine"><span>ORIGINAL NAME</span><strong>{memory.metadata?.originalName || memory.metadata?.name || memory.fileName || "UNKNOWN"}</strong></div>
-                <div className="fileInfoMetaLine"><span>MIME TYPE</span><strong>{memory.mimeType || memory.type || memory.metadata?.type || "UNKNOWN"}</strong></div>
-                <div className="fileInfoMetaLine"><span>LAST MODIFIED</span><strong>{readableDateTime(memory.metadata?.lastModifiedISO || memory.metadata?.lastModified) || "UNKNOWN"}</strong></div>
-                <div className="fileInfoMetaLine"><span>STORAGE KEY</span><strong>{memory.storageKey || "NOT STORED"}</strong></div>
+                <div className="fileInfoMetaLine"><span>ORIGINAL</span><strong>{memory.metadata?.originalName || memory.metadata?.name || memory.fileName || "UNKNOWN"}</strong></div>
+                <div className="fileInfoMetaLine"><span>FORMAT</span><strong>{memory.mimeType || memory.type || memory.metadata?.type || "UNKNOWN"}</strong></div>
+                <div className="fileInfoMetaLine"><span>MODIFIED</span><strong>{readableDateTime(memory.metadata?.lastModifiedISO || memory.metadata?.lastModified) || "UNKNOWN"}</strong></div>
+                <div className="fileInfoMetaLine"><span>IMPORTED</span><strong>{readableDateTime(memory.createdAt || memory.importedAt || memory.date) || memory.date || "UNKNOWN"}</strong></div>
               </section>
 
-              <section className="fileInfoPanel fileInfoDetailsPanel">
-                <div className="fileInfoPanelTop"><strong>DETAILS</strong><button type="button" onClick={saveDetails}><Save size={13} /> SAVE</button></div>
-                <div className="fileInfoFormGrid">
+              <section className={"fileInfoPanel fileInfoDetailsPanel" + (editDetailsOpen ? " editing" : "") }>
+                <div className="fileInfoPanelTop"><strong>DETAILS</strong>{editDetailsOpen ? <button type="button" onClick={saveDetails}><Save size={13} /> SAVE</button> : <button type="button" onClick={function () { setEditDetailsOpen(true); }}>EDIT</button>}</div>
+                {editDetailsOpen ? <div className="fileInfoFormGrid">
                   <label><span>TITLE</span><input value={draftTitle} onChange={function (event) { setDraftTitle(event.target.value); }} /></label>
                   <label><span>DATE</span><input value={draftDate} onChange={function (event) { setDraftDate(event.target.value); }} /></label>
                   <label><span>ERA</span><input value={draftEra} onChange={function (event) { setDraftEra(event.target.value); }} /></label>
@@ -2617,7 +2737,7 @@ function Modal(props) {
                   <label><span>RATING</span><input value={draftRating} onChange={function (event) { setDraftRating(event.target.value); }} /></label>
                   <label className="wide"><span>TAGS</span><input value={draftTags} onChange={function (event) { setDraftTags(event.target.value); }} /></label>
                   <label className="wide"><span>CAPTION</span><textarea value={draftCaption} onChange={function (event) { setDraftCaption(event.target.value); }} /></label>
-                </div>
+                </div> : <div className="fileInfoDetailsSummary"><span>{displayTitle}</span><span>{draftDate || "No date"}</span><span>{draftEra || "Unassigned"}</span></div>}
               </section>
 
               <section className="fileInfoPanel fileInfoAlbumPanel">
@@ -2653,12 +2773,14 @@ function Modal(props) {
               ) : null}
 
               {showMetadata ? <pre className="fileInfoMetadata">{JSON.stringify(memory.metadata || {}, null, 2)}</pre> : null}
-            </aside>
+            </aside> : null}
           </main>
         </motion.div>
       </motion.div>
     </AnimatePresence>
   );
+
+  return typeof document !== "undefined" ? createPortal(modalNode, document.body) : modalNode;
 }
 
 
@@ -4697,7 +4819,7 @@ async function handleUpload(eventOrFiles) {
                 <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} fileAuditReport={fileAuditReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} runFileAudit={runFileAudit} repairFilesAndReload={repairFilesAndReload} repairIndex={repairIndex} />
                 <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { toggleOverlay("bulk", bulkMoreOpen, setBulkMoreOpen); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkRefilter={bulkMarkRefilter} bulkClearRefilter={bulkClearRefilter} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDelete={bulkDelete} clearSelection={clearSelection} />
                 {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} archiveFilter={archiveFilter} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditAlbum={function (group) { closeTransientOverlays("albumEditor"); setPzAlbumEditorId(group.id || group.sourceId); }} /> : null}
-                {activePage === "mirror" ? <MirrorFilter mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={uploadPendingItems.concat(safeArray(memories))} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
+                {activePage === "mirror" ? <MirrorFilter mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
                 {activePage === "search" ? <SearchFilter memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={function (nextValue) { const next = typeof nextValue === "function" ? nextValue(advancedSearchOpen) : nextValue; if (next) closeTransientOverlays("searchFilter"); setAdvancedSearchOpen(Boolean(next)); }} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays("videoPlayer"); setPzVideoPlayerId(memory.id); }} /> : null}
               </Glass>
             ) : null}
