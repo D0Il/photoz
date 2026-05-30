@@ -127,6 +127,26 @@ check("file info modal wired to permanent delete", app.includes("permanentDelete
 check("detail editor wired to permanent delete", app.includes("onPermanentDelete={permanentDeleteMemory}"));
 check("delete forever UI exists", app.includes("DELETE FOREVER"));
 
+
+// PHOTOZ file integrity pass checks
+check("worker exposes access/auth compatibility routes", worker.includes('url.pathname === "/api/unlock"') && worker.includes('url.pathname === "/api/access"') && worker.includes('url.pathname === "/api/auth"'));
+check("worker exposes health route", worker.includes('url.pathname === "/api/health"') && worker.includes('handleHealth(env)'));
+check("worker exposes delete route", worker.includes('url.pathname === "/api/delete"') && worker.includes('function handleDelete(request, env)'));
+check("worker serves HEAD for media existence checks", worker.includes('GET,HEAD,POST,PUT,DELETE,OPTIONS') && worker.includes('if (method === "HEAD")'));
+check("worker sanitizes storage keys", worker.includes('function cleanStorageKey(value)') && worker.includes('replace(/^\\/+/, "")') && worker.includes('part !== ".."'));
+check("worker upload respects app storage key", worker.includes('requestedKeys[fileIndex]') && worker.includes('["key", "storageKey"]') && worker.includes('storageKey: key,'));
+check("worker returns /api/file storage URLs", worker.includes('function fileUrlForKey(key)') && worker.includes('return `/api/file/${encodeStorageKey(key)}`;'));
+check("worker can resolve legacy mismatched upload keys", worker.includes('function resolveObjectKey(bucket, key)') && worker.includes('objectKey.endsWith("-" + basename)'));
+check("worker delete resolves legacy mismatched keys", worker.includes('const resolvedKey = await resolveObjectKey(bucket, key);') && worker.includes('await bucket.delete(resolvedKey)'));
+check("app storage key helper exists", app.includes('function storageKeyFromMemory(memory)') && app.includes('decodeURIComponent(url.split(marker).pop()'));
+check("app media urls always use api file route", app.includes('const MEDIA_BASE = "/api/file"') && app.includes('return MEDIA_BASE + "/" + encodedStorageKey(key);'));
+check("app strips blob urls before index save", app.includes('if (isBlobUrl(copy.previewUrl)) delete copy.previewUrl;') && app.includes('if (isBlobUrl(copy.storageUrl)) delete copy.storageUrl;'));
+check("app upload parses server memory response", app.includes('const serverMemory = safeArray(data.memories || data.files)[0];') && app.includes('return serverMemory ? normalizeMemoryUrl'));
+check("app scheduled upload applies server storage response", app.includes('Object.assign(memory, normalizeMemoryUrl(uploadedMemory), { uploadStatus: "r2" });') && app.includes('pair.memory = { ...pair.memory, ...normalizeMemoryUrl(uploadedMemory), uploadStatus: "r2" };'));
+check("app missing-file checks use original route and HEAD", app.includes('const url = originalUrlForMemory(memory)') && app.includes('method: "HEAD", cache: "no-store"'));
+check("app permanent delete posts storage key helper", app.includes('const key = storageKeyFromMemory(memory);') && app.includes('body: JSON.stringify({ key: key, id: memory.id })'));
+check("password gate uses live access endpoint", !app.includes('fetch("/api/auth", {') && app.includes('fetch("/api/access", {'));
+
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
   for (const failure of failures) console.error("- " + failure);

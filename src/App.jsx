@@ -94,12 +94,23 @@ function safeArray(value) {
 
 function normalizeMemoryRecord(memory) {
   const source = memory && typeof memory === "object" ? memory : {};
+  const metadata = source.metadata && typeof source.metadata === "object" ? source.metadata : {};
+  const fileName = source.fileName || source.filename || source.name || metadata.name || "";
+  const mime = source.mimeType || source.type || metadata.type || "";
+  const storageKey = source.storageKey || source.key || source.objectKey || "";
   return {
     ...source,
     id: source.id || ("memory-" + Date.now() + "-" + Math.random().toString(36).slice(2)),
-    title: source.title || source.name || source.filename || "Untitled",
-    kind: source.kind || (String(source.type || "").startsWith("video") ? "video" : "image"),
+    title: source.title || fileName.replace(/\.[^.]+$/, "") || "Untitled",
+    fileName: fileName,
+    name: source.name || fileName,
+    kind: source.kind || (String(mime).startsWith("video") ? "video" : "photo"),
+    mimeType: mime,
+    storageKey: storageKey,
     albumIds: safeArray(source.albumIds),
+    tags: safeArray(source.tags),
+    metadata: metadata,
+    uploadStatus: source.uploadStatus || (storageKey ? "r2" : "local"),
   };
 }
 
@@ -325,10 +336,10 @@ function fromFile(file, index) {
     era: "Unassigned",
     kind,
     fileName: file.name || "",
-    previewUrl: objectUrl(file) || MEDIA_BASE + "/" + key,
+    previewUrl: objectUrl(file) || MEDIA_BASE + "/" + encodedStorageKey(key),
     storageBase: MEDIA_BASE,
     storageKey: key,
-    storageUrl: MEDIA_BASE + "/" + key,
+    storageUrl: MEDIA_BASE + "/" + encodedStorageKey(key),
     uploadStatus: "queued",
     metadata: fileMeta(file, modified),
     tags: [],
@@ -992,37 +1003,72 @@ function migrateIndex(index) {
   };
 }
 
-function previewUrlForMemory(memory) {
-  if (!memory || !memory.storageKey) return memory && (memory.previewUrl || memory.storageUrl || memory.url) || "";
-  return originalUrlForMemory(memory);
+function isBlobUrl(value) {
+  return String(value || "").indexOf("blob:") === 0;
+}
+
+function encodedStorageKey(key) {
+  return String(key || "")
+    .replace(/^\/+/, "")
+    .split("/")
+    .filter(function (part) { return part && part !== "." && part !== ".."; })
+    .map(function (part) { return encodeURIComponent(part); })
+    .join("/");
+}
+
+function storageKeyFromMemory(memory) {
+  if (!memory) return "";
+  if (memory.storageKey) return String(memory.storageKey).replace(/^\/+/, "");
+  const raw = String(memory.key || memory.objectKey || "").replace(/^\/+/, "");
+  if (raw) return raw;
+  const url = String(memory.storageUrl || memory.previewUrl || memory.url || "");
+  const marker = "/api/file/";
+  if (url.indexOf(marker) !== -1) {
+    try { return decodeURIComponent(url.split(marker).pop().split(/[?#]/)[0]); } catch (error) { return url.split(marker).pop().split(/[?#]/)[0]; }
+  }
+  return "";
 }
 
 function originalUrlForMemory(memory) {
-  if (!memory || !memory.storageKey) return "";
-  return MEDIA_BASE + "/" + memory.storageKey;
+  const key = storageKeyFromMemory(memory);
+  if (!key) return "";
+  return MEDIA_BASE + "/" + encodedStorageKey(key);
+}
+
+function previewUrlForMemory(memory) {
+  if (!memory) return "";
+  const original = originalUrlForMemory(memory);
+  if (original) return original;
+  const fallback = memory.previewUrl || memory.storageUrl || memory.url || "";
+  return isBlobUrl(fallback) ? fallback : String(fallback || "");
 }
 
 function normalizeMemoryUrl(memory) {
-  if (!memory || !memory.storageKey) return memory;
-  return {
+  if (!memory) return memory;
+  const key = storageKeyFromMemory(memory);
+  const normalized = normalizeMemoryRecord({
     ...memory,
+    storageKey: key || memory.storageKey || "",
+  });
+  return {
+    ...normalized,
     storageBase: MEDIA_BASE,
-    storageUrl: originalUrlForMemory(memory),
-    previewUrl: previewUrlForMemory(memory),
-    tags: Array.isArray(memory.tags) ? memory.tags : [],
-    caption: memory.caption || "",
-    location: memory.location || "",
-    event: memory.event || "",
-    rating: normalizeRating(memory.rating),
-    label: normalizeLabel(memory.label),
-    review: Boolean(memory.review),
-    private: Boolean(memory.private),
-    isMe: Boolean(memory.isMe),
-    inMirror: Boolean(memory.inMirror),
-    archived: Boolean(memory.archived),
-    trashed: Boolean(memory.trashed),
-    deletedAt: memory.deletedAt || "",
-    updatedAt: memory.updatedAt || "",
+    storageUrl: key ? originalUrlForMemory(normalized) : (isBlobUrl(memory.storageUrl) ? "" : (memory.storageUrl || "")),
+    previewUrl: previewUrlForMemory(normalized),
+    tags: Array.isArray(normalized.tags) ? normalized.tags : [],
+    caption: normalized.caption || "",
+    location: normalized.location || "",
+    event: normalized.event || "",
+    rating: normalizeRating(normalized.rating),
+    label: normalizeLabel(normalized.label),
+    review: Boolean(normalized.review),
+    private: Boolean(normalized.private),
+    isMe: Boolean(normalized.isMe),
+    inMirror: Boolean(normalized.inMirror),
+    archived: Boolean(normalized.archived),
+    trashed: Boolean(normalized.trashed),
+    deletedAt: normalized.deletedAt || "",
+    updatedAt: normalized.updatedAt || "",
   };
 }
 
@@ -1056,13 +1102,16 @@ async function backupIndex() {
 }
 
 async function saveIndex(memories, albums) {
-  const coveredAlbums = ensureAlbumCoverage(memories, albums);
+  const normalizedMemories = safeArray(memories).map(normalizeMemoryUrl).map(function (memory) {
+    const copy = { ...memory };
+    if (isBlobUrl(copy.previewUrl)) delete copy.previewUrl;
+    if (isBlobUrl(copy.storageUrl)) delete copy.storageUrl;
+    if (isBlobUrl(copy.url)) delete copy.url;
+    return copy;
+  });
+  const coveredAlbums = ensureAlbumCoverage(normalizedMemories, albums);
   const payload = cleanIndex({
-    memories: memories.map(function (memory) {
-      const copy = { ...memory };
-      delete copy.previewUrl;
-      return copy;
-    }),
+    memories: normalizedMemories,
     albums: coveredAlbums,
   });
 
@@ -1076,23 +1125,30 @@ async function saveIndex(memories, albums) {
 }
 
 async function uploadOne(memory, file) {
+  const normalized = normalizeMemoryUrl(memory);
   const form = new FormData();
   form.append("file", file);
-  form.append("key", memory.storageKey);
-  form.append("kind", memory.kind);
-  form.append("title", memory.title);
-  form.append("metadata", JSON.stringify(memory.metadata || {}));
-  form.append("storageUrl", memory.storageUrl || "");
+  form.append("id", normalized.id);
+  form.append("key", storageKeyFromMemory(normalized));
+  form.append("kind", normalized.kind);
+  form.append("title", normalized.title);
+  form.append("metadata", JSON.stringify(normalized.metadata || {}));
+  form.append("storageUrl", originalUrlForMemory(normalized));
 
   const res = await fetch("/api/upload", { method: "POST", body: form });
-  return res.ok;
+  let data = null;
+  try { data = await res.json(); } catch (error) {}
+  if (!res.ok || !data || data.ok === false) return false;
+  const serverMemory = safeArray(data.memories || data.files)[0];
+  return serverMemory ? normalizeMemoryUrl({ ...normalized, ...serverMemory, id: normalized.id }) : normalizeMemoryUrl(normalized);
 }
 
 async function checkMissingFiles(memories) {
-  const sample = memories.slice(0, 50);
+  const sample = safeArray(memories).slice(0, 50);
   const results = await Promise.all(sample.map(function (memory) {
-    if (!memory.storageUrl) return Promise.resolve({ id: memory.id, ok: false });
-    return fetch(memory.storageUrl, { method: "HEAD" }).then(function (res) {
+    const url = originalUrlForMemory(memory) || memory.storageUrl || memory.previewUrl || memory.url;
+    if (!url || isBlobUrl(url)) return Promise.resolve({ id: memory.id, ok: false });
+    return fetch(url, { method: "HEAD", cache: "no-store" }).then(function (res) {
       return { id: memory.id, ok: res.ok };
     }).catch(function () {
       return { id: memory.id, ok: false };
@@ -1128,12 +1184,26 @@ async function fetchHealth() {
   return res.json();
 }
 
+
+async function fetchFileAudit() {
+  const res = await fetch("/api/file-audit", { cache: "no-store" });
+  if (!res.ok) throw new Error("file_audit_failed");
+  return res.json();
+}
+
+async function fetchFileRepair() {
+  const res = await fetch("/api/repair-files", { method: "POST" });
+  if (!res.ok) throw new Error("file_repair_failed");
+  return res.json();
+}
+
 async function deleteOne(memory) {
-  if (!memory || !memory.storageKey) return true;
+  const key = storageKeyFromMemory(memory);
+  if (!memory || !key) return true;
   const res = await fetch("/api/delete", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ key: memory.storageKey }),
+    body: JSON.stringify({ key: key, id: memory.id }),
   });
   return res.ok;
 }
@@ -1625,10 +1695,13 @@ function HealthPanel(props) {
       {props.health && props.health.repairReport ? <div className="statusClean">Last repair: {props.health.repairReport.orphanAlbumRefs} broken links / {props.health.repairReport.missingHomes} without album</div> : null}
       {props.health && props.health.routeCheck ? <div className="statusClean">App: ACCESS {String(props.health.routeCheck.access).toUpperCase()} / HEALTH {String(props.health.routeCheck.health).toUpperCase()}</div> : null}
       {props.missingReport ? <div className="statusClean">Files: {props.missingReport.missing} MISSING / {props.missingReport.checked} CHECKED</div> : null}
+      {props.fileAuditReport ? <div className="statusClean">R2 audit: {props.fileAuditReport.indexMemories} records / {props.fileAuditReport.r2Objects} objects / {props.fileAuditReport.missingRecords} missing / {props.fileAuditReport.recoveredOrphans} recovered / {props.fileAuditReport.guaranteedDisplayable ? "DISPLAY GUARANTEED" : "REPAIR NEEDED"}</div> : null}
       {props.healthError ? <div className="statusClean">HEALTH CHECK FAILED.</div> : null}
       <button type="button" onClick={props.runHealthCheck}>CHECK ARCHIVE</button>
       <button type="button" onClick={props.runRouteCheck}>CHECK APP</button>
       <button type="button" onClick={props.runMissingCheck}>CHECK FILES</button>
+      <button type="button" onClick={props.runFileAudit}>AUDIT R2 FILES</button>
+      <button type="button" onClick={props.repairFilesAndReload}>REPAIR FILE RECORDS</button>
       <button type="button" onClick={props.repairIndex}>REPAIR ALBUM LINKS</button>
     </div>
   );
@@ -2620,7 +2693,7 @@ function PasswordGate(props) {
     event.preventDefault();
     setError("");
     try {
-      const response = await fetch("/api/auth", {
+      const response = await fetch("/api/access", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: code })
@@ -3120,6 +3193,7 @@ const [screen, setScreen] = useState("home");
   const [health, setHealth] = useState(null);
   const [healthError, setHealthError] = useState(false);
   const [missingReport, setMissingReport] = useState(null);
+  const [fileAuditReport, setFileAuditReport] = useState(null);
   const [gridSize, setGridSize] = useState("normal");
   const [albumQuery, setAlbumQuery] = useState("");
   const [albumSearchOpen, setAlbumSearchOpen] = useState(false);
@@ -3409,6 +3483,28 @@ const [screen, setScreen] = useState("home");
       .catch(function () {
         setMissingReport({ checked: 0, missing: 0 });
       });
+  }
+
+
+  function runFileAudit() {
+    setHealthError(false);
+    fetchFileAudit()
+      .then(function (result) {
+        setFileAuditReport(result);
+        setHealth(function (current) { return { ...(current || {}), fileAudit: result }; });
+      })
+      .catch(function () { setHealthError(true); });
+  }
+
+  function repairFilesAndReload() {
+    setHealthError(false);
+    fetchFileRepair()
+      .then(function (result) {
+        setFileAuditReport(result);
+        setHealth(function (current) { return { ...(current || {}), fileAudit: result, fileRepair: result }; });
+        reloadIndex();
+      })
+      .catch(function () { setHealthError(true); });
   }
 
   function runHealthCheck() {
@@ -4173,9 +4269,13 @@ const [screen, setScreen] = useState("home");
           });
 
           uploadOne(memory, file)
-            .then(function (ok) {
-              memory.uploadStatus = ok ? "r2" : "failed";
-              if (memory.queueId) updateQueueItem(memory.queueId, { status: ok ? "done" : "failed" });
+            .then(function (uploadedMemory) {
+              if (uploadedMemory) {
+                Object.assign(memory, normalizeMemoryUrl(uploadedMemory), { uploadStatus: "r2" });
+              } else {
+                memory.uploadStatus = "failed";
+              }
+              if (memory.queueId) updateQueueItem(memory.queueId, { status: uploadedMemory ? "done" : "failed" });
             })
             .catch(function () {
               memory.uploadStatus = "failed";
@@ -4247,12 +4347,17 @@ const [screen, setScreen] = useState("home");
 
         pair.memory.uploadStatus = "uploading";
         uploadOne(pair.memory, pair.file)
-          .then(function (ok) {
-            pair.memory.uploadStatus = ok ? "r2" : "failed";
-            markQueueItem(queueItem.id, { status: ok ? "done" : "failed" });
+          .then(function (uploadedMemory) {
+            if (uploadedMemory) {
+              pair.memory = { ...pair.memory, ...normalizeMemoryUrl(uploadedMemory), uploadStatus: "r2" };
+              uploadFileRefs.current[queueItem.id].memory = pair.memory;
+            } else {
+              pair.memory.uploadStatus = "failed";
+            }
+            markQueueItem(queueItem.id, { status: uploadedMemory ? "done" : "failed" });
             setMemories(function (list) {
               const updated = list.map(function (item) {
-                return item.id === pair.memory.id ? { ...pair.memory } : item;
+                return item.id === pair.memory.id ? normalizeMemoryUrl({ ...item, ...pair.memory }) : item;
               });
               saveIndex(updated, nextAlbums || albums);
               return updated;
@@ -4455,7 +4560,7 @@ async function handleUpload(eventOrFiles) {
                 <UploadQueuePanel open={uploadQueueOpen} queue={uploadQueue} paused={uploadPaused} togglePause={function () { setUploadPaused(function (value) { return !value; }); }} retryFailed={retryFailedUploads} close={function () { setUploadQueueOpen(false); }} clearFinished={function () { setUploadQueue(function (items) { return items.filter(function (item) { return item.status === "queued" || item.status === "uploading"; }); }); }} />
                 <StatusPanel open={statusOpen} memories={uploadPendingItems.concat(safeArray(memories))} close={function () { setStatusOpen(false); }} retryUpload={retryUpload} clearLocalFailedStatus={clearLocalFailedStatus} purgeTrash={purgeTrash} />
                 <DuplicatePanel open={duplicatesOpen} memories={uploadPendingItems.concat(safeArray(memories))} close={function () { setDuplicatesOpen(false); }} openMemory={openMemoryDetail} trashDuplicateOthers={trashDuplicateOthers} />
-                <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} repairIndex={repairIndex} />
+                <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} fileAuditReport={fileAuditReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} runFileAudit={runFileAudit} repairFilesAndReload={repairFilesAndReload} repairIndex={repairIndex} />
                 <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { toggleOverlay("bulk", bulkMoreOpen, setBulkMoreOpen); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkRefilter={bulkMarkRefilter} bulkClearRefilter={bulkClearRefilter} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDelete={bulkDelete} clearSelection={clearSelection} />
                 {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} archiveFilter={archiveFilter} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditAlbum={function (group) { closeTransientOverlays("albumEditor"); setPzAlbumEditorId(group.id || group.sourceId); }} /> : null}
                 {activePage === "mirror" ? <MirrorFilter mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={uploadPendingItems.concat(safeArray(memories))} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
