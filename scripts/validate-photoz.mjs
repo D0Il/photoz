@@ -33,7 +33,7 @@ check("search copy updated", app.includes('placeholder="SEARCH"') && app.include
 check("search filters render as dropdown not loose buttons", app.includes("searchFilterDropdown") && app.includes("searchFilterTrigger") && app.includes("searchFilterMenu") && !app.includes('className="searchFilters librarySearchFilters"'));
 check("corner controls tightened", css.includes("PHOTOZ final prestige/corner pass") && css.includes("padding-top: 2px;") && css.includes("margin: 2px 0 5px;"));
 check("dock is larger and more prestigious", css.includes("min-width: 232px;") && css.includes("height: 66px;") && css.includes("photozPrestigeBookFlip"));
-check("album search collapsed into nav action", app.includes("albumSearchOpen") && app.includes("setAlbumSearchOpen") && app.includes("albumSearchToggle") && app.includes("<Glasses size={15}") && app.includes("albumQuickCreate"));
+check("album search collapsed into nav action", app.includes("albumSearchOpen") && app.includes("setAlbumSearchOpen") && app.includes("albumSearchToggle") && app.includes("<CenteredGlassesIcon size={18} />") && app.includes("albumQuickCreate"));
 check("album search input only unfolds from toggle", app.includes("isAlbums && (props.albumSearchOpen || props.albumCreateOpen)") && !app.includes("newAlbumTrigger") && !app.includes("SEARCH PHOTO ALBUMS"));
 check("album search action css exists", css.includes("PHOTOZ album search collapse pass") && css.includes(".albumInlineActions") && css.includes(".albumSearchToggle") && css.includes(".albumQuickCreate"));
 
@@ -75,7 +75,7 @@ check("tooltip containers overflow visible", css.includes(".dockWrap,") && css.i
 check("no broad important overrides", !css.includes("!important"));
 
 
-check("app exposes active page class for page-specific layout", app.includes('className={"app photozProUI page-" + activePage}'));
+check("app exposes active page class for page-specific layout", app.includes('className={"app photozProUI page-" + activePage'));
 check("empty states deliberately show X marker", app.includes('className="emptyStateX"') && app.includes('>X</span>') && css.includes('.emptyStateX'));
 check("empty states are X only with no helper copy", app.includes('className="emptyStateX"') && !app.includes('Upload photos or videos to browse them here.') && !app.includes('Files marked for mirror will appear here.') && !app.includes('Add photos or create a nested album.'));
 check("final utility cluster is tight to corner", css.includes('top: 16px;') && css.includes('right: 18px;'));
@@ -97,6 +97,11 @@ check("native title helper functions removed", !app.includes("title: tooltipForT
 check("group pages use framed shell and X-only empty state", app.includes('className="shell groupShell"') && app.includes('<EmptyState />') && css.includes('.photozProUI .groupShell'));
 check("runtime filter paths use safe arrays", !app.includes("props.memories.filter") && !app.includes("activeGroup.items.filter") && !app.includes(" : archiveGroups;") && app.includes("duplicateGroups(safeArray(props.memories))") && app.includes("safeArray(props.memories).filter(function (memory)") && app.includes("safeArray(activeGroup && activeGroup.items).filter"));
 
+
+check("overlay manager prevents stacked UI", app.includes("function closeTransientOverlays(except)") && app.includes("function toggleOverlay(name, isOpen, setter)") && app.includes("hasTransientOverlayOpen") && app.includes('document.addEventListener("pointerdown", handlePointerDown, true)') && app.includes("Escape"));
+check("album search and create are mutually exclusive", app.includes("function setAlbumSearchExclusive(nextValue)") && app.includes("function setAlbumCreateExclusive(nextValue)") && app.includes('closeTransientOverlays("albumSearch")') && app.includes('closeTransientOverlays("albumCreate")'));
+check("overlay z-index system exists", css.includes("PHOTOZ overlay discipline pass") && css.includes("--pz-z-menu") && css.includes("--pz-z-modal") && css.includes("has-open-overlay"));
+
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -105,3 +110,6 @@ if (failures.length) {
 
 
 console.log("PHOTOZ validation passed.");
+
+check("centered glasses svg exists", app.includes("function CenteredGlassesIcon") && app.includes("centeredGlassesIcon") && css.includes("PHOTOZ centered album search glasses glyph"));
+check("no forced glasses offset", !css.includes("translateX(-.75px)") && !css.includes("lucide-glasses"));

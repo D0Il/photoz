@@ -14563,17 +14563,6 @@ svg.photozDockIcon {
   line-height: 0;
 }
 
-.photozProUI .albumSearchToggle svg,
-.photozProUI .albumSearchToggle .lucide-glasses {
-  width: 18px;
-  height: 18px;
-  display: block;
-  overflow: visible;
-  stroke-width: 2.35;
-  transform-box: view-box;
-  transform-origin: 50% 50%;
-  transform: translateX(-.75px) translateY(.1px);
-}
 
 .photozProUI .albumQuickCreate {
   font-size: 17px;
@@ -14645,4 +14634,142 @@ svg.photozDockIcon {
 .photozProUI [data-tooltip]:not(.dockButton)::after {
   display: none;
   content: none;
+}
+
+
+/* PHOTOZ centered album search glasses glyph */
+.albumSearchToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.albumSearchToggle .centeredGlassesIcon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  overflow: visible;
+  transform: none;
+}
+
+.centeredGlassesIcon .glassesLens,
+.centeredGlassesIcon .glassesBridge,
+.centeredGlassesIcon .glassesArm {
+  stroke: currentColor;
+  stroke-width: 2.05;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.centeredGlassesIcon .glassesLens {
+  fill: rgba(255,255,255,.055);
+}
+
+.photozProUI .albumSearchToggle svg.centeredGlassesIcon {
+  width: 18px;
+  height: 18px;
+  transform: none;
+}
+
+/* PHOTOZ overlay discipline pass: one active surface, no stacked chaos. */
+:root {
+  --pz-z-base: 1;
+  --pz-z-rail: 80;
+  --pz-z-dock: 90;
+  --pz-z-menu: 140;
+  --pz-z-panel: 150;
+  --pz-z-modal: 180;
+  --pz-z-toast: 210;
+  --pz-z-tooltip: 220;
+}
+
+.photozProUI .shell {
+  isolation: isolate;
+}
+
+.photozProUI .floatingUtilityCluster {
+  z-index: var(--pz-z-rail);
+}
+
+.photozProUI .dockWrap {
+  z-index: var(--pz-z-dock);
+}
+
+.photozProUI .settingsPopover,
+.photozProUI .filterPopover,
+.photozProUI .filterPanel,
+.photozProUI .refinedFilterMenu {
+  z-index: var(--pz-z-menu);
+  top: 64px;
+  right: 18px;
+  max-width: min(340px, calc(100vw - 36px));
+}
+
+.photozProUI .floatingPanel,
+.photozProUI .importPanel,
+.photozProUI .uploadQueuePanel,
+.photozProUI .statusPanel,
+.photozProUI .duplicatePanel,
+.photozProUI .healthPanel,
+.photozProUI .pzUploadRefilterPanel,
+.photozProUI .albumControlsRow,
+.photozProUI .searchFilterMenu,
+.photozOverlaySurface {
+  z-index: var(--pz-z-panel);
+}
+
+.photozProUI .modal,
+.photozProUI .pzFileDetailEditor,
+.photozProUI .pzAlbumEditorPanel,
+.photozProUI .pzVideoPlaybackModal {
+  z-index: var(--pz-z-modal);
+}
+
+.photozProUI .pzToastStack {
+  z-index: var(--pz-z-toast);
+}
+
+.photozProUI.has-open-overlay .dockButton[data-tooltip]::after,
+.photozProUI .has-panel-open .dockButton[data-tooltip]::after,
+.photozProUI.has-open-overlay .dockButton[data-tooltip]::before,
+.photozProUI .has-panel-open .dockButton[data-tooltip]::before {
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 8px) scale(.94);
+}
+
+.photozProUI .has-panel-open .photoGrid,
+.photozProUI .has-panel-open .albumGrid,
+.photozProUI .has-panel-open .timelineStack,
+.photozProUI .has-panel-open .memoryGrid {
+  pointer-events: none;
+  filter: saturate(.92) contrast(.98);
+}
+
+.photozProUI .albumControlsRow,
+.photozProUI .searchFilterMenu,
+.photozProUI .settingsPopover,
+.photozProUI .filterPopover,
+.photozProUI .floatingPanel {
+  pointer-events: auto;
+}
+
+.photozProUI .settingsPopover.polishedMenuPanel,
+.photozProUI .filterPopover.polishedMenuPanel {
+  position: absolute;
+  overflow: hidden;
+  border-radius: 22px;
+}
+
+.photozProUI .albumControlsRow {
+  position: relative;
+  max-width: min(460px, calc(100vw - 72px));
+}
+
+.photozProUI .searchFilterMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
 }

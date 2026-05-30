@@ -1838,6 +1838,27 @@ function BulkBar(props) {
   );
 }
 
+function CenteredGlassesIcon(props) {
+  const size = props && props.size ? props.size : 18;
+  return (
+    <svg
+      className="centeredGlassesIcon"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <circle className="glassesLens" cx="8" cy="12.25" r="3.65" />
+      <circle className="glassesLens" cx="16" cy="12.25" r="3.65" />
+      <path className="glassesBridge" d="M11.62 12.18c.45-.62 1.31-.62 1.76 0" />
+      <path className="glassesArm" d="M4.55 10.52 3.25 9.4" />
+      <path className="glassesArm" d="M19.45 10.52l1.3-1.12" />
+    </svg>
+  );
+}
+
 function ControlBar(props) {
   if (props.activePage && props.activePage !== "albums") return null;
 
@@ -1869,7 +1890,7 @@ function ControlBar(props) {
             aria-label="Search"
             onClick={function () { props.setAlbumSearchOpen(function (value) { return !value; }); }}
           >
-            <Glasses size={15} strokeWidth={2.15} />
+            <CenteredGlassesIcon size={18} />
           </button>
           <button
             type="button"
@@ -3093,12 +3114,77 @@ const [screen, setScreen] = useState("home");
   const [albumQuery, setAlbumQuery] = useState("");
   const [albumSearchOpen, setAlbumSearchOpen] = useState(false);
   const [albumCreateOpen, setAlbumCreateOpen] = useState(false);
+
+  function closeTransientOverlays(except) {
+    if (except !== "settings") setSettingsOpen(false);
+    if (except !== "filter") setFilterControlsOpen(false);
+    if (except !== "import") setImportPanelOpen(false);
+    if (except !== "queue") setUploadQueueOpen(false);
+    if (except !== "status") setStatusOpen(false);
+    if (except !== "duplicates") setDuplicatesOpen(false);
+    if (except !== "health") setHealthOpen(false);
+    if (except !== "uploadRefilter") setPzUploadRefilterOpen(false);
+    if (except !== "albumSearch") setAlbumSearchOpen(false);
+    if (except !== "albumCreate") setAlbumCreateOpen(false);
+    if (except !== "bulk") setBulkMoreOpen(false);
+    if (except !== "advancedSearch") setAdvancedSearchOpen(false);
+  }
+
+  function toggleOverlay(name, isOpen, setter) {
+    if (isOpen) {
+      setter(false);
+      return;
+    }
+    closeTransientOverlays(name);
+    setter(true);
+  }
+
+  function setAlbumSearchExclusive(nextValue) {
+    const next = typeof nextValue === "function" ? nextValue(albumSearchOpen) : nextValue;
+    if (next) closeTransientOverlays("albumSearch");
+    setAlbumSearchOpen(Boolean(next));
+  }
+
+  function setAlbumCreateExclusive(nextValue) {
+    const next = typeof nextValue === "function" ? nextValue(albumCreateOpen) : nextValue;
+    if (next) closeTransientOverlays("albumCreate");
+    setAlbumCreateOpen(Boolean(next));
+  }
+
+  const hasTransientOverlayOpen = Boolean(
+    settingsOpen || filterControlsOpen || importPanelOpen || uploadQueueOpen || statusOpen ||
+    duplicatesOpen || healthOpen || pzUploadRefilterOpen || albumSearchOpen || albumCreateOpen ||
+    bulkMoreOpen || advancedSearchOpen
+  );
   const [currentAlbumId, setCurrentAlbumId] = useState("");
 const [albumSort, setAlbumSort] = useState("recent");
   const [visibleIds, setVisibleIds] = useState([]);
   const [sync, setSync] = useState("loading");
   const [undoSnapshot, setUndoSnapshot] = useState(null);
   const saving = useRef(false);
+
+  useEffect(function () {
+    if (!hasTransientOverlayOpen) return;
+    function handlePointerDown(event) {
+      const target = event.target;
+      if (!target || !target.closest) return;
+      if (target.closest(".photozOverlaySurface, .floatingPanel, .settingsPopover, .filterPopover, .filterPanel, .albumControlsRow, .albumInlineActions, .floatingUtilityCluster, .bulkBar, .dockWrap, .searchFilterDropdown")) return;
+      closeTransientOverlays();
+    }
+    function handleKeyDown(event) {
+      if (event.key === "Escape") closeTransientOverlays();
+    }
+    document.addEventListener("pointerdown", handlePointerDown, true);
+    document.addEventListener("keydown", handleKeyDown, true);
+    return function () {
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+      document.removeEventListener("keydown", handleKeyDown, true);
+    };
+  }, [hasTransientOverlayOpen]);
+
+  useEffect(function () {
+    closeTransientOverlays();
+  }, [activePage, screen]);
 
   useEffect(function () {
     let alive = true;
@@ -3148,7 +3234,13 @@ const [albumSort, setAlbumSort] = useState("recent");
     });
   }
 
+  function openMemoryDetail(memory) {
+    closeTransientOverlays();
+    setActiveMemory(memory);
+  }
+
   function openGroup(group) {
+    closeTransientOverlays();
     if (group && group.sourceId && !group.virtual && activePage === "albums") {
       setCurrentAlbumId(String(group.sourceId));
       setAlbumQuery("");
@@ -4267,7 +4359,7 @@ async function handleUpload(eventOrFiles) {
   const key = screen + "-" + (activeGroup ? activeGroup.id : "home");
 
   return unlocked ? (
-    <div className={"app photozProUI page-" + activePage}>
+    <div className={"app photozProUI page-" + activePage + (hasTransientOverlayOpen ? " has-open-overlay" : "")}>
       
         {uploadNotice ? <div className="uploadNoticeToast">{uploadNotice}</div> : null}
         {uploadPendingItems.length ? <div className="uploadPendingStrip">{uploadPendingItems.length} UPLOADING</div> : null}
@@ -4276,14 +4368,14 @@ async function handleUpload(eventOrFiles) {
         <AnimatePresence mode="wait">
           <motion.div key={key} className="screen" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16 }}>
             {screen === "home" ? (
-              <Glass className={"shell grid-" + gridSize + (settingsOpen || filterControlsOpen || importPanelOpen || uploadQueueOpen || statusOpen || duplicatesOpen || healthOpen ? " has-panel-open" : "")}>
-                <ControlBar activePage={activePage} archive={archive} archiveFilter={archiveFilter} setArchiveFilter={setArchiveFilter} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} filterControlsOpen={filterControlsOpen} toggleFilterControls={function () { setFilterControlsOpen(function (value) { return !value; }); }} settingsOpen={settingsOpen} toggleSettingsPanel={function () { setSettingsOpen(function (value) { return !value; }); }} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchOpen} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateOpen} />
+              <Glass className={"shell grid-" + gridSize + (hasTransientOverlayOpen ? " has-panel-open" : "")}>
+                <ControlBar activePage={activePage} archive={archive} archiveFilter={archiveFilter} setArchiveFilter={setArchiveFilter} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} filterControlsOpen={filterControlsOpen} toggleFilterControls={function () { toggleOverlay("filter", filterControlsOpen, setFilterControlsOpen); }} settingsOpen={settingsOpen} toggleSettingsPanel={function () { toggleOverlay("settings", settingsOpen, setSettingsOpen); }} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} />
                 <div className="floatingUtilityCluster">
                   <span className="utilityFileCount" aria-label={safeArray(memories).length + " files"}>{safeArray(memories).length} FILES</span>
                   <div className="floatingUtilityRail" aria-label="Quick actions">
                     <AmbientMusicControl />
-                    <button type="button" aria-label="Filter" className={filterControlsOpen ? "utilityRailButton iconUtilityButton active" : "utilityRailButton iconUtilityButton"} onClick={function () { setSettingsOpen(false); setFilterControlsOpen(function (value) { return !value; }); }}><SlidersHorizontal size={14} strokeWidth={2.1} /></button>
-                    <button type="button" aria-label="Settings" className={settingsOpen ? "utilityRailButton cogUtilityButton iconUtilityButton active" : "utilityRailButton cogUtilityButton iconUtilityButton"} onClick={function () { setFilterControlsOpen(false); setSettingsOpen(function (value) { return !value; }); }}>⚙</button>
+                    <button type="button" aria-label="Filter" className={filterControlsOpen ? "utilityRailButton iconUtilityButton active" : "utilityRailButton iconUtilityButton"} onClick={function () { toggleOverlay("filter", filterControlsOpen, setFilterControlsOpen); }}><SlidersHorizontal size={14} strokeWidth={2.1} /></button>
+                    <button type="button" aria-label="Settings" className={settingsOpen ? "utilityRailButton cogUtilityButton iconUtilityButton active" : "utilityRailButton cogUtilityButton iconUtilityButton"} onClick={function () { toggleOverlay("settings", settingsOpen, setSettingsOpen); }}>⚙</button>
                   </div>
                 </div>
                 <FilterPanel open={filterControlsOpen} close={function () { setFilterControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveFilter === "albums"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize} 
@@ -4298,20 +4390,20 @@ async function handleUpload(eventOrFiles) {
                 viewDensity={viewDensity}
                 setViewDensity={setViewDensity}/>
                 <UndoBar snapshot={undoSnapshot} undo={undoLastAction} clear={function () { setUndoSnapshot(null); }} />
-                <SettingsPanel onUpload={handleUpload} open={settingsOpen} close={function () { setSettingsOpen(false); }} toggleImportPanel={function () { setImportPanelOpen(function (value) { return !value; }); }} toggleUploadQueuePanel={function () { setUploadQueueOpen(function (value) { return !value; }); }} toggleStatusPanel={function () { setStatusOpen(function (value) { return !value; }); }} toggleDuplicatePanel={function () { setDuplicatesOpen(function (value) { return !value; }); }} toggleHealthPanel={function () { setHealthOpen(function (value) { return !value; }); }} exportVaultIndex={exportVaultIndex} exportManifestCsv={exportManifestCsv} importVaultIndex={importVaultIndex} 
-                toggleUploadRefilterPanel={function () { setPzUploadRefilterOpen(function (value) { return !value; }); }}/>
+                <SettingsPanel onUpload={handleUpload} open={settingsOpen} close={function () { setSettingsOpen(false); }} toggleImportPanel={function () { closeTransientOverlays("import"); setImportPanelOpen(true); }} toggleUploadQueuePanel={function () { closeTransientOverlays("queue"); setUploadQueueOpen(true); }} toggleStatusPanel={function () { closeTransientOverlays("status"); setStatusOpen(true); }} toggleDuplicatePanel={function () { closeTransientOverlays("duplicates"); setDuplicatesOpen(true); }} toggleHealthPanel={function () { closeTransientOverlays("health"); setHealthOpen(true); }} exportVaultIndex={exportVaultIndex} exportManifestCsv={exportManifestCsv} importVaultIndex={importVaultIndex} 
+                toggleUploadRefilterPanel={function () { closeTransientOverlays("uploadRefilter"); setPzUploadRefilterOpen(true); }}/>
                 <ImportPanel open={importPanelOpen} close={function () { setImportPanelOpen(false); }} uploadBatchSize={uploadBatchSize} setUploadBatchSize={setUploadBatchSize} uploadConcurrency={uploadConcurrency} setUploadConcurrency={setUploadConcurrency} skipDuplicates={skipDuplicates} setSkipDuplicates={setSkipDuplicates} importSummary={importSummary} />
                 <UploadQueuePanel open={uploadQueueOpen} queue={uploadQueue} paused={uploadPaused} togglePause={function () { setUploadPaused(function (value) { return !value; }); }} retryFailed={retryFailedUploads} close={function () { setUploadQueueOpen(false); }} clearFinished={function () { setUploadQueue(function (items) { return items.filter(function (item) { return item.status === "queued" || item.status === "uploading"; }); }); }} />
                 <StatusPanel open={statusOpen} memories={uploadPendingItems.concat(safeArray(memories))} close={function () { setStatusOpen(false); }} retryUpload={retryUpload} clearLocalFailedStatus={clearLocalFailedStatus} purgeTrash={purgeTrash} />
-                <DuplicatePanel open={duplicatesOpen} memories={uploadPendingItems.concat(safeArray(memories))} close={function () { setDuplicatesOpen(false); }} openMemory={setActiveMemory} trashDuplicateOthers={trashDuplicateOthers} />
+                <DuplicatePanel open={duplicatesOpen} memories={uploadPendingItems.concat(safeArray(memories))} close={function () { setDuplicatesOpen(false); }} openMemory={openMemoryDetail} trashDuplicateOthers={trashDuplicateOthers} />
                 <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} repairIndex={repairIndex} />
-                <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { setBulkMoreOpen(function (value) { return !value; }); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkRefilter={bulkMarkRefilter} bulkClearRefilter={bulkClearRefilter} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDelete={bulkDelete} clearSelection={clearSelection} />
-                {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchOpen} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateOpen} archiveFilter={archiveFilter} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
-                {activePage === "mirror" ? <MirrorFilter mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={uploadPendingItems.concat(safeArray(memories))} openGroup={openGroup} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
-                {activePage === "search" ? <SearchFilter memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={setAdvancedSearchOpen} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { setPzVideoPlayerId(memory.id); }} /> : null}
+                <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { toggleOverlay("bulk", bulkMoreOpen, setBulkMoreOpen); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkRefilter={bulkMarkRefilter} bulkClearRefilter={bulkClearRefilter} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDelete={bulkDelete} clearSelection={clearSelection} />
+                {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} archiveFilter={archiveFilter} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
+                {activePage === "mirror" ? <MirrorFilter mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={uploadPendingItems.concat(safeArray(memories))} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
+                {activePage === "search" ? <SearchFilter memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={setAdvancedSearchOpen} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { closeTransientOverlays(); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays(); setPzVideoPlayerId(memory.id); }} /> : null}
               </Glass>
             ) : null}
-            {screen === "group" && activeGroup ? <GroupFilter group={activeGroup} back={goHome} openMemory={setActiveMemory} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { setPzVideoPlayerId(memory.id); }} /> : null}
+            {screen === "group" && activeGroup ? <GroupFilter group={activeGroup} back={goHome} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { closeTransientOverlays(); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays(); setPzVideoPlayerId(memory.id); }} /> : null}
           </motion.div>
         </AnimatePresence>
       </main>
