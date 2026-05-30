@@ -17554,3 +17554,216 @@ body:has(.fileInfoModal) {
   cursor: default;
   transform: none;
 }
+
+/* PHOTOZ viewer layout correction: title belongs in INFO, zoom is a small corner tool, trash actions live top-left. */
+.fileInfoModal .fileViewerPrimaryActions {
+  pointer-events: auto;
+  min-width: 1px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.fileInfoModal .fileViewerPrimaryActions:empty {
+  min-width: 1px;
+}
+
+.fileInfoModal .fileViewerPrimaryActions .viewerTrashTextButton {
+  width: auto;
+  min-width: 112px;
+  height: 36px;
+  padding: 0 14px;
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  place-items: center;
+  gap: 7px;
+  border-radius: 999px;
+  font-size: 8.5px;
+  font-weight: 950;
+  letter-spacing: .08em;
+  line-height: 1;
+  white-space: nowrap;
+  text-transform: uppercase;
+  border: 1px solid rgba(20,20,20,.12);
+  background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(246,246,246,.42));
+  box-shadow: 0 14px 34px rgba(0,0,0,.11), inset 0 1px 0 rgba(255,255,255,.92);
+  color: rgba(24,24,24,.70);
+  backdrop-filter: blur(14px) saturate(1.06);
+  -webkit-backdrop-filter: blur(14px) saturate(1.06);
+}
+
+.fileInfoModal .fileViewerPrimaryActions .viewerTrashTextButton.danger {
+  min-width: 154px;
+  color: rgba(90,16,16,.96);
+  border-color: rgba(122,20,20,.34);
+  background: linear-gradient(180deg, rgba(255,255,255,.80), rgba(255,235,235,.56));
+}
+
+.fileInfoModal .fileViewerPrimaryActions .viewerTrashTextButton:hover,
+.fileInfoModal .fileViewerPrimaryActions .viewerTrashTextButton:focus-visible {
+  transform: translateY(-1px) scale(1.02);
+}
+
+.fileInfoModal .fileInfoHeader > .fileInfoTitleBlock {
+  display: none;
+}
+
+.fileInfoModal .fileInfoInspectorTitleBlock {
+  width: 100%;
+  max-width: none;
+  min-height: 58px;
+  margin: 0 0 10px;
+  padding: 13px 14px;
+  border-radius: 20px;
+}
+
+.fileInfoModal .fileInfoZoomCorner {
+  position: absolute;
+  z-index: 7;
+  right: clamp(22px, 3vw, 42px);
+  bottom: clamp(22px, 3vw, 42px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.78);
+  background: linear-gradient(180deg, rgba(255,255,255,.76), rgba(246,246,246,.36)), rgba(240,240,240,.48);
+  box-shadow: 0 18px 46px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.94);
+  backdrop-filter: blur(16px) saturate(1.06);
+  -webkit-backdrop-filter: blur(16px) saturate(1.06);
+}
+
+.fileInfoModal .fileInfoZoomCorner button {
+  position: relative;
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(20,20,20,.08);
+  color: rgba(20,20,20,.62);
+  background: linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.22));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.86);
+}
+
+.fileInfoModal .fileInfoZoomCorner .zoomLevelButton {
+  width: auto;
+  min-width: 64px;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  gap: 5px;
+  padding: 0 10px;
+}
+
+.fileInfoModal .fileInfoZoomCorner .zoomLevelButton span {
+  min-width: 30px;
+  text-align: center;
+  font-size: 8px;
+  font-weight: 950;
+  letter-spacing: .04em;
+  line-height: 1;
+}
+
+.fileInfoModal .fileInfoZoomCorner .zoomGlyph {
+  display: block;
+  font-size: 18px;
+  font-weight: 850;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.fileInfoModal .fileInfoActionRail {
+  min-width: 0;
+  padding: 6px;
+}
+
+.fileInfoModal .fileInfoActionRail .viewerTrashTextButton,
+.fileInfoModal .fileInfoActionRail .permanentDeleteRailButton,
+.fileInfoModal .fileInfoActionRail .zoomLevelButton,
+.fileInfoModal .fileInfoActionRail .zoomGlyph {
+  display: none;
+}
+
+.fileInfoModal .fileInfoZoomCorner button[data-tooltip]::after,
+.fileInfoModal .fileViewerPrimaryActions button[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 12050;
+  width: max-content;
+  max-width: 180px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  color: rgba(255,255,255,.92);
+  font-size: 8px;
+  font-weight: 850;
+  line-height: 1;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: linear-gradient(180deg, rgba(42,42,42,.82), rgba(14,14,14,.76)), rgba(20,20,20,.70);
+  border: 1px solid rgba(255,255,255,.22);
+  box-shadow: 0 16px 36px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.18);
+  backdrop-filter: blur(8px) saturate(1.05);
+  -webkit-backdrop-filter: blur(8px) saturate(1.05);
+  transition: opacity .12s ease, transform .12s ease;
+}
+
+.fileInfoModal .fileInfoZoomCorner button[data-tooltip]::after {
+  bottom: calc(100% + 14px);
+  transform: translateX(-50%) translateY(5px);
+}
+
+.fileInfoModal .fileViewerPrimaryActions button[data-tooltip]::after {
+  top: calc(100% + 12px);
+  transform: translateX(-50%) translateY(-4px);
+}
+
+.fileInfoModal .fileInfoZoomCorner button[data-tooltip]:hover::after,
+.fileInfoModal .fileInfoZoomCorner button[data-tooltip]:focus-visible::after,
+.fileInfoModal .fileViewerPrimaryActions button[data-tooltip]:hover::after,
+.fileInfoModal .fileViewerPrimaryActions button[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .fileInfoModal .fileInfoZoomCorner button[data-tooltip]::after,
+  .fileInfoModal .fileViewerPrimaryActions button[data-tooltip]::after {
+    display: none;
+  }
+  .fileInfoModal .fileInfoZoomCorner button {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+  }
+  .fileInfoModal .fileInfoZoomCorner .zoomLevelButton {
+    min-width: 74px;
+  }
+}
+
+@media (max-width: 760px) {
+  .fileInfoModal .fileViewerPrimaryActions .viewerTrashTextButton {
+    min-width: 42px;
+    width: 42px;
+    padding: 0;
+  }
+  .fileInfoModal .fileViewerPrimaryActions .viewerTrashTextButton span {
+    display: none;
+  }
+  .fileInfoModal .fileViewerPrimaryActions .viewerTrashTextButton.danger {
+    min-width: 42px;
+  }
+  .fileInfoModal .fileInfoZoomCorner {
+    right: 18px;
+    bottom: 24px;
+  }
+}

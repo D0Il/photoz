@@ -126,9 +126,15 @@ check("permanent delete handler exists", app.includes("function permanentDeleteM
 check("file info modal wired to permanent delete", app.includes("permanentDeleteMemory={permanentDeleteMemory}"));
 check("detail editor wired to permanent delete", app.includes("onPermanentDelete={permanentDeleteMemory}"));
 check("delete forever UI exists", app.includes("DELETE FOREVER"));
+const deleteForeverCount = (app.match(/DELETE FOREVER/g) || []).length;
+check("delete forever has one top-left viewer placement plus confirmation", deleteForeverCount >= 2 && app.includes("fileViewerPrimaryActions") && app.includes("props.permanentDeleteMemory(memory);") && !app.includes("fileViewerDeleteForeverButton"));
+
 check("delete forever uses in-app confirmation not browser confirm", !app.includes("window.confirm") && !app.includes("confirmDelete(") && app.includes("function DeleteConfirmModal(props)") && app.includes("deleteConfirmBackdrop") && app.includes("<DeleteConfirmModal") && app.includes("open={Boolean(deleteConfirmRequest)}"));
 check("file info panel has no dead destructive action pile", !app.includes("fileInfoDeletePanel") && !app.includes("fileInfoDeleteActions"));
 check("file info album controls keep useful move path", app.includes("fileInfoAlbumControls") && app.includes("props.moveToAlbum(memory, selectedAlbum)") && app.includes("props.addToAlbum(memory, selectedAlbum)") && app.includes("props.removeFromAlbum(memory, selectedAlbum)"));
+check("album navigation clears active album context", app.includes("function leaveAlbumContext()") && app.includes('setCurrentAlbumId("");') && app.includes('setActiveGroup(null);') && app.includes('setScreen("home");'));
+check("dock navigation uses album-leaving wrapper", app.includes("function navigatePage(pageId)") && app.includes("leaveAlbumContext();\n    setActivePage(pageId);") && app.includes("<Dock active={activePage} setActive={navigatePage} />"));
+check("archive nav leaves album before switching year month era", app.includes("function setArchiveFilterFromNav(filter)") && app.includes("leaveAlbumContext();\n    setArchiveFilter(filter);") && app.includes("setArchiveFilter={setArchiveFilterFromNav}"));
 
 
 // PHOTOZ file integrity pass checks
@@ -205,6 +211,8 @@ check("file viewer action rail uses icon controls", app.includes('aria-label="Ph
 check("file viewer has tablet zoom controls", app.includes('aria-label="Zoom out"') && app.includes('aria-label="Fit photo"') && app.includes('aria-label="Zoom in"') && app.includes('handleViewerPointerMove') && app.includes('onPointerDown={handleViewerPointerDown}'));
 check("file viewer rail has no duplicate info button", !app.includes('<button type="button" aria-label="Info" data-tooltip="Info" className={inspectorOpen ? "active" : ""}'));
 check("file viewer uses touch-safe zoom CSS", css.includes('touch-action: none') && css.includes('.zoomLevelButton') && css.includes('.fileInfoPreview.zoomed'));
+check("file viewer zoom controls are in bottom corner, not main rail", app.includes('className="fileInfoZoomCorner"') && css.includes('.fileInfoZoomCorner') && !app.includes('className="zoomLevelButton" onClick={resetPhotoZoom}><Maximize2 size={16}'));
+check("file info title block moved into info panel", app.includes('fileInfoInspectorTitleBlock') && !app.includes('<header className="fileInfoHeader">\n            <div className="fileInfoTitleBlock">'));
 
 check("card media layering fix exists", css.includes("PHOTOZ card media layering fix"));
 check("photo card images scoped to thumbnail", css.includes(".photoCard .photoThumb img"));
@@ -236,7 +244,7 @@ check("bulk import uses stable retry-safe ids and keys", app.includes('function 
 check("import summary reports takeout sidecars and remaining files", app.includes('TAKEOUT {props.importSummary.takeout || 0}') && app.includes('JSON {props.importSummary.sidecars || 0}') && app.includes('LEFT {props.importSummary.remaining || 0}'));
 check("upload filtering accepts media plus takeout json sidecars", app.includes('const sidecarFiles = incomingFiles.filter(isTakeoutSidecarFile);') && app.includes('const files = incomingFiles.filter(isMediaUploadFile);') && app.includes('accept={props.folder ? undefined : "image/*,video/*,.json"}'));
 check("year month era grouping excludes trash", app.includes('items = safeArray(items).map(normalizeMemoryRecord).filter(function (memory) {') && app.includes('return !memory.trashed;') && app.includes('const archiveGroups = props.archiveFilter === "albums" ? albums : groupBy(props.archiveFilter, safeArray(props.memories));'));
-check("trashed viewer exposes delete forever in main action rail", app.includes('aria-label="Delete forever" data-tooltip="Delete forever"') && app.includes('permanentDeleteRailButton') && app.includes('props.permanentDeleteMemory(memory);'));
+check("trashed viewer exposes restore and delete forever in top-left primary actions", app.includes('fileViewerPrimaryActions') && app.includes('aria-label="Restore" data-tooltip="Restore"') && app.includes('aria-label="Delete forever" data-tooltip="Delete forever"') && app.includes('props.permanentDeleteMemory(memory);'));
 
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
@@ -245,3 +253,5 @@ if (failures.length) {
 }
 
 console.log("PHOTOZ validation passed.");
+
+check("album nav escapes album context", app.includes("function leaveAlbumContext()") && app.includes("function navigatePage(pageId)") && app.includes("leaveAlbumContext();\n    setActivePage(pageId);") && app.includes("function setArchiveFilterFromNav(filter)") && app.includes("YEAR / MONTH / ERA are global archive views"));

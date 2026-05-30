@@ -2884,12 +2884,13 @@ function Modal(props) {
       <motion.div className="modal fileInfoModal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={props.close}>
         <motion.div className={"modalCard fileInfoCard" + (inspectorOpen ? " inspectorOpen" : "")} initial={{ y: 18, scale: 0.985 }} animate={{ y: 0, scale: 1 }} onClick={function (event) { event.stopPropagation(); }}>
           <header className="fileInfoHeader">
-            <div className="fileInfoTitleBlock">
-              <span className="fileInfoTypeGlyph" aria-label={video ? "Video" : "Photo"}>{video ? <Film size={13} /> : <Image size={13} />}</span>
-              <h2>{displayTitle}</h2>
-              <em>{titleMetaLine}</em>
+            <div className="fileViewerPrimaryActions">
+              {memory.trashed ? <>
+                <button type="button" aria-label="Restore" data-tooltip="Restore" className="viewerTrashTextButton" onClick={function () { props.restoreMemory(memory); }}><RotateCcw size={17} /><span>RESTORE</span></button>
+                <button type="button" aria-label="Delete forever" data-tooltip="Delete forever" className="danger viewerTrashTextButton" onClick={function () { props.permanentDeleteMemory(memory); }}><Trash2 size={17} /><span>DELETE FOREVER</span></button>
+              </> : null}
             </div>
-            <div className="fileViewerChromeActions">{memory.trashed ? <button type="button" className="fileViewerDeleteForeverButton" aria-label="Delete forever" onClick={function () { props.permanentDeleteMemory(memory); }}><Trash2 size={15} /> DELETE FOREVER</button> : null}<button type="button" className={"fileViewerInfoButton" + (inspectorOpen ? " active" : "")} aria-label="Info" data-tooltip="Info" onClick={function () { setInspectorOpen(function (value) { return !value; }); }}><PanelRightOpen size={15} /> INFO</button><button type="button" className="fileInfoClose" aria-label="Close" data-tooltip="Close" onClick={props.close}><X size={18} /></button></div>
+            <div className="fileViewerChromeActions"><button type="button" className={"fileViewerInfoButton" + (inspectorOpen ? " active" : "")} aria-label="Info" data-tooltip="Info" onClick={function () { setInspectorOpen(function (value) { return !value; }); }}><PanelRightOpen size={15} /> INFO</button><button type="button" className="fileInfoClose" aria-label="Close" data-tooltip="Close" onClick={props.close}><X size={18} /></button></div>
           </header>
 
           <main className={"fileInfoLayout" + (inspectorOpen ? " inspectorOpen" : "")}>
@@ -2906,20 +2907,25 @@ function Modal(props) {
                 {video ? <video src={source} controls playsInline /> : <img src={source} alt="" draggable="false" style={photoTransform} />}
                 {memory.trashed ? <span className="pzTrashRibbon">TRASH</span> : null}
               </div>
-              <div className="fileInfoActionRail" aria-label="Photo actions">
+              <div className="fileInfoZoomCorner" aria-label="Zoom controls">
                 <button type="button" aria-label="Zoom out" data-tooltip="Zoom out" onClick={function () { adjustPhotoZoom(-0.35); }}><span aria-hidden="true" className="zoomGlyph">−</span></button>
-                <button type="button" aria-label="Fit photo" data-tooltip={photoZoom > 1 ? "Fit" : "Fit"} className="zoomLevelButton" onClick={resetPhotoZoom}><Maximize2 size={16} /><span>{Math.round(photoZoom * 100)}%</span></button>
+                <button type="button" aria-label="Fit photo" data-tooltip="Fit" className="zoomLevelButton" onClick={resetPhotoZoom}><Maximize2 size={14} /><span>{Math.round(photoZoom * 100)}%</span></button>
                 <button type="button" aria-label="Zoom in" data-tooltip="Zoom in" onClick={function () { adjustPhotoZoom(0.35); }}><span aria-hidden="true" className="zoomGlyph">+</span></button>
+              </div>
+              <div className="fileInfoActionRail" aria-label="Photo actions">
                 <button type="button" aria-label="Favorite" data-tooltip="Favorite" className={props.isStarred ? "active" : ""} onClick={function () { props.toggleStar(memory); }}><Star size={17} /></button>
                 <button type="button" aria-label="Me" data-tooltip="Me" className={isMeMemory(memory) ? "active" : ""} onClick={function () { props.toggleMeFlag(memory); }}><UserRound size={17} /></button>
-                {memory.trashed ? <>
-                  <button type="button" aria-label="Restore" data-tooltip="Restore" className="viewerTrashTextButton" onClick={function () { props.restoreMemory(memory); }}><RotateCcw size={17} /><span>RESTORE</span></button>
-                  <button type="button" aria-label="Delete forever" data-tooltip="Delete forever" className="danger viewerTrashTextButton permanentDeleteRailButton" onClick={function () { props.permanentDeleteMemory(memory); }}><Trash2 size={17} /><span>DELETE FOREVER</span></button>
-                </> : <button type="button" aria-label="Trash" data-tooltip="Trash" className="danger" onClick={function () { props.deleteMemory(memory); }}><Trash2 size={17} /></button>}
+                {!memory.trashed ? <button type="button" aria-label="Trash" data-tooltip="Trash" className="danger" onClick={function () { props.deleteMemory(memory); }}><Trash2 size={17} /></button> : null}
               </div>
             </section>
 
             {inspectorOpen ? <aside className="fileInfoInspector open">
+              <div className="fileInfoTitleBlock fileInfoInspectorTitleBlock">
+                <span className="fileInfoTypeGlyph" aria-label={video ? "Video" : "Photo"}>{video ? <Film size={13} /> : <Image size={13} />}</span>
+                <h2>{displayTitle}</h2>
+                <em>{titleMetaLine}</em>
+              </div>
+
               <div className="fileInfoStats fileInfoFacts">
                 <span className="fileInfoMediaSymbol" aria-label={video ? "Video" : "Photo"}>{video ? <Film size={16} /> : <Image size={16} />}</span>
                 <span><em>SIZE</em><strong>{sizeLabel}</strong></span>
@@ -3729,6 +3735,26 @@ const [screen, setScreen] = useState("home");
     const next = typeof nextValue === "function" ? nextValue(albumCreateOpen) : nextValue;
     if (next) closeTransientOverlays("albumCreate");
     setAlbumCreateOpen(Boolean(next));
+  }
+
+  function leaveAlbumContext() {
+    setCurrentAlbumId("");
+    setAlbumQuery("");
+    setAlbumCreateOpen(false);
+    setAlbumSearchOpen(false);
+    setActiveGroup(null);
+    setScreen("home");
+  }
+
+  function navigatePage(pageId) {
+    leaveAlbumContext();
+    setActivePage(pageId);
+  }
+
+  function setArchiveFilterFromNav(filter) {
+    // YEAR / MONTH / ERA are global archive views, never scoped to the album you were just inside.
+    leaveAlbumContext();
+    setArchiveFilter(filter);
   }
 
   const hasTransientOverlayOpen = Boolean(
@@ -5057,13 +5083,13 @@ async function handleUpload(eventOrFiles) {
       
         {uploadNotice && !hasTransientOverlayOpen ? <div className="uploadNoticeToast">{uploadNotice}</div> : null}
         {uploadPendingItems.length && !hasTransientOverlayOpen ? <div className="uploadPendingStrip">{uploadPendingItems.length} UPLOADING</div> : null}
-<Dock active={activePage} setActive={setActivePage} />
+<Dock active={activePage} setActive={navigatePage} />
       <main>
         <AnimatePresence mode="wait">
           <motion.div key={key} className="screen" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16 }}>
             {screen === "home" ? (
               <Glass className={"shell grid-" + gridSize + (hasTransientOverlayOpen ? " has-panel-open" : "")}>
-                <ControlBar activePage={activePage} archive={archive} archiveFilter={archiveFilter} setArchiveFilter={setArchiveFilter} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} filterControlsOpen={filterControlsOpen} toggleFilterControls={function () { toggleOverlay("filter", filterControlsOpen, setFilterControlsOpen); }} settingsOpen={settingsOpen} toggleSettingsPanel={function () { toggleOverlay("settings", settingsOpen, setSettingsOpen); }} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} />
+                <ControlBar activePage={activePage} archive={archive} archiveFilter={archiveFilter} setArchiveFilter={setArchiveFilterFromNav} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} filterControlsOpen={filterControlsOpen} toggleFilterControls={function () { toggleOverlay("filter", filterControlsOpen, setFilterControlsOpen); }} settingsOpen={settingsOpen} toggleSettingsPanel={function () { toggleOverlay("settings", settingsOpen, setSettingsOpen); }} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} />
                 <div className="floatingUtilityCluster">
                   <span className="utilityFileCount" aria-label={safeArray(memories).length + " files"}>{safeArray(memories).length} FILES</span>
                   <div className="floatingUtilityRail" aria-label="Quick actions">
