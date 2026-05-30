@@ -289,6 +289,188 @@ function fileSignature(file) {
   return [file.name || "", file.size || 0, file.lastModified || 0].join("::");
 }
 
+function stableStringHash(value) {
+  const text = String(value || "");
+  let hash = 2166136261;
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+}
+
+function fileImportPath(file) {
+  return String((file && (file.webkitRelativePath || file.name)) || "").replace(/\\/g, "/");
+}
+
+function stableFileImportId(file) {
+  return stableStringHash([fileImportPath(file), file && file.name, file && file.size, file && file.lastModified].join("::"));
+}
+
+function isMediaUploadFile(file) {
+  const type = String((file && file.type) || "").toLowerCase();
+  const name = String((file && file.name) || "").toLowerCase();
+  return Boolean(file) && (type.indexOf("image/") === 0 || type.indexOf("video/") === 0 || /\.(jpe?g|png|gif|webp|heic|heif|avif|tiff?|bmp|mp4|mov|m4v|webm|avi)$/i.test(name));
+}
+
+function isTakeoutSidecarFile(file) {
+  const name = String((file && file.name) || "").toLowerCase();
+  return Boolean(file) && name.endsWith(".json") && /takeout|google photos|photos from|albumarchive/i.test(fileImportPath(file));
+}
+
+function stripJsonExtension(value) {
+  return String(value || "").replace(/\.json$/i, "");
+}
+
+function stripMediaExtension(value) {
+  return String(value || "").replace(/\.(jpe?g|png|gif|webp|heic|heif|avif|tiff?|bmp|mp4|mov|m4v|webm|avi)$/i, "");
+}
+
+function normalizeTakeoutLookupPath(value) {
+  return String(value || "").replace(/\\/g, "/").replace(/^.*?Takeout\//i, "Takeout/").toLowerCase();
+}
+
+function takeoutSidecarKeysForPath(pathValue) {
+  const path = normalizeTakeoutLookupPath(pathValue);
+  const withoutJson = stripJsonExtension(path);
+  const filename = withoutJson.split("/").pop() || withoutJson;
+  const base = stripMediaExtension(filename);
+  const folder = withoutJson.indexOf("/") !== -1 ? withoutJson.slice(0, withoutJson.lastIndexOf("/") + 1) : "";
+  return Array.from(new Set([
+    path,
+    withoutJson,
+    folder + filename,
+    folder + base,
+    filename,
+    base,
+  ].filter(Boolean)));
+}
+
+function takeoutSidecarKeysForFile(file) {
+  const path = fileImportPath(file);
+  const filename = String((file && file.name) || "");
+  return Array.from(new Set(takeoutSidecarKeysForPath(path).concat(takeoutSidecarKeysForPath(filename))));
+}
+
+function readTextFile(file) {
+  return new Promise(function (resolve) {
+    if (!file) { resolve(""); return; }
+    const reader = new FileReader();
+    reader.onload = function () { resolve(String(reader.result || "")); };
+    reader.onerror = function () { resolve(""); };
+    reader.readAsText(file);
+  });
+}
+
+async function readTakeoutSidecar(file) {
+  const text = await readTextFile(file);
+  if (!text) return null;
+  try { return JSON.parse(text); } catch (error) { return null; }
+}
+
+function takeoutTimestampToIso(value) {
+  if (value === undefined || value === null || value === "") return "";
+  const number = Number(value);
+  if (Number.isFinite(number) && number > 0) {
+    const date = new Date(number < 100000000000 ? number * 1000 : number);
+    return Number.isNaN(date.getTime()) ? "" : date.toISOString();
+  }
+  const date = new Date(String(value));
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString();
+}
+
+function datePartsFromIso(iso, fallbackModified) {
+  const date = iso ? new Date(iso) : (fallbackModified ? new Date(fallbackModified) : new Date());
+  const clean = Number.isNaN(date.getTime()) ? new Date() : date;
+  return {
+    date: clean.toLocaleDateString("en", { year: "numeric", month: "long", day: "numeric" }),
+    year: String(clean.getFullYear()),
+    month: clean.toLocaleString("en", { month: "long", year: "numeric" }),
+    sort: Number(String(clean.getFullYear()) + String(clean.getMonth() + 1).padStart(2, "0") + String(clean.getDate()).padStart(2, "0")),
+  };
+}
+
+function extractTakeoutMetadata(sidecar) {
+  const data = sidecar && typeof sidecar === "object" ? sidecar : {};
+  const photoTakenIso = takeoutTimestampToIso(data.photoTakenTime && (data.photoTakenTime.timestamp || data.photoTakenTime.formatted));
+  const createdIso = takeoutTimestampToIso(data.creationTime && (data.creationTime.timestamp || data.creationTime.formatted));
+  const geo = data.geoData || data.geoDataExif || {};
+  const title = String(data.title || "").trim();
+  return {
+    title: title,
+    description: String(data.description || "").trim(),
+    photoTakenTime: photoTakenIso,
+    creationTime: createdIso,
+    googlePhotosUrl: data.url || "",
+    geoData: geo,
+    latitude: Number(geo.latitude || 0),
+    longitude: Number(geo.longitude || 0),
+    altitude: Number(geo.altitude || 0),
+  };
+}
+
+async function buildTakeoutSidecarMap(files) {
+  const map = {};
+  const sidecars = Array.from(files || []).filter(isTakeoutSidecarFile);
+  await Promise.all(sidecars.map(async function (file) {
+    const data = await readTakeoutSidecar(file);
+    if (!data) return;
+    takeoutSidecarKeysForFile(file).forEach(function (key) { map[key] = data; });
+    if (data.title) takeoutSidecarKeysForPath(data.title).forEach(function (key) { map[key] = data; });
+  }));
+  return map;
+}
+
+function sidecarForMediaFile(file, sidecarMap) {
+  const keys = takeoutSidecarKeysForFile(file);
+  for (let index = 0; index < keys.length; index += 1) {
+    if (sidecarMap[keys[index]]) return sidecarMap[keys[index]];
+  }
+  return null;
+}
+
+function applyTakeoutSidecar(memory, file, sidecar) {
+  if (!sidecar) return memory;
+  const extracted = extractTakeoutMetadata(sidecar);
+  const takenIso = extracted.photoTakenTime || extracted.creationTime || "";
+  const dateParts = datePartsFromIso(takenIso, file && file.lastModified);
+  const metadata = {
+    ...(memory.metadata || {}),
+    takeout: true,
+    source: "google-takeout",
+    takeoutPath: fileImportPath(file),
+    sidecarTitle: extracted.title,
+    sidecarDescription: extracted.description,
+    photoTakenTime: extracted.photoTakenTime,
+    creationTime: extracted.creationTime,
+    googlePhotosUrl: extracted.googlePhotosUrl,
+    geoData: extracted.geoData,
+    latitude: extracted.latitude,
+    longitude: extracted.longitude,
+    altitude: extracted.altitude,
+  };
+  const nextTitle = extracted.title ? fileBaseName(extracted.title) : memory.title;
+  return normalizeMemoryUrl({
+    ...memory,
+    title: nextTitle || memory.title,
+    date: takenIso ? dateParts.date : memory.date,
+    year: takenIso ? dateParts.year : memory.year,
+    month: takenIso ? dateParts.month : memory.month,
+    sort: takenIso ? dateParts.sort : memory.sort,
+    caption: extracted.description || memory.caption || "",
+    location: extracted.latitude || extracted.longitude ? [extracted.latitude, extracted.longitude].filter(Boolean).join(", ") : memory.location,
+    takeout: true,
+    isTakeout: true,
+    takeoutMeta: {
+      folder: fileImportPath(file).split("/").slice(0, -1).join("/"),
+      sidecarPath: metadata.takeoutPath ? metadata.takeoutPath + ".json" : "",
+      photoTakenTime: extracted.photoTakenTime,
+      creationTime: extracted.creationTime,
+    },
+    metadata,
+  });
+}
+
 function objectUrl(file) {
   if (typeof URL === "undefined") return "";
   if (typeof URL.createObjectURL !== "function") return "";
@@ -341,7 +523,9 @@ function fileMeta(file, modified) {
     lastModifiedLabel: readableDateTime(modified),
     importedAt: new Date().toISOString(),
     webkitRelativePath: file.webkitRelativePath || "",
-    source: "browser-file-input",
+    importPath: fileImportPath(file),
+    stableImportId: stableFileImportId(file),
+    source: /takeout|google photos/i.test(fileImportPath(file)) ? "google-takeout" : "browser-file-input",
     preserveEmbeddedMetadata: true,
     originalFileStoredUnmodified: true,
     signature: fileSignature(file),
@@ -435,7 +619,7 @@ function makeKey(file, index, modified) {
   return [
     modified.getFullYear(),
     String(modified.getMonth() + 1).padStart(2, "0"),
-    String(Date.now()) + "-" + index + "-" + safeName(file.name),
+    stableFileImportId(file) + "-" + safeName(file.name || ("file-" + index)),
   ].join("/");
 }
 
@@ -448,7 +632,7 @@ function fromFile(file, index) {
   const key = makeKey(file, index, modified);
 
   return {
-    id: Date.now() + index + Math.floor(Math.random() * 999999),
+    id: "memory-" + stableFileImportId(file),
     title,
     date: modified.toLocaleDateString("en", { year: "numeric", month: "long", day: "numeric" }),
     createdAt: new Date().toISOString(),
@@ -469,6 +653,8 @@ function fromFile(file, index) {
     uploadStatus: "queued",
     metadata: fileMeta(file, modified),
     tags: [],
+    takeout: /takeout|google photos/i.test(fileImportPath(file)),
+    isTakeout: /takeout|google photos/i.test(fileImportPath(file)),
     caption: "",
     location: "",
     event: "",
@@ -923,7 +1109,7 @@ function isTakeoutMemory(memory) {
   return /takeout|google photos/i.test(path);
 }
 
-function uploadPlanStats(files, memories) {
+function uploadPlanStats(files, memories, sidecarCount) {
   const signatures = existingSignatureMap(safeArray(memories));
   return Array.from(files || []).reduce(function (stats, file) {
     const signature = fileSignature(file);
@@ -931,8 +1117,9 @@ function uploadPlanStats(files, memories) {
     stats.bytes += file.size || 0;
     if (file.size && file.size > 50 * 1024 * 1024) stats.large += 1;
     if (signatures[signature]) stats.duplicates += 1;
+    if (/takeout|google photos/i.test(fileImportPath(file))) stats.takeout += 1;
     return stats;
-  }, { total: 0, bytes: 0, large: 0, duplicates: 0 });
+  }, { total: 0, bytes: 0, large: 0, duplicates: 0, takeout: 0, sidecars: sidecarCount || 0 });
 }
 
 function clampNumber(value, fallback, min, max) {
@@ -1531,6 +1718,7 @@ function UploadButton(props) {
         ref={inputRef}
         type="file"
         multiple
+        accept={props.folder ? undefined : "image/*,video/*,.json"}
         webkitdirectory={props.folder ? "true" : undefined}
         directory={props.folder ? "true" : undefined}
         onChange={function (event) {
@@ -1930,6 +2118,9 @@ function ImportPanel(props) {
           <span>ADDED {props.importSummary.added}</span>
           <span>SKIPPED {props.importSummary.skipped}</span>
           <span>LARGE {props.importSummary.large}</span>
+          <span>TAKEOUT {props.importSummary.takeout || 0}</span>
+          <span>JSON {props.importSummary.sidecars || 0}</span>
+          <span>LEFT {props.importSummary.remaining || 0}</span>
           <span>SIZE {formatBytes(props.importSummary.bytes)}</span>
         </div>
       ) : <div className="statusClean">Choose photos or a folder with the Upload button.</div>}
@@ -4676,20 +4867,26 @@ const [screen, setScreen] = useState("home");
     const sourceFiles = eventOrFiles && eventOrFiles.target && eventOrFiles.target.files
       ? eventOrFiles.target.files
       : eventOrFiles;
-    const files = Array.prototype.slice.call(sourceFiles || []).filter(function (file) {
-      return file && file.type && (file.type.indexOf("image") === 0 || file.type.indexOf("video") === 0);
-    });
+    const incomingFiles = Array.prototype.slice.call(sourceFiles || []);
+    const sidecarFiles = incomingFiles.filter(isTakeoutSidecarFile);
+    const sidecarMap = await buildTakeoutSidecarMap(sidecarFiles);
+    const files = incomingFiles.filter(isMediaUploadFile);
     if (eventOrFiles && eventOrFiles.target) eventOrFiles.target.value = "";
 
-    if (!files.length) return;
+    if (!files.length) {
+      setImportSummary({ total: 0, added: 0, skipped: 0, large: 0, duplicates: 0, bytes: 0, takeout: 0, sidecars: sidecarFiles.length, failed: incomingFiles.length });
+      return;
+    }
 
     rememberUndo("IMPORT");
     backupIndex();
 
     const signatures = existingSignatureMap(safeArray(memories));
-    const plan = uploadPlanStats(files, memories);
+    const existingIds = new Set(safeArray(memories).map(function (memory) { return String(memory.id); }));
+    const plan = uploadPlanStats(files, memories, sidecarFiles.length);
     const freshFiles = files.filter(function (file) {
-      return !skipDuplicates || !signatures[fileSignature(file)];
+      const memoryId = "memory-" + stableFileImportId(file);
+      return !skipDuplicates || (!signatures[fileSignature(file)] && !existingIds.has(memoryId));
     });
 
     const batchLimit = clampNumber(uploadBatchSize, 250, 10, 2000);
@@ -4702,13 +4899,17 @@ const [screen, setScreen] = useState("home");
       large: plan.large,
       duplicates: plan.duplicates,
       bytes: plan.bytes,
+      takeout: plan.takeout,
+      sidecars: plan.sidecars,
+      remaining: Math.max(0, freshFiles.length - batchFiles.length),
     });
     closeTransientOverlays("queue");
 
     const imported = await Promise.all(batchFiles.map(async function (file, index) {
       let memory = fromFile(file, index);
       memory = await enrichMemoryWithFileMetadata(memory, file);
-      memory.queueId = Date.now() + "-" + index + "-" + safeName(file.name);
+      memory = applyTakeoutSidecar(memory, file, sidecarForMediaFile(file, sidecarMap));
+      memory.queueId = "queue-" + stableFileImportId(file);
       memory.uploadStatus = "queued";
       uploadFileRefs.current[memory.queueId] = { file: file, memory: memory };
       return memory;
@@ -4756,13 +4957,14 @@ async function handleUpload(eventOrFiles) {
     return;
   }
 
-  const pending = incomingFiles.map(makePendingUploadMemory);
+  const mediaIncomingFiles = incomingFiles.filter(isMediaUploadFile);
+  const pending = mediaIncomingFiles.map(makePendingUploadMemory);
   setUploadPendingItems(function (items) { return pending.concat(items); });
-  setUploadNotice(incomingFiles.length === 1 ? "UPLOADING 1 FILE" : "UPLOADING " + incomingFiles.length + " FILES");
+  setUploadNotice(mediaIncomingFiles.length === 1 ? "UPLOADING 1 FILE" : "UPLOADING " + mediaIncomingFiles.length + " FILES");
 
   try {
     const result = await handleUploadOriginal(eventOrFiles);
-    setUploadNotice(incomingFiles.length === 1 ? "UPLOAD COMPLETE" : "UPLOADS COMPLETE");
+    setUploadNotice(mediaIncomingFiles.length === 1 ? "UPLOAD COMPLETE" : "UPLOADS COMPLETE");
     window.setTimeout(function () {
       setUploadPendingItems(function (items) {
         const pendingIds = new Set(pending.map(function (item) { return item.id; }));

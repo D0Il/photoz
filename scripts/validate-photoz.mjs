@@ -228,6 +228,10 @@ check("mirror documents tag multi-membership", app.includes('ME and STARRED are 
 
 check("search mode uses broad non-hidden file pool", app.includes('function memoryVisibleInSearch(memory, albums)') && app.includes('!memoryHiddenFromAll(memory) && !memoryExcludedFromAll(memory, albums)') && app.includes('const baseItems = newest(allMemories.filter(function (memory) {'));
 check("search filtering passes albums argument correctly", app.includes('return matchesSearchFilter(memory, allAlbums, activeSearchFilter);'));
+check("google takeout importer keeps JSON sidecars for metadata", app.includes('function isTakeoutSidecarFile(file)') && app.includes('async function buildTakeoutSidecarMap(files)') && app.includes('memory = applyTakeoutSidecar(memory, file, sidecarForMediaFile(file, sidecarMap));'));
+check("bulk import uses stable retry-safe ids and keys", app.includes('function stableFileImportId(file)') && app.includes('id: "memory-" + stableFileImportId(file)') && app.includes('stableFileImportId(file) + "-" + safeName'));
+check("import summary reports takeout sidecars and remaining files", app.includes('TAKEOUT {props.importSummary.takeout || 0}') && app.includes('JSON {props.importSummary.sidecars || 0}') && app.includes('LEFT {props.importSummary.remaining || 0}'));
+check("upload filtering accepts media plus takeout json sidecars", app.includes('const sidecarFiles = incomingFiles.filter(isTakeoutSidecarFile);') && app.includes('const files = incomingFiles.filter(isMediaUploadFile);') && app.includes('accept={props.folder ? undefined : "image/*,video/*,.json"}'));
 
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
