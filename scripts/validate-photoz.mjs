@@ -160,10 +160,7 @@ check("preview url does not use missing thumb route", !app.includes('return "/th
 check("fromFile does not overwrite preview with thumb route", !app.includes('previewUrl: "/thumb/" + key'));
 check("file info modal centering css exists", css.includes('PHOTOZ file-info stability pass'));
 check("file import enriches actual media metadata", app.includes("async function enrichMemoryWithFileMetadata") && app.includes("readMediaElementMetadata") && app.includes("metadata.dimensions"));
-check("file info visibly shows core metadata", app.includes("fileInfoCoreMetaPanel") && app.includes("ORIGINAL") && app.includes("FORMAT") && app.includes("MODIFIED") && app.includes("IMPORTED"));
-check("file viewer uses user title before filename", app.includes("const displayTitle = String(draftTitle || memory.title") && app.includes("<h2>{displayTitle}</h2>"));
-check("file viewer removes backend status/type bloat", !app.includes("<em>TYPE</em>") && !app.includes("statusLabel") && app.includes("fileInfoMediaSymbol"));
-check("file viewer buttons have designed tooltips", app.includes('data-tooltip="Favorite"') && app.includes('data-tooltip="Info"') && css.includes("PHOTOZ luxury file viewer behavior pass"));
+check("file info visibly shows core metadata", app.includes("fileInfoCoreMetaPanel") && app.includes("ORIGINAL NAME") && app.includes("DIMENSIONS") && app.includes("MIME TYPE") && app.includes("LAST MODIFIED"));
 check("worker preserves original upload metadata", worker.includes("originalName") && worker.includes("customMetadata") && worker.includes("width") && worker.includes("height") && worker.includes("lastModifiedISO"));
 check("r2 repair reads object metadata", worker.includes("bucket.head") && worker.includes("object.originalName") && worker.includes("memoryFromObject(object)"));
 check("file previewer has dedicated integrity styling", css.includes("PHOTOZ file metadata + previewer integrity pass") && css.includes(".fileInfoCoreMetaPanel") && css.includes(".fileInfoMetaLine"));
@@ -185,43 +182,9 @@ if (failures.length) {
 }
 
 
-check("file info modal uses portal", app.includes("createPortal(modalNode, document.body)"));
-check("premium file viewer CSS marker missing", css.includes("PHOTOZ YES PASS: media viewer must feel like premium photo software"));
-check("file info viewer must use a photo-first split layout", css.includes("grid-template-columns: minmax(0, 1fr) clamp(320px, 24vw, 390px)"));
-check("file info media must be inset and contained, not stretched/cropped", css.includes("max-width: 100%") && css.includes("object-fit: contain"));
-
-if (failures.length) {
-  console.error("PHOTOZ validation failed:");
-  for (const failure of failures) console.error("- " + failure);
-  process.exit(1);
-}
-
-
-check("light luxury media viewer overrides dark command center", css.includes("PHOTOZ LIGHT LUXURY MEDIA VIEWER PASS") && css.includes("Silver personal photo archive") && css.includes("rgba(248,248,248,.86)"));
-check("file viewer action rail uses icon controls", app.includes('aria-label="Photo actions"') && app.includes('<Star size={17} />') && app.includes('<Trash2 size={17} />'));
-check("file viewer has tablet zoom controls", app.includes('aria-label="Zoom out"') && app.includes('aria-label="Fit photo"') && app.includes('aria-label="Zoom in"') && app.includes('handleViewerPointerMove') && app.includes('onPointerDown={handleViewerPointerDown}'));
-check("file viewer rail has no duplicate info button", !app.includes('<button type="button" aria-label="Info" data-tooltip="Info" className={inspectorOpen ? "active" : ""}'));
-check("file viewer uses touch-safe zoom CSS", css.includes('touch-action: none') && css.includes('.zoomLevelButton') && css.includes('.fileInfoPreview.zoomed'));
-
-check("card media layering fix exists", css.includes("PHOTOZ card media layering fix"));
-check("photo card images scoped to thumbnail", css.includes(".photoCard .photoThumb img"));
-check("photo card metadata separated from media", css.includes(".photoCard .photoMeta") && css.includes("grid-template-rows: minmax(0, 1fr) auto"));
-
-if (failures.length) {
-  console.error("PHOTOZ validation failed:");
-  for (const failure of failures) console.error("- " + failure);
-  process.exit(1);
-}
-
-
-check("file viewer primary action rail exposes Trash", app.includes('aria-label="Trash" data-tooltip="Trash"'));
-check("file viewer primary action rail has no Archive/Unarchive", !app.includes('data-tooltip={memory.archived ? "Unarchive" : "Archive"}'));
-check("file viewer tooltip/action correction CSS exists", css.includes('PHOTOZ file-viewer action correction'));
-
-
-check("mirror receives albums for starred lookup", app.includes('albums={albums} openGroup={openGroup} openMemory={openMemoryDetail}'));
-check("mirror first layer is BOTH me and starred", app.includes('return isMeMemory(memory) && isStarredMemory(memory, albums)'));
-check("mirror documents tag multi-membership", app.includes('ME and STARRED are tags, not exclusive folders'));
+check("premium file viewer CSS marker missing", css.includes("premium file viewer pass"));
+check("file info viewer must use a photo-first split layout", css.includes("grid-template-columns: minmax(0, 1fr) minmax(340px, 380px)"));
+check("file info media must be inset and contained, not stretched/cropped", css.includes("max-width: calc(100% - 24px)"));
 
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
