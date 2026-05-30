@@ -2553,10 +2553,13 @@ function Modal(props) {
   const availableAlbums = assignableAlbums(props.albums);
   const albumLabel = currentAlbums.length ? currentAlbums.map(function (album) { return album.title; }).join(" / ") : "NONE";
   const sizeLabel = formatBytes(fileSizeBytes(memory));
-  const statusLabel = memory.trashed ? "TRASH" : memory.archived ? "ARCHIVE" : memory.uploadStatus ? up(memory.uploadStatus) : "LOCAL";
+  const displayTitle = String(draftTitle || memory.title || memory.label || "").trim() || pzMemoryDisplayName(memory);
+  const originalName = memory.metadata?.originalName || memory.metadata?.name || memory.fileName || "";
+  const titleMetaLine = [originalName && originalName !== displayTitle ? originalName : "", sizeLabel, dimensionsLabel(memory), readableDateTime(memory.metadata?.lastModifiedISO || memory.metadata?.lastModified || memory.createdAt || memory.date)].filter(Boolean).join("  •  ");
+  const importedLabel = readableDateTime(memory.createdAt || memory.importedAt || memory.date) || memory.date || "";
 
   function saveDetails() {
-    props.updateMemoryDetails(memory, {
+    const nextPatch = {
       title: draftTitle,
       date: draftDate,
       era: draftEra,
@@ -2566,7 +2569,9 @@ function Modal(props) {
       event: draftEvent,
       rating: draftRating,
       label: draftLabel
-    });
+    };
+    props.updateMemoryDetails(memory, nextPatch);
+    setEditDetailsOpen(false);
   }
 
   const modalNode = (
@@ -2575,11 +2580,11 @@ function Modal(props) {
         <motion.div className={"modalCard fileInfoCard" + (inspectorOpen ? " inspectorOpen" : "")} initial={{ y: 18, scale: 0.985 }} animate={{ y: 0, scale: 1 }} onClick={function (event) { event.stopPropagation(); }}>
           <header className="fileInfoHeader">
             <div className="fileInfoTitleBlock">
-              <span>{video ? "VIDEO" : "PHOTO"}</span>
-              <h2>{memory.fileName || memory.metadata?.originalName || pzMemoryDisplayName(memory)}</h2>
-              <em>{[sizeLabel, dimensionsLabel(memory), readableDateTime(memory.metadata?.lastModifiedISO || memory.metadata?.lastModified || memory.createdAt || memory.date)].filter(Boolean).join("  •  ")}</em>
+              <span className="fileInfoTypeGlyph" aria-label={video ? "Video" : "Photo"}>{video ? <Film size={13} /> : <Image size={13} />}</span>
+              <h2>{displayTitle}</h2>
+              <em>{titleMetaLine}</em>
             </div>
-            <div className="fileViewerChromeActions"><button type="button" className={"fileViewerInfoButton" + (inspectorOpen ? " active" : "")} onClick={function () { setInspectorOpen(function (value) { return !value; }); }}><PanelRightOpen size={15} /> INFO</button><button type="button" className="fileInfoClose" aria-label="Close" onClick={props.close}><X size={18} /></button></div>
+            <div className="fileViewerChromeActions"><button type="button" className={"fileViewerInfoButton" + (inspectorOpen ? " active" : "")} aria-label="Info" data-tooltip="Info" onClick={function () { setInspectorOpen(function (value) { return !value; }); }}><PanelRightOpen size={15} /> INFO</button><button type="button" className="fileInfoClose" aria-label="Close" data-tooltip="Close" onClick={props.close}><X size={18} /></button></div>
           </header>
 
           <main className={"fileInfoLayout" + (inspectorOpen ? " inspectorOpen" : "")}>
@@ -2589,20 +2594,20 @@ function Modal(props) {
                 {memory.trashed ? <span className="pzTrashRibbon">TRASH</span> : null}
               </div>
               <div className="fileInfoActionRail" aria-label="Photo actions">
-                <button type="button" aria-label="Star" className={props.isStarred ? "active" : ""} onClick={function () { props.toggleStar(memory); }}><Star size={17} /></button>
-                <button type="button" aria-label="Mark as me" className={memory.isMe ? "active" : ""} onClick={function () { props.toggleMeFlag(memory); }}><UserRound size={17} /></button>
-                <button type="button" aria-label="Mirror" className={memory.inMirror ? "active" : ""} onClick={function () { props.toggleMirror(memory); }}><Eye size={18} /></button>
-                <button type="button" aria-label={memory.archived ? "Unarchive" : "Archive"} className={memory.archived ? "active" : ""} onClick={function () { props.toggleArchive(memory); }}><ArchiveRestore size={17} /></button>
-                <button type="button" aria-label="Info" className={inspectorOpen ? "active" : ""} onClick={function () { setInspectorOpen(function (value) { return !value; }); }}><PanelRightOpen size={17} /></button>
+                <button type="button" aria-label="Favorite" data-tooltip="Favorite" className={props.isStarred ? "active" : ""} onClick={function () { props.toggleStar(memory); }}><Star size={17} /></button>
+                <button type="button" aria-label="Me" data-tooltip="Me" className={memory.isMe ? "active" : ""} onClick={function () { props.toggleMeFlag(memory); }}><UserRound size={17} /></button>
+                <button type="button" aria-label="Mirror" data-tooltip="Mirror" className={memory.inMirror ? "active" : ""} onClick={function () { props.toggleMirror(memory); }}><Eye size={18} /></button>
+                <button type="button" aria-label={memory.archived ? "Unarchive" : "Archive"} data-tooltip={memory.archived ? "Unarchive" : "Archive"} className={memory.archived ? "active" : ""} onClick={function () { props.toggleArchive(memory); }}><ArchiveRestore size={17} /></button>
+                <button type="button" aria-label="Info" data-tooltip="Info" className={inspectorOpen ? "active" : ""} onClick={function () { setInspectorOpen(function (value) { return !value; }); }}><PanelRightOpen size={17} /></button>
               </div>
             </section>
 
             <aside className={"fileInfoInspector" + (inspectorOpen ? " open" : "")}>
-              <div className="fileInfoStats">
-                <span><em>TYPE</em><strong>{up(memory.kind || (video ? "video" : "photo"))}</strong></span>
+              <div className="fileInfoStats fileInfoFacts">
+                <span className="fileInfoMediaSymbol" aria-label={video ? "Video" : "Photo"}>{video ? <Film size={16} /> : <Image size={16} />}</span>
                 <span><em>SIZE</em><strong>{sizeLabel}</strong></span>
                 <span><em>DIMENSIONS</em><strong>{dimensionsLabel(memory)}</strong></span>
-                <span><em>STATUS</em><strong>{statusLabel}</strong></span>
+                <span><em>IMPORTED</em><strong>{importedLabel || "—"}</strong></span>
               </div>
 
               <section className="fileInfoPanel fileInfoCoreMetaPanel">
@@ -2623,7 +2628,7 @@ function Modal(props) {
                   <label><span>RATING</span><input value={draftRating} onChange={function (event) { setDraftRating(event.target.value); }} /></label>
                   <label className="wide"><span>TAGS</span><input value={draftTags} onChange={function (event) { setDraftTags(event.target.value); }} /></label>
                   <label className="wide"><span>CAPTION</span><textarea value={draftCaption} onChange={function (event) { setDraftCaption(event.target.value); }} /></label>
-                </div> : <div className="fileInfoDetailsSummary"><span>{draftTitle || memory.fileName || "Untitled"}</span><span>{draftDate || "No date"}</span><span>{draftEra || "Unassigned"}</span></div>}
+                </div> : <div className="fileInfoDetailsSummary"><span>{displayTitle}</span><span>{draftDate || "No date"}</span><span>{draftEra || "Unassigned"}</span></div>}
               </section>
 
               <section className="fileInfoPanel fileInfoAlbumPanel">

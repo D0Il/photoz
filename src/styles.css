@@ -16699,3 +16699,104 @@ body:has(.fileInfoModal) {
 .photoCard > video {
   display: none;
 }
+
+/* PHOTOZ luxury file viewer behavior pass: user title, symbol facts, real tooltips, no backend bloat. */
+.fileInfoModal .fileInfoTitleBlock {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 9px;
+  row-gap: 2px;
+  align-items: center;
+}
+.fileInfoModal .fileInfoTitleBlock .fileInfoTypeGlyph {
+  grid-row: 1 / span 2;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: rgba(18,18,18,.58);
+  background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.32));
+  border: 1px solid rgba(255,255,255,.80);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.96), 0 8px 20px rgba(0,0,0,.08);
+}
+.fileInfoModal .fileInfoTitleBlock > span:not(.fileInfoTypeGlyph) { display: none; }
+.fileInfoModal .fileInfoTitleBlock h2 {
+  grid-column: 2;
+  margin: 0;
+}
+.fileInfoModal .fileInfoTitleBlock em {
+  grid-column: 2;
+}
+.fileInfoModal .fileInfoFacts {
+  grid-template-columns: 40px repeat(3, minmax(0,1fr));
+}
+.fileInfoModal .fileInfoFacts .fileInfoMediaSymbol {
+  padding: 0;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  color: rgba(18,18,18,.62);
+}
+.fileInfoModal .fileInfoFacts .fileInfoMediaSymbol svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.25;
+}
+.fileInfoModal .fileInfoFacts span em {
+  display: block;
+  margin-bottom: 4px;
+}
+.fileInfoModal .fileInfoFacts span strong {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fileInfoModal .fileInfoActionRail button,
+.fileViewerChromeActions button {
+  position: relative;
+}
+.fileInfoModal .fileInfoActionRail button[data-tooltip]::after,
+.fileViewerChromeActions button[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  transform: translateX(-50%) translateY(4px);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5000;
+  padding: 7px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  color: rgba(20,20,20,.78);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.44)), rgba(240,240,240,.46);
+  border: 1px solid rgba(255,255,255,.84);
+  box-shadow: 0 14px 38px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.98);
+  backdrop-filter: blur(12px) saturate(1.08);
+  transition: opacity .16s ease, transform .16s ease;
+}
+.fileInfoModal .fileInfoActionRail button[data-tooltip]:hover::after,
+.fileInfoModal .fileInfoActionRail button[data-tooltip]:focus-visible::after,
+.fileViewerChromeActions button[data-tooltip]:hover::after,
+.fileViewerChromeActions button[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.fileViewerChromeActions .fileInfoClose[data-tooltip]::after,
+.fileViewerChromeActions .fileViewerInfoButton[data-tooltip]::after {
+  bottom: auto;
+  top: calc(100% + 9px);
+}
+.fileInfoModal .fileInfoCoreMetaPanel .fileInfoMetaLine:nth-child(1) span::after { content: " NAME"; }
+.fileInfoModal .fileInfoTechnicalPanel { display: none; }
+.fileInfoModal .fileInfoUtilityPanel button:nth-child(4),
+.fileInfoModal .fileInfoUtilityPanel button:nth-child(5) {
+  opacity: .82;
+}

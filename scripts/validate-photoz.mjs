@@ -161,6 +161,9 @@ check("fromFile does not overwrite preview with thumb route", !app.includes('pre
 check("file info modal centering css exists", css.includes('PHOTOZ file-info stability pass'));
 check("file import enriches actual media metadata", app.includes("async function enrichMemoryWithFileMetadata") && app.includes("readMediaElementMetadata") && app.includes("metadata.dimensions"));
 check("file info visibly shows core metadata", app.includes("fileInfoCoreMetaPanel") && app.includes("ORIGINAL") && app.includes("FORMAT") && app.includes("MODIFIED") && app.includes("IMPORTED"));
+check("file viewer uses user title before filename", app.includes("const displayTitle = String(draftTitle || memory.title") && app.includes("<h2>{displayTitle}</h2>"));
+check("file viewer removes backend status/type bloat", !app.includes("<em>TYPE</em>") && !app.includes("statusLabel") && app.includes("fileInfoMediaSymbol"));
+check("file viewer buttons have designed tooltips", app.includes('data-tooltip="Favorite"') && app.includes('data-tooltip="Info"') && css.includes("PHOTOZ luxury file viewer behavior pass"));
 check("worker preserves original upload metadata", worker.includes("originalName") && worker.includes("customMetadata") && worker.includes("width") && worker.includes("height") && worker.includes("lastModifiedISO"));
 check("r2 repair reads object metadata", worker.includes("bucket.head") && worker.includes("object.originalName") && worker.includes("memoryFromObject(object)"));
 check("file previewer has dedicated integrity styling", css.includes("PHOTOZ file metadata + previewer integrity pass") && css.includes(".fileInfoCoreMetaPanel") && css.includes(".fileInfoMetaLine"));
