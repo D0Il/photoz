@@ -2770,21 +2770,18 @@ function withTooltip(label) {
 
 
 function MusicUtilityIcon(props) {
-  const size = props.size || 19;
+  const size = props.size || 20;
   return (
-    <span className="musicUtilityIcon refinedMusicNoteIcon" aria-hidden="true" style={{ width: size, height: size }}>
-      <svg viewBox="0 0 28 28" focusable="false">
-        <path className="musicNoteStem leftStem" d="M10.25 8.05v10.62" />
-        <path className="musicNoteStem rightStem" d="M19.25 6.55v10.25" />
-        <path className="musicNoteBeam" d="M10.25 8.05 19.25 6.55" />
-        <path className="musicNoteFlag" d="M10.25 10.72 19.25 9.22" />
-        <ellipse className="musicNoteHead leftHead" cx="7.55" cy="19.45" rx="3.24" ry="2.22" transform="rotate(-17 7.55 19.45)" />
-        <ellipse className="musicNoteHead rightHead" cx="16.55" cy="17.75" rx="3.24" ry="2.22" transform="rotate(-17 16.55 17.75)" />
-        <path className="musicNoteShine" d="M22.35 5.25l.52 1.08 1.13.43-1.13.43-.52 1.08-.52-1.08-1.13-.43 1.13-.43.52-1.08Z" />
+    <span className="musicUtilityIcon clearMusicNoteIcon" aria-hidden="true" style={{ width: size, height: size }}>
+      <svg className="clearMusicNoteSvg" viewBox="0 0 32 32" focusable="false">
+        <path className="clearMusicBeam" d="M12.1 7.4 24.7 5.1c.72-.13 1.35.42 1.35 1.15v12.58c0 2.58-2.26 4.62-5.18 4.62-2.42 0-4.25-1.28-4.25-3.05 0-1.9 2.05-3.35 4.73-3.35.82 0 1.58.14 2.2.4v-6.86l-10.12 1.86v8.68c0 2.6-2.24 4.64-5.16 4.64-2.44 0-4.27-1.28-4.27-3.06 0-1.9 2.05-3.35 4.75-3.35.82 0 1.58.14 2.2.4V8.83c0-.7.5-1.28 1.16-1.43Z" />
+        <path className="clearMusicCut" d="M13.43 10.08 23.55 8.2v1.72l-10.12 1.86v-1.7Z" />
+        <path className="clearMusicSpark" d="M27.55 4.4l.48.98 1.03.4-1.03.38-.48.99-.47-.99-1.03-.38 1.03-.4.47-.98Z" />
       </svg>
     </span>
   );
 }
+
 
 
 const AMBIENT_AUDIO_SOURCES = [];
