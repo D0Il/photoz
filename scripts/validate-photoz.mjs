@@ -134,4 +134,16 @@ if (failures.length) {
 }
 
 
+
+check("media source helper exists", app.includes('function pzMediaSource(memory)'));
+check("preview url does not use missing thumb route", !app.includes('return "/thumb/" + memory.storageKey'));
+check("fromFile does not overwrite preview with thumb route", !app.includes('previewUrl: "/thumb/" + key'));
+check("file info modal centering css exists", css.includes('PHOTOZ file-info stability pass'));
+
+if (failures.length) {
+  console.error("PHOTOZ validation failed:");
+  for (const failure of failures) console.error("- " + failure);
+  process.exit(1);
+}
+
 console.log("PHOTOZ validation passed.");

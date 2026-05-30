@@ -129,7 +129,7 @@ async function handleUpload(request, env) {
 }
 
 async function handleFile(env, pathname) {
-  const key = decodeURIComponent(pathname.replace(/^\/(api\/file|media)\//, ""));
+  const key = decodeURIComponent(pathname.replace(/^\/(api\/file|media|thumb)\//, ""));
   const bucket = getMediaBucket(env);
   if (!bucket || typeof bucket.get !== "function") {
     return new Response("Missing bucket", { status: 404, headers: corsHeaders() });
@@ -194,7 +194,7 @@ export default {
       return jsonResponse(await writeIndex(env, index || emptyIndex("empty backup")));
     }
     if (url.pathname === "/api/upload" && request.method === "POST") return handleUpload(request, env);
-    if (url.pathname.startsWith("/api/file/") || url.pathname.startsWith("/media/")) return handleFile(env, url.pathname);
+    if (url.pathname.startsWith("/api/file/") || url.pathname.startsWith("/media/") || url.pathname.startsWith("/thumb/")) return handleFile(env, url.pathname);
     return new Response("Not found", { status: 404, headers: corsHeaders() });
   },
 };

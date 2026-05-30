@@ -325,11 +325,10 @@ function fromFile(file, index) {
     era: "Unassigned",
     kind,
     fileName: file.name || "",
-    previewUrl: objectUrl(file),
+    previewUrl: objectUrl(file) || MEDIA_BASE + "/" + key,
     storageBase: MEDIA_BASE,
     storageKey: key,
     storageUrl: MEDIA_BASE + "/" + key,
-    previewUrl: "/thumb/" + key,
     uploadStatus: "queued",
     metadata: fileMeta(file, modified),
     tags: [],
@@ -994,8 +993,8 @@ function migrateIndex(index) {
 }
 
 function previewUrlForMemory(memory) {
-  if (!memory || !memory.storageKey) return "";
-  return "/thumb/" + memory.storageKey;
+  if (!memory || !memory.storageKey) return memory && (memory.previewUrl || memory.storageUrl || memory.url) || "";
+  return originalUrlForMemory(memory);
 }
 
 function originalUrlForMemory(memory) {
@@ -1360,7 +1359,7 @@ function ImportBackupButton(props) {
 
 function PhotoCard(props) {
   const memory = normalizeMemoryRecord(props.memory);
-  const source = memory.previewUrl || memory.storageUrl || memory.url;
+  const source = pzMediaSource(memory);
   const video = pzIsVideo(memory);
   const pressTimerRef = useRef(null);
   const longPressRef = useRef(false);
@@ -2344,7 +2343,7 @@ function Modal(props) {
 
   const memory = normalizeMemoryRecord(props.memory);
   const video = pzIsVideo(memory);
-  const source = memory.previewUrl || memory.storageUrl || memory.url;
+  const source = pzMediaSource(memory);
   const currentAlbums = assignableAlbums(props.albums).filter(function (album) {
     return albumHasMemory(props.albums, album.id, memory.id);
   });
@@ -2498,6 +2497,12 @@ function pzVideoRuntime(memory) {
 
 function pzVideoSizeLabel(memory) {
   return formatBytes(fileSizeBytes(memory));
+}
+
+function pzMediaSource(memory) {
+  const source = memory && typeof memory === "object" ? memory : {};
+  if (source.storageKey) return originalUrlForMemory(source);
+  return source.storageUrl || source.previewUrl || source.url || "";
 }
 
 function pzUpdateAlbum(items, id, patch) {
@@ -2655,7 +2660,7 @@ function PzFileDetailEditor(props) {
   }
 
   const tagsText = safeArray(draft.tags).join(", ");
-  const source = memory.previewUrl || memory.storageUrl || memory.url;
+  const source = pzMediaSource(memory);
   const video = pzIsVideo(memory);
 
   return (
@@ -2738,7 +2743,7 @@ function PzUploadRefilterPanel(props) {
 function PzVideoPlaybackModal(props) {
   const memory = props.memory ? normalizeMemoryRecord(props.memory) : null;
   if (!props.open || !memory || !pzIsVideo(memory)) return null;
-  const source = memory.previewUrl || memory.storageUrl || memory.url;
+  const source = pzMediaSource(memory);
 
   return (
     <div className="modalBackdrop pzVideoBackdrop" onClick={props.onClose}>

@@ -14608,3 +14608,61 @@ svg.photozDockIcon {
 }
 
 /* PHOTOZ undo toast compact marker: undoBar is a fixed compact glass toast, not a full-width panel. */
+
+
+/* PHOTOZ file-info stability pass: true centered modal + reliable media presentation */
+.fileInfoModal {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  z-index: var(--pz-z-modal, 180);
+  background:
+    radial-gradient(circle at 50% -12%, rgba(255,255,255,.26), transparent 34%),
+    rgba(218,218,218,.28);
+  backdrop-filter: blur(10px) saturate(1.04);
+  -webkit-backdrop-filter: blur(10px) saturate(1.04);
+}
+
+.fileInfoCard {
+  position: relative;
+  width: min(1080px, calc(100vw - 44px));
+  max-height: calc(100vh - 54px);
+  margin: 0 auto;
+  transform: none;
+}
+
+.fileInfoPreview {
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.075), rgba(255,255,255,.018)),
+    rgba(0,0,0,.040);
+}
+
+.fileInfoPreview img,
+.fileInfoPreview video,
+.memoryCard img,
+.photoCard img,
+.albumThumb img {
+  object-position: center center;
+}
+
+.fileInfoPreview img[src=""],
+.memoryCard img[src=""],
+.photoCard img[src=""] {
+  display: none;
+}
+
+@media (max-width: 980px) {
+  .fileInfoModal {
+    align-items: stretch;
+    padding: 14px;
+  }
+  .fileInfoCard {
+    width: calc(100vw - 28px);
+    max-height: calc(100vh - 28px);
+  }
+}
