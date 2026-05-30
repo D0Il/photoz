@@ -43,6 +43,7 @@ function tooltipForText(value) {
 function withSettingtip(label) {
   return {
     "aria-label": tooltipForText(label),
+    "data-tooltip": tooltipForText(label),
   };
 }
 
@@ -2521,10 +2522,10 @@ function GroupCard(props) {
         <span>{albumStatsLabel(items, childCount)}</span>
         {editable ? (
           <div className="pzAlbumCardActions" aria-label="Album actions">
-            <button type="button" aria-label={group.pinned ? "Unpin album" : "Pin album"} onClick={function (event) { stopAlbumAction(event, function () { props.toggleAlbumPin && props.toggleAlbumPin(group.sourceId); }); }}><PinGlyph size={13} /></button>
-            <button type="button" aria-label={group.locked ? "Unlock album" : "Lock album"} onClick={function (event) { stopAlbumAction(event, function () { props.toggleAlbumLock && props.toggleAlbumLock(group.sourceId); }); }}>{group.locked ? <UnlockKeyhole size={13} /> : <LockKeyhole size={13} />}</button>
-            <button type="button" aria-label="Edit album" onClick={function (event) { stopAlbumAction(event, function () { props.startEdit ? props.startEdit(group.sourceId, group.title, group.description) : props.onEditAlbum && props.onEditAlbum(group); }); }}><FolderPen size={13} /></button>
-            {!group.locked && group.sourceId !== UNASSIGNED_ALBUM_ID ? <button type="button" aria-label="Delete album" onClick={function (event) { stopAlbumAction(event, function () { props.deleteAlbum && props.deleteAlbum(group.sourceId); }); }}><X size={13} /></button> : null}
+            <button type="button" aria-label={group.pinned ? "Unpin album" : "Pin album"} data-tooltip={group.pinned ? "Unpin album" : "Pin album"} onClick={function (event) { stopAlbumAction(event, function () { props.toggleAlbumPin && props.toggleAlbumPin(group.sourceId); }); }}><PinGlyph size={13} /></button>
+            <button type="button" aria-label={group.locked ? "Unlock album" : "Lock album"} data-tooltip={group.locked ? "Unlock album" : "Lock album"} onClick={function (event) { stopAlbumAction(event, function () { props.toggleAlbumLock && props.toggleAlbumLock(group.sourceId); }); }}>{group.locked ? <UnlockKeyhole size={13} /> : <LockKeyhole size={13} />}</button>
+            <button type="button" aria-label="Edit album" data-tooltip="Edit album" onClick={function (event) { stopAlbumAction(event, function () { props.startEdit ? props.startEdit(group.sourceId, group.title, group.description) : props.onEditAlbum && props.onEditAlbum(group); }); }}><FolderPen size={13} /></button>
+            {!group.locked && group.sourceId !== UNASSIGNED_ALBUM_ID ? <button type="button" aria-label="Delete album" data-tooltip="Delete album" onClick={function (event) { stopAlbumAction(event, function () { props.deleteAlbum && props.deleteAlbum(group.sourceId); }); }}><X size={13} /></button> : null}
           </div>
         ) : null}
       </div>
