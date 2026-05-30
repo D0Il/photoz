@@ -18474,3 +18474,83 @@ body:has(.fileInfoModal) {
   .photoGrid.densityCompact { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 132px; }
   .photoGrid.densityLarge { grid-template-columns: repeat(1, minmax(0, 1fr)); grid-auto-rows: 300px; }
 }
+
+/* PHOTOZ album card control cleanup: symbolic controls, no overlapping label pills, no fake description gap. */
+.albumTile {
+  isolation: isolate;
+}
+.albumTile .tileActions {
+  top: 12px;
+  right: 12px;
+  gap: 6px;
+  opacity: 0;
+  transform: translateY(-3px) scale(.98);
+  pointer-events: none;
+}
+.albumTile:hover .tileActions,
+.albumTile:focus-within .tileActions {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+.albumTile .tileActions button {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 999px;
+  font-size: 0;
+  letter-spacing: 0;
+  color: rgba(0,0,0,.56);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.20), rgba(255,255,255,.055)),
+    rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.26);
+  box-shadow:
+    0 8px 18px rgba(0,0,0,.075),
+    inset 0 1px 0 rgba(255,255,255,.26);
+  backdrop-filter: blur(8px) saturate(120%);
+}
+.albumTile .tileActions button svg {
+  width: 13px;
+  height: 13px;
+  stroke-width: 2;
+}
+.albumTile .tileActions button:hover {
+  transform: translateY(-1px) scale(1.04);
+  color: rgba(0,0,0,.78);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,.075)),
+    rgba(255,255,255,.15);
+}
+.proAlbumCard {
+  grid-template-rows: minmax(150px, auto) auto;
+  min-height: 248px;
+  gap: 8px;
+}
+.proAlbumMeta {
+  gap: 3px;
+  min-height: 0;
+  padding: 0 6px 6px;
+  align-content: start;
+}
+.proAlbumMeta.noDescription {
+  gap: 2px;
+  padding-bottom: 2px;
+}
+.proAlbumMeta.noDescription strong {
+  margin-bottom: 0;
+}
+.proAlbumMeta.noDescription span {
+  margin-top: 0;
+}
+@media (hover: none), (pointer: coarse) {
+  .albumTile .tileActions {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+}

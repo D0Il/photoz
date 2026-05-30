@@ -2466,6 +2466,19 @@ function SystemShortcutCard(props) {
   );
 }
 
+
+function PinGlyph(props) {
+  const size = props && props.size ? props.size : 13;
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false" className="pzPinGlyph">
+      <path d="M14.7 3.8 20.2 9.3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M8.25 10.15 13.95 4.45 19.55 10.05 13.85 15.75" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M10.65 13.35 4.1 19.9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M7.65 16.35 5.9 14.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function GroupCard(props) {
   const group = props.group || {};
   const items = newest(safeArray(group.items));
@@ -2489,7 +2502,7 @@ function GroupCard(props) {
         ) : null}
         {video ? <span className="pzVideoBadge"><Film size={11} />{pzVideoLabel(cover)}</span> : null}
       </div>
-      <div className="groupMeta proAlbumMeta">
+      <div className={group.description ? "groupMeta proAlbumMeta" : "groupMeta proAlbumMeta noDescription"}>
         <strong>{cleanSystemLabel(group.title || group.id)}</strong>
         {group.description ? <p>{group.description}</p> : null}
         <span>{albumStatsLabel(items, childCount)}</span>
@@ -2665,10 +2678,10 @@ function AlbumsFilter(props) {
           return (
             <div className={group.excludeFromAll ? "albumTile excludedFromAll" : "albumTile"} key={group.id}>
               <div className="tileActions">
-                {!group.virtual ? <button type="button" onClick={function () { props.toggleAlbumPin(group.sourceId); }}>{group.pinned ? "Unpin" : "Pin"}</button> : null}
-                {!group.virtual ? <button type="button" onClick={function () { props.toggleAlbumLock(group.sourceId); }}>{group.locked ? "Unlock" : "Lock"}</button> : null}
-                {!group.virtual ? <button type="button" onClick={function () { props.startEdit(group.sourceId, group.title, group.description); }}>Edit</button> : null}
-                {!group.virtual && !group.locked && group.sourceId !== UNASSIGNED_ALBUM_ID ? <button type="button" onClick={function () { props.deleteAlbum(group.sourceId); }}><X size={14} /></button> : null}
+                {!group.virtual ? <button type="button" aria-label={group.pinned ? "Unpin album" : "Pin album"} onClick={function () { props.toggleAlbumPin(group.sourceId); }}><PinGlyph size={13} /></button> : null}
+                {!group.virtual ? <button type="button" aria-label={group.locked ? "Unlock album" : "Lock album"} onClick={function () { props.toggleAlbumLock(group.sourceId); }}>{group.locked ? <UnlockKeyhole size={13} /> : <LockKeyhole size={13} />}</button> : null}
+                {!group.virtual ? <button type="button" aria-label="Edit album" onClick={function () { props.startEdit(group.sourceId, group.title, group.description); }}><FolderPen size={13} /></button> : null}
+                {!group.virtual && !group.locked && group.sourceId !== UNASSIGNED_ALBUM_ID ? <button type="button" aria-label="Delete album" onClick={function () { props.deleteAlbum(group.sourceId); }}><X size={13} /></button> : null}
               </div>
               {editing ? (
                 <Glass className="editPanel">
