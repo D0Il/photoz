@@ -2523,6 +2523,7 @@ function Modal(props) {
   const [showMetadata, setShowMetadata] = useState(false);
   const [showTechnical, setShowTechnical] = useState(false);
   const [editDetailsOpen, setEditDetailsOpen] = useState(false);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
 
   useEffect(function () {
     if (!props.memory) return;
@@ -2538,6 +2539,7 @@ function Modal(props) {
     setShowMetadata(false);
     setShowTechnical(false);
     setEditDetailsOpen(false);
+    setInspectorOpen(false);
   }, [props.memory]);
 
   if (!props.memory) return null;
@@ -2570,17 +2572,17 @@ function Modal(props) {
   const modalNode = (
     <AnimatePresence>
       <motion.div className="modal fileInfoModal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={props.close}>
-        <motion.div className="modalCard fileInfoCard" initial={{ y: 18, scale: 0.985 }} animate={{ y: 0, scale: 1 }} onClick={function (event) { event.stopPropagation(); }}>
+        <motion.div className={"modalCard fileInfoCard" + (inspectorOpen ? " inspectorOpen" : "")} initial={{ y: 18, scale: 0.985 }} animate={{ y: 0, scale: 1 }} onClick={function (event) { event.stopPropagation(); }}>
           <header className="fileInfoHeader">
             <div className="fileInfoTitleBlock">
               <span>{video ? "VIDEO" : "PHOTO"}</span>
               <h2>{memory.fileName || memory.metadata?.originalName || pzMemoryDisplayName(memory)}</h2>
-              <em>{memory.title && memory.title !== fileBaseName(memory.fileName) ? memory.title : (memory.metadata?.webkitRelativePath || memory.storageKey || "ORIGINAL FILE")}</em>
+              <em>{[sizeLabel, dimensionsLabel(memory), readableDateTime(memory.metadata?.lastModifiedISO || memory.metadata?.lastModified || memory.createdAt || memory.date)].filter(Boolean).join("  •  ")}</em>
             </div>
-            <button type="button" className="fileInfoClose" aria-label="Close" onClick={props.close}><X size={18} /></button>
+            <div className="fileViewerChromeActions"><button type="button" className={"fileViewerInfoButton" + (inspectorOpen ? " active" : "")} onClick={function () { setInspectorOpen(function (value) { return !value; }); }}>INFO</button><button type="button" className="fileInfoClose" aria-label="Close" onClick={props.close}><X size={18} /></button></div>
           </header>
 
-          <main className="fileInfoLayout">
+          <main className={"fileInfoLayout" + (inspectorOpen ? " inspectorOpen" : "")}>
             <section className="fileInfoPreviewPanel">
               <div className="fileInfoPreview">
                 {video ? <video src={source} controls playsInline /> : <img src={source} alt="" />}
@@ -2591,10 +2593,11 @@ function Modal(props) {
                 <button type="button" className={memory.isMe ? "active" : ""} onClick={function () { props.toggleMeFlag(memory); }}>ME</button>
                 <button type="button" className={memory.inMirror ? "active" : ""} onClick={function () { props.toggleMirror(memory); }}>MIRROR</button>
                 <button type="button" className={memory.archived ? "active" : ""} onClick={function () { props.toggleArchive(memory); }}>{memory.archived ? "UNARCHIVE" : "ARCHIVE"}</button>
+                <button type="button" className={inspectorOpen ? "active" : ""} onClick={function () { setInspectorOpen(function (value) { return !value; }); }}>INFO</button>
               </div>
             </section>
 
-            <aside className="fileInfoInspector">
+            <aside className={"fileInfoInspector" + (inspectorOpen ? " open" : "")}>
               <div className="fileInfoStats">
                 <span><em>TYPE</em><strong>{up(memory.kind || (video ? "video" : "photo"))}</strong></span>
                 <span><em>SIZE</em><strong>{sizeLabel}</strong></span>
