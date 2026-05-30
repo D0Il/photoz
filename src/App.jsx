@@ -1896,7 +1896,16 @@ function PhotoCard(props) {
     if (!targetMemory || !targetMemory.id) return;
     if (selectedDuringDragRef.current[targetMemory.id]) return;
     selectedDuringDragRef.current[targetMemory.id] = true;
-    props.onDragSelect ? props.onDragSelect(targetMemory) : props.onLongSelect && props.onLongSelect(targetMemory);
+    props.setSelectionMode && props.setSelectionMode(true);
+    if (props.onDragSelect) {
+      props.onDragSelect(targetMemory);
+      return;
+    }
+    if (props.onLongSelect) {
+      props.onLongSelect(targetMemory);
+      return;
+    }
+    props.toggleSelected && props.toggleSelected(targetMemory.id);
   }
 
   function selectFromPoint(clientX, clientY) {
@@ -1967,11 +1976,8 @@ function PhotoCard(props) {
       return;
     }
 
-    if (video && props.onPlayVideo) {
-      props.onPlayVideo(memory);
-      return;
-    }
-
+    // Videos open in the same PHOTOZ viewer as photos. The viewer renders a real
+    // <video controls> element with a scrub/play bar instead of launching a separate modal.
     props.onClick && props.onClick(memory, event);
   }
 
@@ -1985,7 +1991,8 @@ function PhotoCard(props) {
       onPointerLeave={cancelPress}
       onContextMenu={function (event) {
         event.preventDefault();
-        props.onLongSelect && props.onLongSelect(memory);
+        props.setSelectionMode && props.setSelectionMode(true);
+        props.onLongSelect ? props.onLongSelect(memory) : props.toggleSelected && props.toggleSelected(memory.id);
       }}
       onClick={activate}
     >
@@ -2011,7 +2018,7 @@ function PhotoCard(props) {
         {props.onEdit ? (
           <button type="button" aria-label="Edit file" onClick={function (event) { event.stopPropagation(); props.onEdit(memory); }}><PanelRightOpen size={12} /></button>
         ) : null}
-        {video && props.onPlayVideo ? <button type="button" aria-label="Play video" onClick={function (event) { event.stopPropagation(); props.onPlayVideo(memory); }}><Film size={12} /></button> : null}
+        {video ? <button type="button" aria-label="Open video" onClick={function (event) { event.stopPropagation(); props.onClick ? props.onClick(memory, event) : props.onPlayVideo && props.onPlayVideo(memory); }}><Film size={12} /></button> : null}
       </div>
     </article>
   );
@@ -2484,12 +2491,17 @@ function GroupCard(props) {
   const items = newest(safeArray(group.items));
   const cover = items[0] || null;
   const video = cover && pzIsVideo(cover);
-  const count = items.length;
   const childCount = Number(group.childCount || 0);
   const badges = [group.pinned ? "PINNED" : "", group.locked ? "LOCKED" : "", group.excludeFromAll ? "HIDDEN" : ""].filter(Boolean);
+  const editable = !group.virtual && !isSystemAlbumGroup(group);
+
+  function stopAlbumAction(event, fn) {
+    event.stopPropagation();
+    if (fn) fn();
+  }
 
   return (
-    <article className={cls("groupCard proAlbumCard", group.excludeFromAll && "excludedFromAll")} onClick={function () { props.openGroup && props.openGroup(group); }}>
+    <article className={cls("groupCard proAlbumCard", group.excludeFromAll && "excludedFromAll", !group.description && "hasNoDescription")} onClick={function () { props.openGroup && props.openGroup(group); }}>
       <div className="groupCover proAlbumCover">
         {cover ? (video ? <video src={cover.previewUrl || cover.storageUrl || cover.url} muted playsInline preload="metadata" /> : <img src={cover.previewUrl || cover.storageUrl || cover.url} alt="" loading="lazy" />) : <span className="pzBlankCover"><PhotozAlbumDockIcon size={32} /></span>}
         {items.slice(1, 4).length ? (
@@ -2506,9 +2518,16 @@ function GroupCard(props) {
         <strong>{cleanSystemLabel(group.title || group.id)}</strong>
         {group.description ? <p>{group.description}</p> : null}
         <span>{albumStatsLabel(items, childCount)}</span>
+        {editable ? (
+          <div className="pzAlbumCardActions" aria-label="Album actions">
+            <button type="button" aria-label={group.pinned ? "Unpin album" : "Pin album"} onClick={function (event) { stopAlbumAction(event, function () { props.toggleAlbumPin && props.toggleAlbumPin(group.sourceId); }); }}><PinGlyph size={13} /></button>
+            <button type="button" aria-label={group.locked ? "Unlock album" : "Lock album"} onClick={function (event) { stopAlbumAction(event, function () { props.toggleAlbumLock && props.toggleAlbumLock(group.sourceId); }); }}>{group.locked ? <UnlockKeyhole size={13} /> : <LockKeyhole size={13} />}</button>
+            <button type="button" aria-label="Edit album" onClick={function (event) { stopAlbumAction(event, function () { props.startEdit ? props.startEdit(group.sourceId, group.title, group.description) : props.onEditAlbum && props.onEditAlbum(group); }); }}><FolderPen size={13} /></button>
+            {!group.locked && group.sourceId !== UNASSIGNED_ALBUM_ID ? <button type="button" aria-label="Delete album" onClick={function (event) { stopAlbumAction(event, function () { props.deleteAlbum && props.deleteAlbum(group.sourceId); }); }}><X size={13} /></button> : null}
+          </div>
+        ) : null}
       </div>
       {badges.length ? <div className="albumBadges">{badges.map(function (badge) { return <em key={badge}>{badge}</em>; })}</div> : null}
-      {!group.virtual && !isSystemAlbumGroup(group) ? <button type="button" className="pzGroupEditButton" aria-label="Edit album" onClick={function (event) { event.stopPropagation(); props.onEditAlbum && props.onEditAlbum(group); }}><FolderPen size={12} /></button> : null}
     </article>
   );
 }
@@ -2677,12 +2696,6 @@ function AlbumsFilter(props) {
 
           return (
             <div className={group.excludeFromAll ? "albumTile excludedFromAll" : "albumTile"} key={group.id}>
-              <div className="tileActions">
-                {!group.virtual ? <button type="button" aria-label={group.pinned ? "Unpin album" : "Pin album"} onClick={function () { props.toggleAlbumPin(group.sourceId); }}><PinGlyph size={13} /></button> : null}
-                {!group.virtual ? <button type="button" aria-label={group.locked ? "Unlock album" : "Lock album"} onClick={function () { props.toggleAlbumLock(group.sourceId); }}>{group.locked ? <UnlockKeyhole size={13} /> : <LockKeyhole size={13} />}</button> : null}
-                {!group.virtual ? <button type="button" aria-label="Edit album" onClick={function () { props.startEdit(group.sourceId, group.title, group.description); }}><FolderPen size={13} /></button> : null}
-                {!group.virtual && !group.locked && group.sourceId !== UNASSIGNED_ALBUM_ID ? <button type="button" aria-label="Delete album" onClick={function () { props.deleteAlbum(group.sourceId); }}><X size={13} /></button> : null}
-              </div>
               {editing ? (
                 <Glass className="editPanel">
                   <input value={props.editDraft} onChange={function (event) { props.setEditDraft(event.target.value); }} />
@@ -2693,8 +2706,12 @@ function AlbumsFilter(props) {
                   </div>
                 </Glass>
               ) : (
-                <GroupCard group={group} openGroup={props.openGroup} openMemory={props.openMemory} deleteMemory={props.deleteMemory} selectionMode={props.selectionMode} selectedIds={props.selectedIds} toggleSelected={props.toggleSelected} setSelectionMode={props.setSelectionMode} starredIds={props.starredIds} 
-                onEditAlbum={function (group) { props.onEditAlbum && props.onEditAlbum(group); }}/>
+                <GroupCard group={group} openGroup={props.openGroup} openMemory={props.openMemory} deleteMemory={props.deleteMemory} selectionMode={props.selectionMode} selectedIds={props.selectedIds} toggleSelected={props.toggleSelected} setSelectionMode={props.setSelectionMode} starredIds={props.starredIds}
+                  toggleAlbumPin={props.toggleAlbumPin}
+                  toggleAlbumLock={props.toggleAlbumLock}
+                  startEdit={props.startEdit}
+                  deleteAlbum={props.deleteAlbum}
+                  onEditAlbum={function (group) { props.onEditAlbum && props.onEditAlbum(group); }} />
               )}
             </div>
           );
@@ -2777,9 +2794,9 @@ function SearchFilter(props) {
     return matchesSearchQuery(memory, query, allAlbums);
   });
   const searchFilterOpen = Boolean(props.advancedSearchOpen);
-  const setSearchFilterOpen = props.setAdvancedSearchOpen || function () {};
   const activeFilterLabel = activeSearchFilter === "all" ? "BROWSE" : up(activeSearchFilter);
-
+  void searchFilterOpen;
+  void activeFilterLabel;
   return (
     <div className="pageScroll searchPage">
       <VisibleReporter items={items} reportVisibleIds={props.reportVisibleIds} />
@@ -2792,32 +2809,6 @@ function SearchFilter(props) {
             onChange={function (event) { props.setQuery(event.target.value); }}
             placeholder="SEARCH"
           />
-          <div className="searchFilterDropdown inlineSearchFilterDropdown">
-            <button
-              type="button"
-              className={searchFilterOpen ? "searchFilterTrigger iconOnly active" : "searchFilterTrigger iconOnly"}
-              aria-label="Filter results"
-              onClick={function () { setSearchFilterOpen(function (value) { return !value; }); }}
-            >
-              <SlidersHorizontal size={14} />
-            </button>
-            {searchFilterOpen ? (
-              <div className="searchFilterMenu">
-                {PRIMARY_SEARCH_FILTERS.map(function (filter) {
-                  return (
-                    <button
-                      type="button"
-                      key={filter}
-                      className={activeSearchFilter === filter ? "active" : ""}
-                      onClick={function () { setFilter(filter); setSearchFilterOpen(false); }}
-                    >
-                      {filter === "all" ? "BROWSE" : up(filter)}
-                    </button>
-                  );
-                })}
-              </div>
-            ) : null}
-          </div>
         </div>
       </div>
 
@@ -2855,6 +2846,9 @@ function GroupFilter(props) {
   const group = props.group || {};
   const items = filteredSortedMemories(safeArray(group.items), props.albums, props, props.sortMode);
   const title = up(cleanSystemLabel(group.title || group.id || ""));
+  const sourceId = String(group.sourceId || group.id || "");
+  const isUnassigned = sourceId === UNASSIGNED_ALBUM_ID || String(title).toLowerCase().indexOf("unassigned") !== -1;
+  const selectedCount = selectedCountFromMap(props.selectedIds);
   return (
     <Glass className="shell groupShell">
       <VisibleReporter items={items} reportVisibleIds={props.reportVisibleIds} />
@@ -2863,6 +2857,26 @@ function GroupFilter(props) {
         {items.length ? <strong>{title}</strong> : null}
         {items.length ? <Pill>{items.length}</Pill> : null}
       </div>
+      {isUnassigned ? (
+        <div className="unassignedOrganizeHint">
+          <span>Hold a photo, then move it into an album.</span>
+        </div>
+      ) : null}
+      {props.selectionMode && selectedCount ? (
+        <div className="groupQuickOrganizeBar" aria-label="Quick organize selected photos">
+          <select value={props.bulkAlbum || UNASSIGNED_ALBUM_ID} aria-label="Album" onChange={function (event) { props.setBulkAlbum && props.setBulkAlbum(event.target.value); }}>
+            {assignableAlbums(props.albums).map(function (album) {
+              return <option key={album.id} value={album.id}>{album.title || "PHOTO ALBUM"}</option>;
+            })}
+          </select>
+          <button type="button" onClick={props.bulkMoveToAlbum}>MOVE</button>
+          <button type="button" onClick={props.bulkAddToAlbum}>ADD</button>
+          <button type="button" onClick={props.bulkMoveToMirror}>MIRROR</button>
+          <button type="button" onClick={props.bulkStar}>★</button>
+          <button type="button" className="danger" onClick={props.bulkDelete}>TRASH</button>
+          <button type="button" onClick={props.clearSelection}>CLEAR</button>
+        </div>
+      ) : null}
       {items.length ? (
         <div className={cls("photoGrid", densityClass(props.viewDensity))}>
           {items.map(function (memory) {
@@ -3936,7 +3950,7 @@ const [screen, setScreen] = useState("home");
     function handlePointerDown(event) {
       const target = event.target;
       if (!target || !target.closest) return;
-      if (target.closest(".photozOverlaySurface, .floatingPanel, .settingsPopover, .filterPopover, .filterPanel, .albumControlsRow, .albumInlineActions, .floatingUtilityCluster, .bulkBar, .dockWrap, .searchFilterDropdown, .modal, .modalCard, .modalBackdrop, .pzEditorSheet, .pzVideoCinemaPanel, .undoBar")) return;
+      if (target.closest(".photozOverlaySurface, .floatingPanel, .settingsPopover, .filterPopover, .filterPanel, .albumControlsRow, .albumInlineActions, .floatingUtilityCluster, .bulkBar, .dockWrap, .modal, .modalCard, .modalBackdrop, .pzEditorSheet, .pzVideoCinemaPanel, .undoBar")) return;
       closeTransientOverlays();
     }
     function handleKeyDown(event) {
@@ -5313,7 +5327,27 @@ async function handleUpload(eventOrFiles) {
                 {activePage === "search" ? <SearchFilter memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={function (nextValue) { const next = typeof nextValue === "function" ? nextValue(advancedSearchOpen) : nextValue; if (next) closeTransientOverlays("searchFilter"); setAdvancedSearchOpen(Boolean(next)); }} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays("videoPlayer"); setPzVideoPlayerId(memory.id); }} /> : null}
               </Glass>
             ) : null}
-            {screen === "group" && activeGroup ? <GroupFilter group={activeGroup} back={goHome} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays("videoPlayer"); setPzVideoPlayerId(memory.id); }} /> : null}
+            {screen === "group" && activeGroup ? (
+              <>
+                <div className="floatingUtilityCluster groupUtilityCluster">
+                  <span className="groupUtilityCount" aria-label={safeArray(activeGroup.items).length + " files"}>{safeArray(activeGroup.items).length} FILES</span>
+                  <div className="floatingUtilityRail" aria-label="Quick actions">
+                    <AmbientMusicControl />
+                    <button type="button" aria-label="Filter" data-tooltip="Filter" className={filterControlsOpen ? "utilityRailButton iconUtilityButton active" : "utilityRailButton iconUtilityButton"} onClick={function () { toggleOverlay("filter", filterControlsOpen, setFilterControlsOpen); }}><SlidersHorizontal size={14} strokeWidth={2.1} /></button>
+                    <button type="button" aria-label="Settings" data-tooltip="Settings" className={settingsOpen ? "utilityRailButton cogUtilityButton iconUtilityButton active" : "utilityRailButton cogUtilityButton iconUtilityButton"} onClick={function () { toggleOverlay("settings", settingsOpen, setSettingsOpen); }}>⚙</button>
+                  </div>
+                </div>
+                <FilterPanel open={filterControlsOpen} close={function () { setFilterControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={false} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize}
+                  showAlbumDateModes={false} albumDateMode={archiveFilter} setAlbumDateMode={setArchiveFilterFromNav}
+                  searchFilter={searchFilter} setSearchFilter={setSearchFilter}
+                  filterType={filterType} setFilterType={setFilterType}
+                  filterSource={filterSource} setFilterSource={setFilterSource}
+                  filterQuality={filterQuality} setFilterQuality={setFilterQuality}
+                  viewDensity={viewDensity} setViewDensity={setViewDensity}/>
+                <SettingsPanel onUpload={handleUpload} open={settingsOpen} close={function () { setSettingsOpen(false); }} toggleImportPanel={function () { closeTransientOverlays("import"); setImportPanelOpen(true); }} toggleUploadQueuePanel={function () { closeTransientOverlays("queue"); setUploadQueueOpen(true); }} toggleStatusPanel={function () { closeTransientOverlays("status"); setStatusOpen(true); }} toggleDuplicatePanel={function () { closeTransientOverlays("duplicates"); setDuplicatesOpen(true); }} toggleHealthPanel={function () { closeTransientOverlays("health"); setHealthOpen(true); }} exportVaultIndex={exportVaultIndex} exportManifestCsv={exportManifestCsv} importVaultIndex={importVaultIndex} toggleUploadRefilterPanel={function () { closeTransientOverlays("uploadRefilter"); setPzUploadRefilterOpen(true); }}/>
+              </>
+            ) : null}
+            {screen === "group" && activeGroup ? <GroupFilter group={activeGroup} albums={albums} back={goHome} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkMoveToMirror={bulkMoveToMirror} bulkStar={bulkStar} bulkDelete={bulkDelete} clearSelection={clearSelection} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays("videoPlayer"); setPzVideoPlayerId(memory.id); }} /> : null}
           </motion.div>
         </AnimatePresence>
       </main>
@@ -5338,13 +5372,7 @@ async function handleUpload(eventOrFiles) {
         onRestore={pzRestoreMemory}
         onDownload={pzDownloadMemory}
       />
-      <PzVideoPlaybackModal
-        open={Boolean(pzActiveVideoMemory)}
-        memory={pzActiveVideoMemory}
-        onClose={function () { setPzVideoPlayerId(null); }}
-        onEdit={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }}
-        onDownload={pzDownloadMemory}
-      />
+      {/* Video files use the main PHOTOZ viewer so the same photo-stage controls stay consistent. */}
       <PzUploadRefilterPanel
         open={pzUploadRefilterOpen}
         queue={pzUploadQueue}

@@ -506,22 +506,59 @@ async function handleFileAudit(env, repair = false) {
   return jsonResponse({ ok: true, repaired: Boolean(repair), ...result.report, indexMemories: safeArray(result.index.memories).length, indexAlbums: safeArray(result.index.albums).length });
 }
 
-async function handleFile(env, pathname, method) {
+async function handleFile(env, pathname, method, request) {
   const key = decodeURIComponent(pathname.replace(/^\/(api\/file|media|thumb)\//, ""));
   const bucket = getMediaBucket(env);
   if (!bucket || typeof bucket.get !== "function") {
     return new Response("Missing bucket", { status: 404, headers: corsHeaders() });
   }
   const resolvedKey = await resolveObjectKey(bucket, key);
-  const object = await bucket.get(resolvedKey);
+  const rangeHeader = request && request.headers ? request.headers.get("Range") : null;
+  const rangeMatch = rangeHeader && /^bytes=(\d*)-(\d*)$/.exec(rangeHeader);
+  let object;
+  let range = null;
+
+  if (rangeMatch) {
+    const startText = rangeMatch[1];
+    const endText = rangeMatch[2];
+    if (startText !== "") {
+      const offset = Number(startText);
+      const end = endText !== "" ? Number(endText) : undefined;
+      if (Number.isFinite(offset)) range = end !== undefined && Number.isFinite(end) ? { offset, length: Math.max(0, end - offset + 1) } : { offset };
+    } else if (endText !== "") {
+      const suffix = Number(endText);
+      if (Number.isFinite(suffix)) range = { suffix };
+    }
+  }
+
+  object = range ? await bucket.get(resolvedKey, { range }) : await bucket.get(resolvedKey);
   if (!object) return new Response("Not found", { status: 404, headers: corsHeaders() });
+
+  const size = Number(object.size || 0);
+  const contentType = object.httpMetadata && object.httpMetadata.contentType ? object.httpMetadata.contentType : "application/octet-stream";
   const headers = {
-    "content-type": object.httpMetadata && object.httpMetadata.contentType ? object.httpMetadata.contentType : "application/octet-stream",
+    "content-type": contentType,
     "cache-control": "public, max-age=31536000",
     "etag": object.etag || `\"${resolvedKey}\"`,
+    "accept-ranges": "bytes",
     ...corsHeaders(),
   };
-  if (method === "HEAD") return new Response(null, { status: 200, headers });
+
+  if (method === "HEAD") {
+    if (size) headers["content-length"] = String(size);
+    return new Response(null, { status: 200, headers });
+  }
+
+  if (range && object.range) {
+    const offset = Number(object.range.offset || 0);
+    const length = Number(object.range.length || 0);
+    const completeLength = Number(object.range.completeLength || object.size || 0);
+    if (length) headers["content-length"] = String(length);
+    if (completeLength) headers["content-range"] = `bytes ${offset}-${offset + length - 1}/${completeLength}`;
+    return new Response(object.body, { status: 206, headers });
+  }
+
+  if (size) headers["content-length"] = String(size);
   return new Response(object.body, { headers });
 }
 
@@ -576,7 +613,7 @@ export default {
     }
     if (url.pathname === "/api/upload" && request.method === "POST") return handleUpload(request, env);
     if (url.pathname === "/api/delete" && (request.method === "POST" || request.method === "DELETE")) return handleDelete(request, env);
-    if (url.pathname.startsWith("/api/file/") || url.pathname.startsWith("/media/") || url.pathname.startsWith("/thumb/")) return handleFile(env, url.pathname, request.method);
+    if (url.pathname.startsWith("/api/file/") || url.pathname.startsWith("/media/") || url.pathname.startsWith("/thumb/")) return handleFile(env, url.pathname, request.method, request);
     return new Response("Not found", { status: 404, headers: corsHeaders() });
   },
 };

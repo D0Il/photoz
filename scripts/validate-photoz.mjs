@@ -30,7 +30,7 @@ check("no visible Select labels", !app.includes(">Select<") && !app.includes(">S
 check("no actualPageTitle render", !app.includes("{actualPageTitle}"));
 check("singular labels preserved", app.includes("PHOTO ALBUM") && app.includes("YEAR") && app.includes("MONTH") && app.includes("ERA") && !/>PHOTO ALBUMS</.test(app) && !/>YEARS</.test(app) && !/>MONTHS</.test(app) && !/>ERAS</.test(app) && !/return "YEARS"|return "MONTHS"|return "ERAS"/.test(app));
 check("search copy updated", app.includes('placeholder="SEARCH"') && app.includes("BROWSE") && !app.includes("SEARCH PHOTO ALBUMS") && !app.includes("SEARCH ALBUMS") && !app.includes("SEARCH FILES"));
-check("search filters render as dropdown not loose buttons", app.includes("searchFilterDropdown") && app.includes("searchFilterTrigger") && app.includes("searchFilterMenu") && !app.includes('className="searchFilters librarySearchFilters"'));
+check("search page uses only global filter button", !app.includes("searchFilterDropdown") && !app.includes("searchFilterTrigger") && !app.includes("searchFilterMenu") && matchCount(app, /aria-label="Filter results"/g) === 0);
 check("corner controls tightened", css.includes("PHOTOZ final prestige/corner pass") && css.includes("padding-top: 2px;") && css.includes("margin: 2px 0 5px;"));
 check("dock is larger and more prestigious", css.includes("min-width: 232px;") && css.includes("height: 66px;") && css.includes("photozPrestigeBookFlip"));
 check("album search collapsed into nav action", app.includes("albumSearchOpen") && app.includes("setAlbumSearchOpen") && app.includes("albumSearchToggle") && app.includes("<CenteredGlassesIcon size={18} />") && app.includes("albumQuickCreate"));
@@ -157,7 +157,7 @@ check("app permanent delete posts storage key helper", app.includes('const key =
 check("password gate uses live access endpoint", !app.includes('fetch("/api/auth", {') && app.includes('fetch("/api/access", {'));
 
 check("album file cards receive working detail editor action", app.includes("onEditMemory={function (memory) { closeTransientOverlays(\"detailEditor\"); setPzDetailEditorId(memory.id); }}"));
-check("albums can enter selection mode by long press for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("onLongSelect={function (memory)") && app.includes("props.onLongSelect && props.onLongSelect(memory);"));
+check("albums can enter selection mode by long press for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("onLongSelect={function (memory)") && app.includes("props.setSelectionMode && props.setSelectionMode(true);"));
 check("album selection does not reintroduce visible card select button", !app.includes('aria-label="Select file"') && !app.includes('<AlbumSectionHeader show title="FILES"'));
 
 check("album visibility control stays behind edit", !app.includes('>{album.excludeFromAll ? "SHOW IN ALL" : "HIDE FROM ALL"}</button>') && app.includes('<span>HIDE FROM ALL</span>'));
@@ -186,7 +186,7 @@ check("r2 repair reads object metadata", worker.includes("bucket.head") && worke
 check("file previewer has dedicated integrity styling", css.includes("PHOTOZ file metadata + previewer integrity pass") && css.includes(".fileInfoCoreMetaPanel") && css.includes(".fileInfoMetaLine"));
 
 check("album file cards receive working detail editor action", app.includes("onEditMemory={function (memory) { closeTransientOverlays(\"detailEditor\"); setPzDetailEditorId(memory.id); }}"));
-check("albums can enter selection mode by long press for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("onLongSelect={function (memory)") && app.includes("props.onLongSelect && props.onLongSelect(memory);"));
+check("albums can enter selection mode by long press for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("onLongSelect={function (memory)") && app.includes("props.setSelectionMode && props.setSelectionMode(true);"));
 check("album selection does not reintroduce visible card select button", !app.includes('aria-label="Select file"') && !app.includes('<AlbumSectionHeader show title="FILES"'));
 
 if (failures.length) {
@@ -200,7 +200,7 @@ check("full-photo preview guarantee block exists", css.includes("PHOTOZ full-pho
 check("media viewers/cards use contain after full-photo guarantee", css.includes("PHOTOZ full-photo preview guarantee") && /PHOTOZ full-photo preview guarantee[\s\S]*object-fit:\s*contain/.test(css));
 check("video thumbnails not forced cropped after full-photo guarantee", !/PHOTOZ full-photo preview guarantee[\s\S]*object-fit:\s*cover/.test(css));
 check("album file cards receive working detail editor action", app.includes("onEditMemory={function (memory) { closeTransientOverlays(\"detailEditor\"); setPzDetailEditorId(memory.id); }}"));
-check("albums can enter selection mode by long press for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("onLongSelect={function (memory)") && app.includes("props.onLongSelect && props.onLongSelect(memory);"));
+check("albums can enter selection mode by long press for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("onLongSelect={function (memory)") && app.includes("props.setSelectionMode && props.setSelectionMode(true);"));
 check("album selection does not reintroduce visible card select button", !app.includes('aria-label="Select file"') && !app.includes('<AlbumSectionHeader show title="FILES"'));
 
 if (failures.length) {
@@ -216,7 +216,7 @@ check("file info viewer must use a photo-first split layout", css.includes("grid
 check("file info media must be inset and contained, not stretched/cropped", css.includes("max-width: 100%") && css.includes("object-fit: contain"));
 
 check("album file cards receive working detail editor action", app.includes("onEditMemory={function (memory) { closeTransientOverlays(\"detailEditor\"); setPzDetailEditorId(memory.id); }}"));
-check("albums can enter selection mode by long press for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("onLongSelect={function (memory)") && app.includes("props.onLongSelect && props.onLongSelect(memory);"));
+check("albums can enter selection mode by long press for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("onLongSelect={function (memory)") && app.includes("props.setSelectionMode && props.setSelectionMode(true);"));
 check("album selection does not reintroduce visible card select button", !app.includes('aria-label="Select file"') && !app.includes('<AlbumSectionHeader show title="FILES"'));
 
 if (failures.length) {
@@ -239,7 +239,7 @@ check("photo card images scoped to thumbnail", css.includes(".photoCard .photoTh
 check("photo card metadata separated from media", css.includes(".photoCard .photoMeta") && css.includes("grid-template-rows: minmax(0, 1fr) auto"));
 
 check("album file cards receive working detail editor action", app.includes("onEditMemory={function (memory) { closeTransientOverlays(\"detailEditor\"); setPzDetailEditorId(memory.id); }}"));
-check("albums can enter selection mode by long press for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("onLongSelect={function (memory)") && app.includes("props.onLongSelect && props.onLongSelect(memory);"));
+check("albums can enter selection mode by long press for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("onLongSelect={function (memory)") && app.includes("props.setSelectionMode && props.setSelectionMode(true);"));
 check("album selection does not reintroduce visible card select button", !app.includes('aria-label="Select file"') && !app.includes('<AlbumSectionHeader show title="FILES"'));
 
 if (failures.length) {
@@ -271,7 +271,7 @@ check("year month era grouping excludes trash", app.includes('items = safeArray(
 check("trashed viewer exposes restore and delete forever in top-left primary actions", app.includes('fileViewerPrimaryActions') && app.includes('aria-label="Restore" data-tooltip="Restore"') && app.includes('aria-label="Delete forever" data-tooltip="Delete forever"') && app.includes('props.permanentDeleteMemory(memory);'));
 
 check("album file cards receive working detail editor action", app.includes("onEditMemory={function (memory) { closeTransientOverlays(\"detailEditor\"); setPzDetailEditorId(memory.id); }}"));
-check("albums can enter selection mode by long press for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("onLongSelect={function (memory)") && app.includes("props.onLongSelect && props.onLongSelect(memory);"));
+check("albums can enter selection mode by long press for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("onLongSelect={function (memory)") && app.includes("props.setSelectionMode && props.setSelectionMode(true);"));
 check("album selection does not reintroduce visible card select button", !app.includes('aria-label="Select file"') && !app.includes('<AlbumSectionHeader show title="FILES"'));
 
 if (failures.length) {
@@ -287,3 +287,7 @@ check("album nav escapes album context", app.includes("function leaveAlbumContex
 check("release filter helper applies type source quality", app.includes("function matchesReleaseFilter") && app.includes('type === "photos"') && app.includes('source === "takeout"') && app.includes('quality === "rated"'));
 check("release filters applied to album search mirror and group grids", app.includes("filteredLibraryMemories") && app.includes("filteredSortedMemories(primaryFiltered") && app.includes("filteredSortedMemories(rawItems") && app.includes("filteredSortedMemories(safeArray(group.items)"));
 check("view density applies to media grids", app.includes("densityClass(props.viewDensity)") && css.includes(".photoGrid.densityCompact") && css.includes(".photoGrid.densityLarge"));
+
+check('Video cards must open the main PHOTOZ viewer, not a separate playback modal.', !app.includes('props.onPlayVideo(memory);')); 
+check('Main file viewer must render videos with native controls/playbar.', app.includes('<video src={source} controls playsInline')); 
+check('Photo cards must enable hold-to-select without a visible Select button.', app.includes('props.setSelectionMode && props.setSelectionMode(true);')); 
