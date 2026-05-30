@@ -14850,3 +14850,351 @@ svg.photozDockIcon {
     radial-gradient(circle at 18% 10%, rgba(255,255,255,.16), transparent 30%),
     linear-gradient(to top, rgba(0,0,0,.13), transparent 48%);
 }
+
+/* PHOTOZ premium file viewer pass: photo-first, no cramped inspector slab. */
+.fileInfoModal {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 26px;
+  z-index: var(--pz-z-modal, 180);
+  background:
+    radial-gradient(circle at 18% 5%, rgba(255,255,255,.20), transparent 32%),
+    linear-gradient(135deg, rgba(18,18,18,.18), rgba(220,220,220,.22) 42%, rgba(0,0,0,.20)),
+    rgba(170,170,170,.22);
+  backdrop-filter: blur(5px) saturate(1.04);
+  -webkit-backdrop-filter: blur(5px) saturate(1.04);
+}
+
+.fileInfoCard {
+  width: min(1420px, calc(100vw - 48px));
+  height: min(820px, calc(100vh - 54px));
+  max-height: calc(100vh - 54px);
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  padding: 14px;
+  border-radius: 32px;
+  border: 1px solid rgba(255,255,255,.54);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255,255,255,.18), transparent 34%),
+    linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,.035) 46%, rgba(0,0,0,.095)),
+    rgba(185,185,185,.18);
+  box-shadow:
+    0 46px 120px rgba(0,0,0,.30),
+    0 12px 34px rgba(0,0,0,.14),
+    inset 0 1px 0 rgba(255,255,255,.70),
+    inset 0 -1px 0 rgba(0,0,0,.18);
+  backdrop-filter: blur(10px) saturate(1.08);
+  -webkit-backdrop-filter: blur(10px) saturate(1.08);
+}
+
+.fileInfoHeader {
+  min-height: 42px;
+  padding: 0 4px 0 7px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.fileInfoTitleBlock {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "kind title"
+    "kind path";
+  column-gap: 10px;
+  row-gap: 2px;
+  align-items: center;
+}
+
+.fileInfoTitleBlock span {
+  grid-area: kind;
+  align-self: center;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.38);
+  background: rgba(255,255,255,.08);
+  color: rgba(0,0,0,.48);
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: .14em;
+}
+
+.fileInfoTitleBlock h2 {
+  grid-area: title;
+  max-width: min(720px, 56vw);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: "Arial Narrow", "Helvetica Neue Condensed", Inter Tight, system-ui, sans-serif;
+  font-size: clamp(20px, 2.15vw, 34px);
+  line-height: .94;
+  font-weight: 950;
+  letter-spacing: -.035em;
+  color: rgba(0,0,0,.74);
+}
+
+.fileInfoTitleBlock em {
+  grid-area: path;
+  max-width: min(760px, 58vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: normal;
+  color: rgba(0,0,0,.34);
+  font-size: 9px;
+  font-weight: 760;
+  letter-spacing: .035em;
+}
+
+.fileInfoClose {
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  min-height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.54);
+  background:
+    radial-gradient(circle at 35% 20%, rgba(255,255,255,.38), transparent 46%),
+    linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.04)),
+    rgba(255,255,255,.07);
+  color: rgba(0,0,0,.62);
+  box-shadow: 0 13px 24px rgba(0,0,0,.11), inset 0 1px 0 rgba(255,255,255,.62);
+}
+
+.fileInfoLayout {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 380px);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.fileInfoPreviewPanel {
+  min-height: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 26px;
+  border: 1px solid rgba(255,255,255,.34);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.14), transparent 34%),
+    linear-gradient(135deg, rgba(255,255,255,.075), rgba(0,0,0,.14)),
+    rgba(18,18,18,.075);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.40), 0 24px 54px rgba(0,0,0,.12);
+  backdrop-filter: blur(5px) saturate(1.05);
+  -webkit-backdrop-filter: blur(5px) saturate(1.05);
+}
+
+.fileInfoPreview {
+  min-height: 0;
+  height: 100%;
+  max-height: none;
+  aspect-ratio: auto;
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,.24);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,.08), transparent 42%),
+    linear-gradient(135deg, rgba(0,0,0,.20), rgba(255,255,255,.035) 54%, rgba(0,0,0,.12)),
+    rgba(20,20,20,.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.28),
+    inset 0 -1px 0 rgba(0,0,0,.22),
+    0 22px 60px rgba(0,0,0,.16);
+}
+
+.fileInfoPreview::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), transparent 26%, transparent 74%, rgba(0,0,0,.08));
+  z-index: 1;
+}
+
+.fileInfoPreview img,
+.fileInfoPreview video {
+  width: auto;
+  height: auto;
+  max-width: calc(100% - 24px);
+  max-height: calc(100% - 24px);
+  object-fit: contain;
+  object-position: center center;
+  border-radius: 10px;
+  box-shadow: 0 18px 46px rgba(0,0,0,.22);
+}
+
+.fileInfoActionRail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.fileInfoActionRail button,
+.fileInfoPanel button,
+.fileInfoAlbumControls button {
+  height: 35px;
+  min-height: 35px;
+  border-radius: 13px;
+  border: 1px solid rgba(255,255,255,.34);
+  background:
+    radial-gradient(circle at 35% 15%, rgba(255,255,255,.22), transparent 44%),
+    linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.025)),
+    rgba(255,255,255,.042);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.48), 0 9px 20px rgba(0,0,0,.07);
+  color: rgba(0,0,0,.58);
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: .13em;
+}
+
+.fileInfoInspector {
+  min-height: 0;
+  max-height: none;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  gap: 9px;
+  padding: 10px;
+  border-radius: 26px;
+  border: 1px solid rgba(255,255,255,.34);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.18), transparent 33%),
+    linear-gradient(135deg, rgba(255,255,255,.10), rgba(0,0,0,.052)),
+    rgba(210,210,210,.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.46), 0 18px 44px rgba(0,0,0,.10);
+  backdrop-filter: blur(6px) saturate(1.05);
+  -webkit-backdrop-filter: blur(6px) saturate(1.05);
+}
+
+.fileInfoStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.fileInfoStats span,
+.fileInfoMetaLine,
+.fileInfoFormGrid input,
+.fileInfoFormGrid textarea,
+.fileInfoAlbumControls select {
+  border-color: rgba(255,255,255,.30);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.022)),
+    rgba(255,255,255,.04);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.30);
+}
+
+.fileInfoStats span {
+  min-height: 44px;
+  padding: 8px 9px;
+  border-radius: 15px;
+}
+
+.fileInfoPanel {
+  padding: 10px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.30);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255,255,255,.12), transparent 38%),
+    linear-gradient(180deg, rgba(255,255,255,.065), rgba(0,0,0,.028)),
+    rgba(255,255,255,.03);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.36), 0 12px 26px rgba(0,0,0,.055);
+}
+
+.fileInfoCoreMetaPanel {
+  grid-template-rows: repeat(4, auto);
+}
+
+.fileInfoDetailsPanel {
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,.26) transparent;
+}
+
+.fileInfoDetailsPanel::-webkit-scrollbar,
+.fileInfoInspector::-webkit-scrollbar,
+.fileInfoMetadata::-webkit-scrollbar {
+  width: 6px;
+}
+
+.fileInfoDetailsPanel::-webkit-scrollbar-thumb,
+.fileInfoInspector::-webkit-scrollbar-thumb,
+.fileInfoMetadata::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,.20);
+  border-radius: 999px;
+}
+
+.fileInfoFormGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.fileInfoFormGrid input,
+.fileInfoFormGrid textarea,
+.fileInfoAlbumControls select {
+  min-height: 34px;
+  border-radius: 12px;
+  color: rgba(0,0,0,.66);
+}
+
+.fileInfoAlbumControls {
+  grid-template-columns: minmax(0, 1fr) repeat(2, minmax(58px, auto));
+  gap: 7px;
+}
+
+.fileInfoAlbumControls button:nth-of-type(3),
+.fileInfoAlbumControls button:nth-of-type(4) {
+  grid-column: auto;
+}
+
+.fileInfoUtilityPanel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 7px;
+}
+
+.fileInfoUtilityPanel .permaDeleteButton {
+  grid-column: 1 / -1;
+}
+
+.fileInfoTechnicalPanel,
+.fileInfoMetadata {
+  max-height: 120px;
+  overflow: auto;
+}
+
+@media (max-width: 1000px) {
+  .fileInfoCard {
+    height: calc(100vh - 32px);
+    width: calc(100vw - 28px);
+  }
+  .fileInfoLayout {
+    grid-template-columns: 1fr;
+    overflow: auto;
+  }
+  .fileInfoInspector {
+    overflow: visible;
+  }
+  .fileInfoPreviewPanel,
+  .fileInfoPreview {
+    min-height: min(58vh, 620px);
+  }
+}

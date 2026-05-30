@@ -181,4 +181,15 @@ if (failures.length) {
   process.exit(1);
 }
 
+
+check("premium file viewer CSS marker missing", css.includes("premium file viewer pass"));
+check("file info viewer must use a photo-first split layout", css.includes("grid-template-columns: minmax(0, 1fr) minmax(340px, 380px)"));
+check("file info media must be inset and contained, not stretched/cropped", css.includes("max-width: calc(100% - 24px)"));
+
+if (failures.length) {
+  console.error("PHOTOZ validation failed:");
+  for (const failure of failures) console.error("- " + failure);
+  process.exit(1);
+}
+
 console.log("PHOTOZ validation passed.");
