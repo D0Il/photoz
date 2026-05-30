@@ -1100,20 +1100,6 @@ function AlbumCoverStack(props) {
   );
 }
 
-function AlbumLibraryHeader(props) {
-  if (!props.show || props.currentAlbum) return null;
-  const realCount = safeArray(props.realGroups).length;
-  const fileCount = safeArray(props.memories).filter(function (memory) { return !memory.trashed; }).length;
-  return (
-    <div className="albumLibraryHeader">
-      <div>
-        <strong>PHOTO ALBUM</strong>
-        <span>{realCount} ALBUMS / {fileCount} FILES</span>
-      </div>
-      <em>{up(props.albumSort || "recent")}</em>
-    </div>
-  );
-}
 
 function AlbumWorkspaceHero(props) {
   const album = props.album ? normalizeAlbumRecord(props.album) : null;
@@ -1144,7 +1130,6 @@ function AlbumWorkspaceHero(props) {
         <div className="albumWorkspaceActions">
           <button type="button" onClick={function () { props.openCreate && props.openCreate(); }}>+ ALBUM</button>
           <button type="button" onClick={function () { props.editAlbum && props.editAlbum(album); }}>EDIT</button>
-          <button type="button" onClick={function () { props.toggleHidden && props.toggleHidden(album.id); }}>{album.excludeFromAll ? "SHOW IN ALL" : "HIDE FROM ALL"}</button>
         </div>
       </div>
     </section>
@@ -1987,9 +1972,6 @@ function PhotoCard(props) {
         </div>
       ) : null}
       <div className="pzCardQuickActions">
-        {props.setSelectionMode && props.toggleSelected ? (
-          <button type="button" aria-label="Select file" onClick={function (event) { event.stopPropagation(); props.setSelectionMode(true); props.toggleSelected(memory.id); }}><CircleCheck size={12} /></button>
-        ) : null}
         {props.onEdit ? (
           <button type="button" aria-label="Edit file" onClick={function (event) { event.stopPropagation(); props.onEdit(memory); }}><PanelRightOpen size={12} /></button>
         ) : null}
@@ -2611,7 +2593,6 @@ function AlbumsFilter(props) {
         </div>
       ) : null}
 
-      {isAlbums ? <AlbumLibraryHeader show={!currentAlbum} currentAlbum={currentAlbum} realGroups={realGroups} memories={props.memories} albumSort={props.albumSort} /> : null}
 
       {isAlbums && currentAlbum ? (
         <AlbumWorkspaceHero
@@ -2647,7 +2628,6 @@ function AlbumsFilter(props) {
               <div className="tileActions">
                 {!group.virtual ? <button type="button" onClick={function () { props.toggleAlbumPin(group.sourceId); }}>{group.pinned ? "Unpin" : "Pin"}</button> : null}
                 {!group.virtual ? <button type="button" onClick={function () { props.toggleAlbumLock(group.sourceId); }}>{group.locked ? "Unlock" : "Lock"}</button> : null}
-                {!group.virtual ? <button type="button" onClick={function () { props.toggleAlbumExcludeFromAll(group.sourceId); }}>{group.excludeFromAll ? "Show in All" : "Hide from All"}</button> : null}
                 {!group.virtual ? <button type="button" onClick={function () { props.startEdit(group.sourceId, group.title, group.description); }}>Edit</button> : null}
                 {!group.virtual && !group.locked && group.sourceId !== UNASSIGNED_ALBUM_ID ? <button type="button" onClick={function () { props.deleteAlbum(group.sourceId); }}><X size={14} /></button> : null}
               </div>
@@ -2671,7 +2651,6 @@ function AlbumsFilter(props) {
 
       {isAlbums && currentAlbum ? (
         <>
-          <AlbumSectionHeader show title="FILES" count={currentPhotos.length} />
           {!currentPhotos.length && !realGroups.length ? <EmptyState /> : null}
           {currentPhotos.length ? (
             <div className="photoGrid albumPhotoGrid">

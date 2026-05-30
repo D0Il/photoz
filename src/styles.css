@@ -17868,7 +17868,6 @@ body:has(.fileInfoModal) {
   gap: 14px;
 }
 
-.albumLibraryHeader,
 .albumWorkspaceHero,
 .albumSectionHeader {
   width: 100%;
@@ -17883,17 +17882,7 @@ body:has(.fileInfoModal) {
   backdrop-filter: blur(20px) saturate(150%);
 }
 
-.albumLibraryHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: min(980px, 100%);
-  padding: 13px 15px;
-  border-radius: 22px;
-}
 
-.albumLibraryHeader strong,
 .albumWorkspaceTitleRow h2,
 .albumSectionHeader strong {
   display: block;
@@ -17904,8 +17893,6 @@ body:has(.fileInfoModal) {
   color: rgba(0,0,0,.78);
 }
 
-.albumLibraryHeader span,
-.albumLibraryHeader em,
 .albumWorkspaceStats span,
 .albumSectionHeader span {
   font-size: 10px;
@@ -18205,10 +18192,6 @@ body:has(.fileInfoModal) {
   .albumWorkspaceStats {
     justify-items: start;
     text-align: left;
-  }
-
-  .albumLibraryHeader {
-    width: 100%;
   }
 }
 
