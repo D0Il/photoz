@@ -2458,6 +2458,7 @@ function ControlBar(props) {
 
 function SystemShortcutCard(props) {
   const group = props.group || {};
+  const groupKind = props.groupKind || "";
   const sourceId = String((group && (group.sourceId || group.id)) || "").toLowerCase();
   const rawLabel = cleanSystemLabel(group.title || group.id);
   const labelText = String(rawLabel || "").toLowerCase();
@@ -2465,11 +2466,15 @@ function SystemShortcutCard(props) {
   const isTrash = sourceId.indexOf("trash") !== -1 || labelText === "trash" || labelText === "trashed";
   const isUnassigned = sourceId.indexOf("unassigned") !== -1 || sourceId.indexOf("unknown") !== -1 || labelText === "?" || labelText === "unknown" || labelText === "unassigned";
   const tooltip = isStarred ? "Starred" : isTrash ? "Trash" : isUnassigned ? "Unassigned" : rawLabel;
-  const className = cls("systemRailItem", (isStarred || isTrash || isUnassigned) ? "iconShortcut" : "", isStarred ? "starShortcut" : "", isTrash ? "trashShortcut" : "", isUnassigned ? "unknownShortcut" : "");
+  const className = cls("systemRailItem", "pzArchiveShortcut", groupKind === "months" ? "pzMonthShortcut" : "", groupKind === "years" ? "pzYearShortcut" : "", groupKind === "eras" ? "pzEraShortcut" : "", (isStarred || isTrash || isUnassigned) ? "iconShortcut" : "", isStarred ? "starShortcut" : "", isTrash ? "trashShortcut" : "", isUnassigned ? "unknownShortcut" : "");
+  const monthMatch = groupKind === "months" ? String(rawLabel || "").match(/^([A-Za-z]+)\s+(\d{4})$/) : null;
+  const mainLabel = monthMatch ? (
+    <span className="pzMonthCardLabel"><b>{monthMatch[1]}</b><i>{monthMatch[2]}</i></span>
+  ) : (isStarred ? "★" : isTrash ? <Trash2 size={13} strokeWidth={2.15} /> : isUnassigned ? <span className="questionMark">?</span> : rawLabel);
 
   return (
     <button type="button" className={className} data-source-id={sourceId} {...withSettingtip(tooltip)} onClick={function () { props.openGroup(group); }}>
-      <span>{isStarred ? "★" : isTrash ? <Trash2 size={13} strokeWidth={2.15} /> : isUnassigned ? <span className="questionMark">?</span> : rawLabel}</span>
+      <span>{mainLabel}</span>
       <em>{safeArray(group.items).length}</em>
     </button>
   );
@@ -2682,7 +2687,7 @@ function AlbumsFilter(props) {
       {isAlbums && dedupedVirtualGroups.length ? (
         <div className="systemRail">
           {safeArray(dedupedVirtualGroups).map(function (group) {
-            return <SystemShortcutCard key={group.id} group={group} openGroup={props.openGroup} />;
+            return <SystemShortcutCard key={group.id} group={group} groupKind={props.archiveFilter} openGroup={props.openGroup} />;
           })}
         </div>
       ) : null}
@@ -2692,7 +2697,7 @@ function AlbumsFilter(props) {
         {safeArray(isAlbums ? realGroups : archiveGroups).map(function (group) {
           const editing = isAlbums && props.editingId === group.sourceId;
           if (!isAlbums) {
-            return <SystemShortcutCard key={group.id} group={group} openGroup={props.openGroup} />;
+            return <SystemShortcutCard key={group.id} group={group} groupKind={props.archiveFilter} openGroup={props.openGroup} />;
           }
 
           return (
