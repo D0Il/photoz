@@ -2602,7 +2602,7 @@ function Modal(props) {
               </div>
             </section>
 
-            <aside className={"fileInfoInspector" + (inspectorOpen ? " open" : "")}>
+            {inspectorOpen ? <aside className="fileInfoInspector open">
               <div className="fileInfoStats fileInfoFacts">
                 <span className="fileInfoMediaSymbol" aria-label={video ? "Video" : "Photo"}>{video ? <Film size={16} /> : <Image size={16} />}</span>
                 <span><em>SIZE</em><strong>{sizeLabel}</strong></span>
@@ -2664,7 +2664,7 @@ function Modal(props) {
               ) : null}
 
               {showMetadata ? <pre className="fileInfoMetadata">{JSON.stringify(memory.metadata || {}, null, 2)}</pre> : null}
-            </aside>
+            </aside> : null}
           </main>
         </motion.div>
       </motion.div>
