@@ -217,11 +217,17 @@ if (failures.length) {
 check("file viewer primary action rail exposes Trash", app.includes('aria-label="Trash" data-tooltip="Trash"'));
 check("file viewer primary action rail has no Archive/Unarchive", !app.includes('data-tooltip={memory.archived ? "Unarchive" : "Archive"}'));
 check("file viewer tooltip/action correction CSS exists", css.includes('PHOTOZ file-viewer action correction'));
+check("file viewer exposes ME tag instead of separate Mirror shortcut", app.includes('aria-label="Me" data-tooltip="Me"') && app.includes('props.toggleMeFlag(memory)') && app.includes('<UserRound size={17} />') && !app.includes('aria-label="Mirror" data-tooltip="Mirror"'));
+check("active memory starred state uses real starred helper", app.includes('isStarred={activeMemory ? isStarredMemory(activeMemory, albums) : false}'));
+check("normal app panels do not expose R2 labels", !app.includes('AUDIT R2 FILES') && !app.includes('R2 audit:') && !app.includes('ALL FILES ARE STORED IN R2.') && !app.includes('R2 {stats.r2'));
 
 
 check("mirror receives albums for starred lookup", app.includes('albums={albums} openGroup={openGroup} openMemory={openMemoryDetail}'));
 check("mirror first layer is BOTH me and starred", app.includes('return isMeMemory(memory) && isStarredMemory(memory, albums)'));
 check("mirror documents tag multi-membership", app.includes('ME and STARRED are tags, not exclusive folders'));
+
+check("search mode uses broad non-hidden file pool", app.includes('function memoryVisibleInSearch(memory, albums)') && app.includes('!memoryHiddenFromAll(memory) && !memoryExcludedFromAll(memory, albums)') && app.includes('const baseItems = newest(allMemories.filter(function (memory) {'));
+check("search filtering passes albums argument correctly", app.includes('return matchesSearchFilter(memory, allAlbums, activeSearchFilter);'));
 
 if (failures.length) {
   console.error("PHOTOZ validation failed:");

@@ -598,9 +598,17 @@ function memoryExcludedFromAll(memory, albums) {
   });
 }
 
+function memoryHiddenFromAll(memory) {
+  return Boolean(memory && (memory.hiddenFromAll || memory.hideFromAll || memory.excludeFromAll));
+}
+
+function memoryVisibleInSearch(memory, albums) {
+  return Boolean(memory) && !memory.trashed && !memoryHiddenFromAll(memory) && !memoryExcludedFromAll(memory, albums);
+}
+
 function visibleAllMemories(memories, albums) {
   return newest(safeArray(memories).filter(function (memory) {
-    return !memory.inMirror && !memory.archived && !memory.trashed && !memoryExcludedFromAll(memory, albums);
+    return !memory.inMirror && !memory.archived && memoryVisibleInSearch(memory, albums);
   }));
 }
 
@@ -1815,18 +1823,18 @@ function HealthPanel(props) {
       <div className="statusStats">
         <span>{props.health ? "OK " + String(props.health.ok).toUpperCase() : "NOT CHECKED"}</span>
         <span>{props.health && props.health.indexFound ? "INDEX FOUND" : "INDEX NEW"}</span>
-        <span>{props.health && props.health.bucket ? "R2 " + props.health.bucket : "R2"}</span>
+        <span>{props.health && props.health.bucket ? "STORAGE READY" : "STORAGE"}</span>
       </div>
       {props.validation ? <div className="statusClean">Archive: {props.validation.memories} files / {props.validation.albums} albums / {props.validation.orphanAlbumRefs} broken links / {props.validation.missingHomes} without album</div> : null}
       {props.health && props.health.repairReport ? <div className="statusClean">Last repair: {props.health.repairReport.orphanAlbumRefs} broken links / {props.health.repairReport.missingHomes} without album</div> : null}
       {props.health && props.health.routeCheck ? <div className="statusClean">App: ACCESS {String(props.health.routeCheck.access).toUpperCase()} / HEALTH {String(props.health.routeCheck.health).toUpperCase()}</div> : null}
       {props.missingReport ? <div className="statusClean">Files: {props.missingReport.missing} MISSING / {props.missingReport.checked} CHECKED</div> : null}
-      {props.fileAuditReport ? <div className="statusClean">R2 audit: {props.fileAuditReport.indexMemories} records / {props.fileAuditReport.r2Objects} objects / {props.fileAuditReport.missingRecords} missing / {props.fileAuditReport.recoveredOrphans} recovered / {props.fileAuditReport.guaranteedDisplayable ? "DISPLAY GUARANTEED" : "REPAIR NEEDED"}</div> : null}
+      {props.fileAuditReport ? <div className="statusClean">File audit: {props.fileAuditReport.indexMemories} records / {props.fileAuditReport.r2Objects} stored / {props.fileAuditReport.missingRecords} missing / {props.fileAuditReport.recoveredOrphans} recovered / {props.fileAuditReport.guaranteedDisplayable ? "DISPLAY READY" : "REPAIR NEEDED"}</div> : null}
       {props.healthError ? <div className="statusClean">HEALTH CHECK FAILED.</div> : null}
       <button type="button" onClick={props.runHealthCheck}>CHECK ARCHIVE</button>
       <button type="button" onClick={props.runRouteCheck}>CHECK APP</button>
       <button type="button" onClick={props.runMissingCheck}>CHECK FILES</button>
-      <button type="button" onClick={props.runFileAudit}>AUDIT R2 FILES</button>
+      <button type="button" onClick={props.runFileAudit}>AUDIT FILES</button>
       <button type="button" onClick={props.repairFilesAndReload}>REPAIR FILE RECORDS</button>
       <button type="button" onClick={props.repairIndex}>REPAIR ALBUM LINKS</button>
     </div>
@@ -1984,7 +1992,7 @@ function StatusPanel(props) {
       <div className="statusStats">
         <span>TOTAL {stats.total}</span>
         <span>SIZE {formatBytes(storageTotal(props.memories))}</span>
-        <span>R2 {stats.r2 || 0}</span>
+        <span>STORED {stats.r2 || 0}</span>
         <span>QUEUED {stats.queued || 0}</span>
         <span>FAILED {stats.failed || 0}</span>
         <span>LOCAL {stats.local || 0}</span>
@@ -2004,7 +2012,7 @@ function StatusPanel(props) {
           })}
         </div>
       ) : (
-        <div className="statusClean">ALL FILES ARE STORED IN R2.</div>
+        <div className="statusClean">ALL FILES ARE STORED.</div>
       )}
     </div>
   );
@@ -2390,9 +2398,13 @@ function SearchFilter(props) {
   const setFilter = props.setSearchFilter || props.setFilter || function () {};
   const allMemories = safeArray(props.memories).map(normalizeMemoryRecord);
   const allAlbums = safeArray(props.albums).map(normalizeAlbumRecord);
-  const baseItems = visibleAllMemories(allMemories, allAlbums).filter(function (memory) { return memory && !memory.trashed; });
+  // Search mode is intentionally broad: show every non-trashed file unless the file
+  // itself is hidden from All or it belongs to an album hidden from All.
+  const baseItems = newest(allMemories.filter(function (memory) {
+    return memoryVisibleInSearch(memory, allAlbums);
+  }));
   const allItems = newest(baseItems.filter(function (memory) {
-    return matchesSearchFilter(memory, activeSearchFilter);
+    return matchesSearchFilter(memory, allAlbums, activeSearchFilter);
   }));
   const items = allItems.filter(function (memory) {
     return matchesSearchQuery(memory, query, allAlbums);
@@ -2706,7 +2718,7 @@ function Modal(props) {
                 <button type="button" aria-label="Fit photo" data-tooltip={photoZoom > 1 ? "Fit" : "Fit"} className="zoomLevelButton" onClick={resetPhotoZoom}><Maximize2 size={16} /><span>{Math.round(photoZoom * 100)}%</span></button>
                 <button type="button" aria-label="Zoom in" data-tooltip="Zoom in" onClick={function () { adjustPhotoZoom(0.35); }}><span aria-hidden="true" className="zoomGlyph">+</span></button>
                 <button type="button" aria-label="Favorite" data-tooltip="Favorite" className={props.isStarred ? "active" : ""} onClick={function () { props.toggleStar(memory); }}><Star size={17} /></button>
-                <button type="button" aria-label="Mirror" data-tooltip="Mirror" className={memory.inMirror ? "active" : ""} onClick={function () { props.toggleMirror(memory); }}><Eye size={18} /></button>
+                <button type="button" aria-label="Me" data-tooltip="Me" className={isMeMemory(memory) ? "active" : ""} onClick={function () { props.toggleMeFlag(memory); }}><UserRound size={17} /></button>
                 {memory.trashed ? <button type="button" aria-label="Restore" data-tooltip="Restore" onClick={function () { props.restoreMemory(memory); }}><RotateCcw size={17} /></button> : <button type="button" aria-label="Trash" data-tooltip="Trash" className="danger" onClick={function () { props.deleteMemory(memory); }}><Trash2 size={17} /></button>}
               </div>
             </section>
@@ -4177,7 +4189,7 @@ const [screen, setScreen] = useState("home");
       return;
     }
 
-    if (!confirmDelete("Permanently delete " + ids.length + " selected trashed files from PHOTOZ and R2? This cannot be undone.")) return;
+    if (!confirmDelete("Permanently delete " + ids.length + " selected trashed files from PHOTOZ storage? This cannot be undone.")) return;
 
     const doomed = selected;
     const nextMemories = safeArray(memories).filter(function (memory) {
@@ -4396,7 +4408,7 @@ const [screen, setScreen] = useState("home");
   function purgeTrash() {
     const doomed = safeArray(memories).filter(function (memory) { return memory.trashed; });
     if (!doomed.length) return;
-    if (!confirmDelete("Permanently delete " + doomed.length + " trashed files from R2? This cannot be undone.")) return;
+    if (!confirmDelete("Permanently delete " + doomed.length + " trashed files from PHOTOZ storage? This cannot be undone.")) return;
     const doomedIds = doomed.map(function (memory) { return memory.id; });
     const nextMemories = safeArray(memories).filter(function (memory) { return !memory.trashed; });
     const nextAlbums = ensureAlbumCoverage(nextMemories, doomedIds.reduce(function (currentAlbums, id) {
@@ -4412,7 +4424,7 @@ const [screen, setScreen] = useState("home");
 
   function permanentDeleteMemory(memory) {
     if (!memory) return;
-    if (!confirmDelete("Permanently delete this file from PHOTOZ and R2? This cannot be undone.")) return;
+    if (!confirmDelete("Permanently delete this file from PHOTOZ storage? This cannot be undone.")) return;
 
     const nextMemories = safeArray(memories).filter(function (item) {
       return item.id !== memory.id;
@@ -4441,7 +4453,7 @@ const [screen, setScreen] = useState("home");
       })
       .catch(function () {
         setSync("local");
-        pzPushToast("LOCAL DELETE", "Removed locally. R2 delete will need retry.", "error");
+        pzPushToast("LOCAL DELETE", "Removed locally. Storage delete will need retry.", "error");
         persist(nextMemories, nextAlbums);
       });
   }
@@ -4461,7 +4473,7 @@ const [screen, setScreen] = useState("home");
       return;
     }
 
-    if (!confirmDelete("Permanently delete this file from PHOTOZ and R2? This cannot be undone.")) return;
+    if (!confirmDelete("Permanently delete this file from PHOTOZ storage? This cannot be undone.")) return;
     const nextMemories = safeArray(memories).filter(function (item) {
       return item.id !== memory.id;
     });
@@ -4827,7 +4839,7 @@ async function handleUpload(eventOrFiles) {
           </motion.div>
         </AnimatePresence>
       </main>
-      <Modal memory={activeMemory} close={function () { setActiveMemory(null); }} deleteMemory={deleteMemory} permanentDeleteMemory={permanentDeleteMemory} restoreMemory={restoreMemory} toggleMeFlag={toggleMeFlag} toggleMirror={toggleMirror} toggleArchive={toggleArchive} toggleRefilter={toggleRefilter} togglePrivate={togglePrivate} albums={albums} addToAlbum={addToAlbum} moveToAlbum={moveToAlbum} removeFromAlbum={removeFromAlbum} updateMemoryDetails={updateMemoryDetails} downloadOriginal={downloadOriginal} openOriginal={openOriginal} copyMediaUrl={copyMediaUrl} copyStorageKey={copyStorageKey} toggleStar={toggleStar} isStarred={activeMemory ? albumHasMemory(albums, "star", activeMemory.id) : false} setAlbumCover={setAlbumCover} clearAlbumCover={clearAlbumCover} />
+      <Modal memory={activeMemory} close={function () { setActiveMemory(null); }} deleteMemory={deleteMemory} permanentDeleteMemory={permanentDeleteMemory} restoreMemory={restoreMemory} toggleMeFlag={toggleMeFlag} toggleMirror={toggleMirror} toggleArchive={toggleArchive} toggleRefilter={toggleRefilter} togglePrivate={togglePrivate} albums={albums} addToAlbum={addToAlbum} moveToAlbum={moveToAlbum} removeFromAlbum={removeFromAlbum} updateMemoryDetails={updateMemoryDetails} downloadOriginal={downloadOriginal} openOriginal={openOriginal} copyMediaUrl={copyMediaUrl} copyStorageKey={copyStorageKey} toggleStar={toggleStar} isStarred={activeMemory ? isStarredMemory(activeMemory, albums) : false} setAlbumCover={setAlbumCover} clearAlbumCover={clearAlbumCover} />
       <PzToastStack items={pzToasts} />
       <PzAlbumEditorPanel
         open={Boolean(pzActiveAlbumEditor)}
