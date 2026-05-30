@@ -1130,7 +1130,6 @@ function AlbumWorkspaceHero(props) {
           </div> : null}
         </div>
         <div className="albumWorkspaceActions">
-          <button type="button" onClick={function () { props.openCreate && props.openCreate(); }}>+ ALBUM</button>
           <button type="button" onClick={function () { props.editAlbum && props.editAlbum(album); }}>EDIT</button>
         </div>
       </div>
@@ -1324,6 +1323,41 @@ function matchesSearchFilter(memory, albums, filter) {
   if (mode === "archive") return Boolean(memory.archived);
   if (mode === "needs-file") return !memory.storageUrl && !memory.previewUrl && !memory.url;
   return true;
+}
+
+
+function matchesReleaseFilter(memory, albums, filters) {
+  if (!memory) return false;
+  const type = (filters && filters.filterType) || "all";
+  const source = (filters && filters.filterSource) || "all";
+  const quality = (filters && filters.filterQuality) || "any";
+
+  if (type === "photos" && pzIsVideo(memory)) return false;
+  if (type === "videos" && !pzIsVideo(memory)) return false;
+
+  if (source === "takeout" && !isTakeoutMemory(memory)) return false;
+  if (source === "needs-file" && (memory.storageUrl || memory.previewUrl || memory.url || storageKeyFromMemory(memory))) return false;
+
+  if (quality === "rated" && normalizeRating(memory.rating) <= 0) return false;
+
+  return true;
+}
+
+function applyReleaseFilters(items, albums, filters) {
+  return safeArray(items).map(normalizeMemoryRecord).filter(function (memory) {
+    return matchesReleaseFilter(memory, albums, filters || {});
+  });
+}
+
+function filteredSortedMemories(items, albums, filters, sortMode) {
+  return sortMemories(applyReleaseFilters(items, albums, filters || {}), sortMode || "newest");
+}
+
+function densityClass(value) {
+  const density = String(value || "normal").toLowerCase();
+  if (density === "compact") return "densityCompact";
+  if (density === "large") return "densityLarge";
+  return "densityNormal";
 }
 
 function searchMemories(memories, albums, query, filter, options) {
@@ -2493,7 +2527,8 @@ function MirrorFilter(props) {
   const allAlbums = safeArray(props.albums).map(normalizeAlbumRecord);
   const allMirror = mirrorAllMemories(allMemories);
   const featuredMirror = mirrorFeaturedMemories(allMemories, allAlbums);
-  const items = props.mirrorAllMode ? allMirror : featuredMirror;
+  const rawItems = props.mirrorAllMode ? allMirror : featuredMirror;
+  const items = filteredSortedMemories(rawItems, allAlbums, props, props.sortMode);
   const total = allMirror.length;
 
   return (
@@ -2515,7 +2550,7 @@ function MirrorFilter(props) {
       {!items.length ? (
         <EmptyState />
       ) : (
-        <div className="photoGrid mirrorGrid">
+        <div className={cls("photoGrid mirrorGrid", densityClass(props.viewDensity))}>
           {items.map(function (memory) {
             return (
               <PhotoCard
@@ -2544,17 +2579,19 @@ function MirrorFilter(props) {
 
 function AlbumsFilter(props) {
   const q = props.albumQuery.trim().toLowerCase();
+  const filteredLibraryMemories = applyReleaseFilters(safeArray(props.memories), props.albums, props);
   const albums = sortAlbumGroups(
-    virtualAlbumGroups(safeArray(props.albums), safeArray(props.memories)).concat(
-      albumGroups(safeArray(props.albums), safeArray(props.memories), props.currentAlbumId)
+    virtualAlbumGroups(safeArray(props.albums), filteredLibraryMemories).concat(
+      albumGroups(safeArray(props.albums), filteredLibraryMemories, props.currentAlbumId)
     ),
     props.albumSort
   ).filter(function (folder) {
     return !q || String(folder.title || "").toLowerCase().indexOf(q) !== -1;
   });
   const currentAlbum = props.currentAlbumId ? albumById(props.albums, props.currentAlbumId) : null;
-  const currentPhotos = currentAlbum ? directAlbumMemories(props.albums, props.memories, props.currentAlbumId) : [];
-  const groupingSource = currentAlbum ? currentPhotos : safeArray(props.memories);
+  const currentPhotosRaw = currentAlbum ? directAlbumMemories(props.albums, props.memories, props.currentAlbumId) : [];
+  const currentPhotos = filteredSortedMemories(currentPhotosRaw, props.albums, props, props.sortMode);
+  const groupingSource = currentAlbum ? currentPhotos : filteredLibraryMemories;
   const archiveGroups = props.archiveFilter === "albums" ? albums : groupBy(props.archiveFilter, groupingSource);
   const virtualGroups = props.archiveFilter === "albums" && !props.currentAlbumId ? safeArray(archiveGroups).filter(isSystemAlbumGroup) : [];
   const seenVirtualLabels = {};
@@ -2568,7 +2605,7 @@ function AlbumsFilter(props) {
   const isAlbums = props.archiveFilter === "albums";
   return (
     <div className="pageScroll albumsPage proAlbumsView">
-      <VisibleReporter items={props.currentAlbumId ? currentPhotos : safeArray(props.memories)} reportVisibleIds={props.reportVisibleIds} />
+      <VisibleReporter items={props.currentAlbumId ? currentPhotos : filteredLibraryMemories} reportVisibleIds={props.reportVisibleIds} />
       {isAlbums && (props.albumSearchOpen || props.albumCreateOpen) ? (
         <div className="albumControlsRow">
           {props.albumSearchOpen ? (
@@ -2655,7 +2692,7 @@ function AlbumsFilter(props) {
         <>
           {!currentPhotos.length && !realGroups.length ? <EmptyState /> : null}
           {currentPhotos.length ? (
-            <div className="photoGrid albumPhotoGrid">
+            <div className={cls("photoGrid albumPhotoGrid", densityClass(props.viewDensity))}>
               {safeArray(currentPhotos).map(function (memory) {
                 return <PhotoCard key={memory.id} memory={memory} showText selectionMode={props.selectionMode} selected={props.selectedIds && props.selectedIds[memory.id]} toggleSelected={props.toggleSelected} setSelectionMode={props.setSelectionMode} isStarred={props.starredIds && props.starredIds[memory.id]} onDelete={props.deleteMemory} onClick={function () { props.openMemory(memory); }} 
                 onEdit={props.onEditMemory}
@@ -2719,9 +2756,10 @@ function SearchFilter(props) {
   const baseItems = newest(allMemories.filter(function (memory) {
     return memoryVisibleInSearch(memory, allAlbums);
   }));
-  const allItems = newest(baseItems.filter(function (memory) {
+  const primaryFiltered = newest(baseItems.filter(function (memory) {
     return matchesSearchFilter(memory, allAlbums, activeSearchFilter);
   }));
+  const allItems = filteredSortedMemories(primaryFiltered, allAlbums, props, props.sortMode);
   const items = allItems.filter(function (memory) {
     return matchesSearchQuery(memory, query, allAlbums);
   });
@@ -2773,7 +2811,7 @@ function SearchFilter(props) {
       {!items.length ? (
         <EmptyState />
       ) : (
-        <div className="photoGrid searchGrid">
+        <div className={cls("photoGrid searchGrid", densityClass(props.viewDensity))}>
           {items.map(function (memory) {
             return (
               <PhotoCard
@@ -2802,7 +2840,7 @@ function SearchFilter(props) {
 
 function GroupFilter(props) {
   const group = props.group || {};
-  const items = sortMemories(safeArray(group.items), props.sortMode);
+  const items = filteredSortedMemories(safeArray(group.items), props.albums, props, props.sortMode);
   const title = up(cleanSystemLabel(group.title || group.id || ""));
   return (
     <Glass className="shell groupShell">
@@ -2813,7 +2851,7 @@ function GroupFilter(props) {
         {items.length ? <Pill>{items.length}</Pill> : null}
       </div>
       {items.length ? (
-        <div className="photoGrid">
+        <div className={cls("photoGrid", densityClass(props.viewDensity))}>
           {items.map(function (memory) {
             return (
               <PhotoCard
@@ -5257,12 +5295,12 @@ async function handleUpload(eventOrFiles) {
                 <DuplicatePanel open={duplicatesOpen} memories={uploadPendingItems.concat(safeArray(memories))} close={function () { setDuplicatesOpen(false); }} openMemory={openMemoryDetail} trashDuplicateOthers={trashDuplicateOthers} />
                 <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} fileAuditReport={fileAuditReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} runFileAudit={runFileAudit} repairFilesAndReload={repairFilesAndReload} repairIndex={repairIndex} />
                 <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} currentAlbumId={currentAlbumId} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { toggleOverlay("bulk", bulkMoreOpen, setBulkMoreOpen); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkRemoveFromCurrentAlbum={bulkRemoveFromCurrentAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkRefilter={bulkMarkRefilter} bulkClearRefilter={bulkClearRefilter} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDelete={bulkDelete} clearSelection={clearSelection} />
-                {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} archiveFilter={archiveFilter} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} setSelectionMode={setSelectionMode} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays("videoPlayer"); setPzVideoPlayerId(memory.id); }} onEditAlbum={function (group) { closeTransientOverlays("albumEditor"); setPzAlbumEditorId(group.id || group.sourceId); }} /> : null}
-                {activePage === "mirror" ? <MirrorFilter mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
-                {activePage === "search" ? <SearchFilter memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={function (nextValue) { const next = typeof nextValue === "function" ? nextValue(advancedSearchOpen) : nextValue; if (next) closeTransientOverlays("searchFilter"); setAdvancedSearchOpen(Boolean(next)); }} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays("videoPlayer"); setPzVideoPlayerId(memory.id); }} /> : null}
+                {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} archiveFilter={archiveFilter} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} setSelectionMode={setSelectionMode} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays("videoPlayer"); setPzVideoPlayerId(memory.id); }} onEditAlbum={function (group) { closeTransientOverlays("albumEditor"); setPzAlbumEditorId(group.id || group.sourceId); }} sortMode={sortMode} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} /> : null}
+                {activePage === "mirror" ? <MirrorFilter mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} /> : null}
+                {activePage === "search" ? <SearchFilter memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={function (nextValue) { const next = typeof nextValue === "function" ? nextValue(advancedSearchOpen) : nextValue; if (next) closeTransientOverlays("searchFilter"); setAdvancedSearchOpen(Boolean(next)); }} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays("videoPlayer"); setPzVideoPlayerId(memory.id); }} /> : null}
               </Glass>
             ) : null}
-            {screen === "group" && activeGroup ? <GroupFilter group={activeGroup} back={goHome} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays("videoPlayer"); setPzVideoPlayerId(memory.id); }} /> : null}
+            {screen === "group" && activeGroup ? <GroupFilter group={activeGroup} back={goHome} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays("videoPlayer"); setPzVideoPlayerId(memory.id); }} /> : null}
           </motion.div>
         </AnimatePresence>
       </main>

@@ -62,7 +62,7 @@ export function FilterPanel(props) {
       <PanelSection label="QUALITY" three>
         <button type="button" className={filterQuality === "any" ? "active" : ""} onClick={function () { setFilterQuality("any"); }} {...withTooltip("Any quality")}>ANY</button>
         <button type="button" className={filterQuality === "rated" ? "active" : ""} onClick={function () { setFilterQuality("rated"); setSortMode("rating"); }} {...withTooltip("Rated")}>RATED</button>
-        <button type="button" className={sortMode === "largest" ? "active" : ""} onClick={function () { setSortMode("largest"); }} {...withTooltip("Largest files")}>LARGE</button>
+        <button type="button" className={filterQuality === "large" ? "active" : ""} onClick={function () { setFilterQuality("large"); setSortMode("largest"); }} {...withTooltip("Largest files")}>LARGE</button>
       </PanelSection>
 
       <PanelSection label="VIEW" three>

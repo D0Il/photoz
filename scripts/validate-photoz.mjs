@@ -283,3 +283,7 @@ if (failures.length) {
 console.log("PHOTOZ validation passed.");
 
 check("album nav escapes album context", app.includes("function leaveAlbumContext()") && app.includes("function navigatePage(pageId)") && app.includes("leaveAlbumContext();\n    setActivePage(pageId);") && app.includes("function setArchiveFilterFromNav(filter)") && app.includes("YEAR / MONTH / ERA are global archive views"));
+
+check("release filter helper applies type source quality", app.includes("function matchesReleaseFilter") && app.includes('type === "photos"') && app.includes('source === "takeout"') && app.includes('quality === "rated"'));
+check("release filters applied to album search mirror and group grids", app.includes("filteredLibraryMemories") && app.includes("filteredSortedMemories(primaryFiltered") && app.includes("filteredSortedMemories(rawItems") && app.includes("filteredSortedMemories(safeArray(group.items)"));
+check("view density applies to media grids", app.includes("densityClass(props.viewDensity)") && css.includes(".photoGrid.densityCompact") && css.includes(".photoGrid.densityLarge"));
