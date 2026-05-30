@@ -18238,3 +18238,139 @@ body:has(.fileInfoModal) {
     linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.07)),
     rgba(255,255,255,.08);
 }
+
+/* PHOTOZ inside-album hero correction: remove generic breadcrumb slab and make opened albums feel intentional */
+.albumWorkspaceHero {
+  grid-template-columns: minmax(118px, 168px) minmax(0, 1fr);
+  min-height: 168px;
+  padding: 12px;
+  gap: 16px;
+  align-items: stretch;
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 12% 12%, rgba(255,255,255,.46), transparent 28%),
+    linear-gradient(125deg, rgba(255,255,255,.18), rgba(255,255,255,.055) 58%, rgba(0,0,0,.035)),
+    rgba(248,248,248,.34);
+  box-shadow:
+    0 18px 44px rgba(0,0,0,.075),
+    inset 0 1px 0 rgba(255,255,255,.48),
+    inset 0 -1px 0 rgba(0,0,0,.025);
+}
+
+.albumWorkspaceHero::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(110deg, rgba(255,255,255,.24), transparent 34%, rgba(255,255,255,.08));
+  opacity: .55;
+}
+
+.albumCoverStack {
+  min-height: 144px;
+  border-radius: 24px;
+  z-index: 1;
+}
+
+.albumWorkspaceMain {
+  position: relative;
+  z-index: 1;
+  justify-content: center;
+  gap: 12px;
+  padding: 4px 4px 4px 0;
+}
+
+.albumCrumbs {
+  display: none;
+}
+
+.albumWorkspaceTopline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+}
+
+.albumBackButton {
+  width: 31px;
+  height: 31px;
+  min-width: 31px;
+  min-height: 31px;
+  border-radius: 999px;
+  padding: 0;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: 0;
+  color: rgba(0,0,0,.48);
+}
+
+.albumHiddenBadge {
+  height: 24px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  padding: 0 9px;
+  border: 1px solid rgba(0,0,0,.10);
+  background: rgba(255,255,255,.22);
+  font-size: 9px;
+  letter-spacing: .14em;
+  color: rgba(0,0,0,.44);
+}
+
+.albumWorkspaceTitleRow {
+  align-items: center;
+}
+
+.albumWorkspaceTitleRow h2 {
+  font-size: clamp(34px, 5.2vw, 72px);
+  line-height: .92;
+  letter-spacing: -.06em;
+  color: rgba(0,0,0,.82);
+}
+
+.albumWorkspaceStats {
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(255,255,255,.12);
+  backdrop-filter: blur(14px) saturate(140%);
+}
+
+.albumWorkspaceStats span {
+  text-transform: none;
+  letter-spacing: .04em;
+  font-size: 10px;
+  color: rgba(0,0,0,.45);
+}
+
+.albumWorkspaceActions {
+  margin-top: 2px;
+}
+
+.albumWorkspaceActions button {
+  height: 30px;
+  min-height: 30px;
+  padding: 0 13px;
+  border-radius: 999px;
+  font-size: 9px;
+  letter-spacing: .12em;
+}
+
+@media (max-width: 720px) {
+  .albumWorkspaceHero {
+    grid-template-columns: 1fr;
+  }
+  .albumCoverStack {
+    min-height: 190px;
+  }
+  .albumWorkspaceTitleRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .albumWorkspaceStats {
+    justify-items: start;
+    text-align: left;
+  }
+}

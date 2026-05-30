@@ -38,6 +38,15 @@ export function FilterPanel(props) {
         <button type="button" className={sortMode === "title" ? "active" : ""} onClick={function () { setSortMode("title"); }} {...withTooltip("Title")}>TITLE</button>
       </PanelSection>
 
+
+      {props.showAlbumDateModes ? (
+        <PanelSection label="ALBUM VIEW" three>
+          <button type="button" className={props.albumDateMode === "albums" ? "active" : ""} onClick={function () { props.setAlbumDateMode && props.setAlbumDateMode("albums"); }} {...withTooltip("Album contents")}>ALBUM</button>
+          <button type="button" className={props.albumDateMode === "years" ? "active" : ""} onClick={function () { props.setAlbumDateMode && props.setAlbumDateMode("years"); }} {...withTooltip("Group by year")}>YEAR</button>
+          <button type="button" className={props.albumDateMode === "months" ? "active" : ""} onClick={function () { props.setAlbumDateMode && props.setAlbumDateMode("months"); }} {...withTooltip("Group by month")}>MONTH</button>
+        </PanelSection>
+      ) : null}
+
       <PanelSection label="TYPE" three>
         <button type="button" className={filterType === "all" ? "active" : ""} onClick={function () { setFilterType("all"); }} {...withTooltip("Any file type")}>ANY</button>
         <button type="button" className={filterType === "photos" ? "active" : ""} onClick={function () { setFilterType("photos"); }} {...withTooltip("Photos only")}>PHOTOS</button>

@@ -1062,14 +1062,14 @@ function albumDateRangeLabel(items) {
   const years = Array.from(new Set(safeArray(items).map(function (memory) {
     return String(memory.year || (memory.date ? String(memory.date).slice(0, 4) : "")).trim();
   }).filter(Boolean))).sort();
-  if (!years.length) return "NO DATE";
+  if (!years.length) return "";
   if (years.length === 1) return years[0];
   return years[0] + "–" + years[years.length - 1];
 }
 
 function albumStatsLabel(items, childCount) {
   const count = safeArray(items).length;
-  const pieces = [count + " " + (count === 1 ? "FILE" : "FILES")];
+  const pieces = [count + " " + (count === 1 ? "PHOTO" : "PHOTOS")];
   if (childCount) pieces.push(childCount + " " + (childCount === 1 ? "ALBUM" : "ALBUMS"));
   const size = albumSizeBytes(items);
   if (size) pieces.push(formatBytes(size));
@@ -1107,25 +1107,27 @@ function AlbumWorkspaceHero(props) {
   const photos = newest(safeArray(props.photos));
   const children = safeArray(props.children);
   const count = photos.length;
+  const dateRange = albumDateRangeLabel(photos);
+  const hasMeta = count > 0 || children.length > 0 || Boolean(dateRange);
 
   return (
     <section className={album.excludeFromAll ? "albumWorkspaceHero hiddenFromAll" : "albumWorkspaceHero"}>
       <AlbumCoverStack items={photos} />
       <div className="albumWorkspaceMain">
-        <div className="albumCrumbs">
-          <button type="button" onClick={function () { props.backToAlbums && props.backToAlbums(); }}>PHOTO ALBUM</button>
-          <span>/</span>
-          <strong>{album.title || "PHOTO ALBUM"}</strong>
+        <div className="albumWorkspaceTopline">
+          <button className="albumBackButton" type="button" aria-label="Back to albums" onClick={function () { props.backToAlbums && props.backToAlbums(); }}>‹</button>
+          {album.excludeFromAll ? <span className="albumHiddenBadge">HIDDEN</span> : null}
         </div>
         <div className="albumWorkspaceTitleRow">
           <div>
-            <h2>{album.title || "PHOTO ALBUM"}</h2>
+            <h2>{album.title || "Untitled album"}</h2>
             {album.description ? <p>{album.description}</p> : null}
           </div>
-          <div className="albumWorkspaceStats">
-            <span>{albumStatsLabel(photos, children.length)}</span>
-            <span>{albumDateRangeLabel(photos)}</span>
-          </div>
+          {hasMeta ? <div className="albumWorkspaceStats">
+            {count > 0 ? <span>{count} {count === 1 ? "photo" : "photos"}</span> : null}
+            {children.length > 0 ? <span>{children.length} {children.length === 1 ? "album" : "albums"}</span> : null}
+            {dateRange ? <span>{dateRange}</span> : null}
+          </div> : null}
         </div>
         <div className="albumWorkspaceActions">
           <button type="button" onClick={function () { props.openCreate && props.openCreate(); }}>+ ALBUM</button>
@@ -2369,7 +2371,7 @@ function ControlBar(props) {
   return (
     <div className="controlBar">
       <div className="leftControls">
-        {props.archive ? (
+        {props.archive && !props.currentAlbumId ? (
           <div className="modeBar">
             {ARCHIVE_FILTERS.map(function (filter) {
               return (
@@ -2550,7 +2552,10 @@ function AlbumsFilter(props) {
   ).filter(function (folder) {
     return !q || String(folder.title || "").toLowerCase().indexOf(q) !== -1;
   });
-  const archiveGroups = props.archiveFilter === "albums" ? albums : groupBy(props.archiveFilter, safeArray(props.memories));
+  const currentAlbum = props.currentAlbumId ? albumById(props.albums, props.currentAlbumId) : null;
+  const currentPhotos = currentAlbum ? directAlbumMemories(props.albums, props.memories, props.currentAlbumId) : [];
+  const groupingSource = currentAlbum ? currentPhotos : safeArray(props.memories);
+  const archiveGroups = props.archiveFilter === "albums" ? albums : groupBy(props.archiveFilter, groupingSource);
   const virtualGroups = props.archiveFilter === "albums" && !props.currentAlbumId ? safeArray(archiveGroups).filter(isSystemAlbumGroup) : [];
   const seenVirtualLabels = {};
   const dedupedVirtualGroups = safeArray(virtualGroups).filter(function (group) {
@@ -2561,9 +2566,6 @@ function AlbumsFilter(props) {
   });
   const realGroups = props.archiveFilter === "albums" ? safeArray(archiveGroups).filter(function (group) { return !isSystemAlbumGroup(group); }) : safeArray(archiveGroups);
   const isAlbums = props.archiveFilter === "albums";
-  const currentAlbum = props.currentAlbumId ? albumById(props.albums, props.currentAlbumId) : null;
-  const currentPhotos = currentAlbum ? directAlbumMemories(props.albums, props.memories, props.currentAlbumId) : [];
-
   return (
     <div className="pageScroll albumsPage proAlbumsView">
       <VisibleReporter items={props.currentAlbumId ? currentPhotos : safeArray(props.memories)} reportVisibleIds={props.reportVisibleIds} />
@@ -5225,17 +5227,17 @@ async function handleUpload(eventOrFiles) {
           <motion.div key={key} className="screen" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16 }}>
             {screen === "home" ? (
               <Glass className={"shell grid-" + gridSize + (hasTransientOverlayOpen ? " has-panel-open" : "")}>
-                <ControlBar activePage={activePage} archive={archive} archiveFilter={archiveFilter} setArchiveFilter={setArchiveFilterFromNav} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} filterControlsOpen={filterControlsOpen} toggleFilterControls={function () { toggleOverlay("filter", filterControlsOpen, setFilterControlsOpen); }} settingsOpen={settingsOpen} toggleSettingsPanel={function () { toggleOverlay("settings", settingsOpen, setSettingsOpen); }} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} />
+                <ControlBar activePage={activePage} currentAlbumId={currentAlbumId} archive={archive} archiveFilter={archiveFilter} setArchiveFilter={setArchiveFilterFromNav} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} filterControlsOpen={filterControlsOpen} toggleFilterControls={function () { toggleOverlay("filter", filterControlsOpen, setFilterControlsOpen); }} settingsOpen={settingsOpen} toggleSettingsPanel={function () { toggleOverlay("settings", settingsOpen, setSettingsOpen); }} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} />
                 <div className="floatingUtilityCluster">
                   <span className="utilityFileCount" aria-label={safeArray(memories).length + " files"}>{safeArray(memories).length} FILES</span>
                   <div className="floatingUtilityRail" aria-label="Quick actions">
                     <AmbientMusicControl />
-                    <button type="button" aria-label="Select files" data-tooltip="Choose" className={selectionMode ? "utilityRailButton selectUtilityButton iconUtilityButton active" : "utilityRailButton selectUtilityButton iconUtilityButton"} onClick={toggleSelectionMode}><CircleCheck size={14} strokeWidth={2.1} /></button>
                     <button type="button" aria-label="Filter" data-tooltip="Filter" className={filterControlsOpen ? "utilityRailButton iconUtilityButton active" : "utilityRailButton iconUtilityButton"} onClick={function () { toggleOverlay("filter", filterControlsOpen, setFilterControlsOpen); }}><SlidersHorizontal size={14} strokeWidth={2.1} /></button>
                     <button type="button" aria-label="Settings" data-tooltip="Settings" className={settingsOpen ? "utilityRailButton cogUtilityButton iconUtilityButton active" : "utilityRailButton cogUtilityButton iconUtilityButton"} onClick={function () { toggleOverlay("settings", settingsOpen, setSettingsOpen); }}>⚙</button>
                   </div>
                 </div>
-                <FilterPanel open={filterControlsOpen} close={function () { setFilterControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveFilter === "albums"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize} 
+                <FilterPanel open={filterControlsOpen} close={function () { setFilterControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveFilter === "albums"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize}
+                showAlbumDateModes={activePage === "albums" && Boolean(currentAlbumId)} albumDateMode={archiveFilter} setAlbumDateMode={setArchiveFilterFromNav}
                 searchFilter={searchFilter}
                 setSearchFilter={setSearchFilter}
                 filterType={filterType}
