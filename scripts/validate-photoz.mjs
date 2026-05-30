@@ -164,6 +164,9 @@ check("album visibility control stays behind edit", !app.includes('>{album.exclu
 check("sentimental album view has no FILES section header", !app.includes('<AlbumSectionHeader show title="FILES"'));
 check("file card quick actions have no visible select button", !app.includes('aria-label="Select file"'));
 
+
+check("no selectedCountFromMap runtime crash reference", !app.includes("selectedCountFromMap"));
+
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -189,6 +192,7 @@ check("album file cards receive working detail editor action", app.includes("onE
 check("albums can enter selection mode by long press for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("onLongSelect={function (memory)") && app.includes("props.setSelectionMode && props.setSelectionMode(true);"));
 check("album selection does not reintroduce visible card select button", !app.includes('aria-label="Select file"') && !app.includes('<AlbumSectionHeader show title="FILES"'));
 
+
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -202,6 +206,7 @@ check("video thumbnails not forced cropped after full-photo guarantee", !/PHOTOZ
 check("album file cards receive working detail editor action", app.includes("onEditMemory={function (memory) { closeTransientOverlays(\"detailEditor\"); setPzDetailEditorId(memory.id); }}"));
 check("albums can enter selection mode by long press for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("onLongSelect={function (memory)") && app.includes("props.setSelectionMode && props.setSelectionMode(true);"));
 check("album selection does not reintroduce visible card select button", !app.includes('aria-label="Select file"') && !app.includes('<AlbumSectionHeader show title="FILES"'));
+
 
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
@@ -218,6 +223,7 @@ check("file info media must be inset and contained, not stretched/cropped", css.
 check("album file cards receive working detail editor action", app.includes("onEditMemory={function (memory) { closeTransientOverlays(\"detailEditor\"); setPzDetailEditorId(memory.id); }}"));
 check("albums can enter selection mode by long press for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("onLongSelect={function (memory)") && app.includes("props.setSelectionMode && props.setSelectionMode(true);"));
 check("album selection does not reintroduce visible card select button", !app.includes('aria-label="Select file"') && !app.includes('<AlbumSectionHeader show title="FILES"'));
+
 
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
@@ -241,6 +247,7 @@ check("photo card metadata separated from media", css.includes(".photoCard .phot
 check("album file cards receive working detail editor action", app.includes("onEditMemory={function (memory) { closeTransientOverlays(\"detailEditor\"); setPzDetailEditorId(memory.id); }}"));
 check("albums can enter selection mode by long press for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("onLongSelect={function (memory)") && app.includes("props.setSelectionMode && props.setSelectionMode(true);"));
 check("album selection does not reintroduce visible card select button", !app.includes('aria-label="Select file"') && !app.includes('<AlbumSectionHeader show title="FILES"'));
+
 
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
@@ -273,6 +280,7 @@ check("trashed viewer exposes restore and delete forever in top-left primary act
 check("album file cards receive working detail editor action", app.includes("onEditMemory={function (memory) { closeTransientOverlays(\"detailEditor\"); setPzDetailEditorId(memory.id); }}"));
 check("albums can enter selection mode by long press for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("onLongSelect={function (memory)") && app.includes("props.setSelectionMode && props.setSelectionMode(true);"));
 check("album selection does not reintroduce visible card select button", !app.includes('aria-label="Select file"') && !app.includes('<AlbumSectionHeader show title="FILES"'));
+
 
 if (failures.length) {
   console.error("PHOTOZ validation failed:");

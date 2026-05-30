@@ -2848,7 +2848,7 @@ function GroupFilter(props) {
   const title = up(cleanSystemLabel(group.title || group.id || ""));
   const sourceId = String(group.sourceId || group.id || "");
   const isUnassigned = sourceId === UNASSIGNED_ALBUM_ID || String(title).toLowerCase().indexOf("unassigned") !== -1;
-  const selectedCount = selectedCountFromMap(props.selectedIds);
+  const selectedTotal = selectedCount(props.selectedIds);
   return (
     <Glass className="shell groupShell">
       <VisibleReporter items={items} reportVisibleIds={props.reportVisibleIds} />
@@ -2862,7 +2862,7 @@ function GroupFilter(props) {
           <span>Hold a photo, then move it into an album.</span>
         </div>
       ) : null}
-      {props.selectionMode && selectedCount ? (
+      {props.selectionMode && selectedTotal ? (
         <div className="groupQuickOrganizeBar" aria-label="Quick organize selected photos">
           <select value={props.bulkAlbum || UNASSIGNED_ALBUM_ID} aria-label="Album" onChange={function (event) { props.setBulkAlbum && props.setBulkAlbum(event.target.value); }}>
             {assignableAlbums(props.albums).map(function (album) {
@@ -3137,16 +3137,18 @@ function Modal(props) {
                       onTimeUpdate={function (event) { setVideoProgress(event.currentTarget.currentTime || 0); }}
                       onClick={function (event) { event.stopPropagation(); toggleVideoPlayback(); }}
                     />
-                    <div className="pzVideoControls" onClick={function (event) { event.stopPropagation(); }}>
-                      <button type="button" aria-label={videoPlaying ? "Pause video" : "Play video"} onClick={toggleVideoPlayback}>{videoPlaying ? <span aria-hidden="true">Ⅱ</span> : <Play size={13} fill="currentColor" />}</button>
-                      <span>{formatVideoTime(videoProgress)}</span>
-                      <input type="range" min="0" max={Math.max(1, videoDuration)} step="0.01" value={Math.min(videoProgress, Math.max(1, videoDuration))} aria-label="Video timeline" onChange={seekVideo} />
-                      <span>{formatVideoTime(videoDuration)}</span>
-                    </div>
                   </div>
                 ) : <img src={source} alt="" draggable="false" style={mediaTransform} />}
                 {memory.trashed ? <span className="pzTrashRibbon">TRASH</span> : null}
               </div>
+              {video ? (
+                <div className="pzVideoControls" onClick={function (event) { event.stopPropagation(); }}>
+                  <button type="button" aria-label={videoPlaying ? "Pause video" : "Play video"} onClick={toggleVideoPlayback}>{videoPlaying ? <span aria-hidden="true">Ⅱ</span> : <Play size={13} fill="currentColor" />}</button>
+                  <span>{formatVideoTime(videoProgress)}</span>
+                  <input type="range" min="0" max={Math.max(1, videoDuration)} step="0.01" value={Math.min(videoProgress, Math.max(1, videoDuration))} aria-label="Video timeline" onChange={seekVideo} onInput={seekVideo} />
+                  <span>{formatVideoTime(videoDuration)}</span>
+                </div>
+              ) : null}
               <div className={"fileInfoZoomCorner" + (memory.trashed ? " trashZoomCorner" : "")} aria-label="Zoom controls">
                 <button type="button" aria-label="Zoom out" data-tooltip="Zoom out" onClick={function () { adjustPhotoZoom(-0.35); }}><span aria-hidden="true" className="zoomGlyph">−</span></button>
                 <button type="button" aria-label="Fit photo" data-tooltip="Fit" className="zoomLevelButton" onClick={resetPhotoZoom}><Maximize2 size={14} /><span>{Math.round(photoZoom * 100)}%</span></button>
