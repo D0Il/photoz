@@ -18681,3 +18681,98 @@ body:has(.fileInfoModal) {
   text-transform: uppercase;
   white-space: nowrap;
 }
+
+/* PHOTOZ release cleanup: album controls should not sit visible on every album card. */
+.photozProUI .proAlbumCard .pzAlbumCardActions {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  pointer-events: none;
+  margin-top: 0;
+  transform: translateY(4px);
+  transition: opacity .16s ease, transform .16s ease, max-height .16s ease, margin-top .16s ease;
+}
+.photozProUI .proAlbumCard:hover .pzAlbumCardActions,
+.photozProUI .proAlbumCard:focus-within .pzAlbumCardActions {
+  opacity: 1;
+  max-height: 38px;
+  pointer-events: auto;
+  margin-top: 8px;
+  transform: none;
+}
+@media (hover: none), (pointer: coarse) {
+  .photozProUI .proAlbumCard .pzAlbumCardActions {
+    opacity: 0;
+    max-height: 0;
+    pointer-events: none;
+    margin-top: 0;
+  }
+  .photozProUI .proAlbumCard:focus-within .pzAlbumCardActions {
+    opacity: 1;
+    max-height: 38px;
+    pointer-events: auto;
+    margin-top: 8px;
+  }
+}
+
+/* PHOTOZ video viewer: custom controls + same zoom system as photos. */
+.fileInfoPreview .pzVideoViewerShell {
+  position: relative;
+  width: min(100%, 1000px);
+  height: min(100%, 72vh);
+  display: grid;
+  place-items: center;
+  transform-origin: center center;
+  will-change: transform;
+}
+.fileInfoPreview .pzVideoViewerShell video {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 22px;
+  background: rgba(0,0,0,.92);
+  box-shadow: 0 22px 70px rgba(0,0,0,.22);
+}
+.pzVideoControls {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 16px;
+  display: grid;
+  grid-template-columns: 34px auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255,255,255,.30), rgba(255,255,255,.12)), rgba(20,20,22,.34);
+  border: 1px solid rgba(255,255,255,.36);
+  -webkit-backdrop-filter: blur(14px) saturate(1.25);
+  backdrop-filter: blur(14px) saturate(1.25);
+  box-shadow: 0 16px 34px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.36);
+  color: rgba(255,255,255,.94);
+}
+.pzVideoControls button {
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.34);
+  background: rgba(255,255,255,.20);
+  color: inherit;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+.pzVideoControls span {
+  font-size: 10px;
+  letter-spacing: .08em;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  opacity: .92;
+}
+.pzVideoControls input[type="range"] {
+  width: 100%;
+  accent-color: rgba(255,255,255,.94);
+}

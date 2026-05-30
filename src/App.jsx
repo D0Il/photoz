@@ -2924,6 +2924,10 @@ function Modal(props) {
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const [photoZoom, setPhotoZoom] = useState(1);
   const [photoPan, setPhotoPan] = useState({ x: 0, y: 0 });
+  const [videoPlaying, setVideoPlaying] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(0);
+  const videoRef = useRef(null);
   const viewerPointersRef = useRef(new Map());
   const pinchRef = useRef(null);
   const lastTapRef = useRef(0);
@@ -2945,6 +2949,9 @@ function Modal(props) {
     setInspectorOpen(false);
     setPhotoZoom(1);
     setPhotoPan({ x: 0, y: 0 });
+    setVideoPlaying(false);
+    setVideoProgress(0);
+    setVideoDuration(0);
     viewerPointersRef.current.clear();
     pinchRef.current = null;
   }, [props.memory]);
@@ -2985,7 +2992,7 @@ function Modal(props) {
   }
 
   function handleViewerPointerDown(event) {
-    if (video) return;
+    if (event.target && event.target.closest && event.target.closest(".pzVideoControls")) return;
     viewerPointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (event.currentTarget.setPointerCapture) event.currentTarget.setPointerCapture(event.pointerId);
 
@@ -3010,7 +3017,7 @@ function Modal(props) {
   }
 
   function handleViewerPointerMove(event) {
-    if (video || !viewerPointersRef.current.has(event.pointerId)) return;
+    if (!viewerPointersRef.current.has(event.pointerId)) return;
     event.preventDefault();
     const previous = viewerPointersRef.current.get(event.pointerId);
     viewerPointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -3043,7 +3050,6 @@ function Modal(props) {
   }
 
   function handleViewerWheel(event) {
-    if (video) return;
     if (!event.ctrlKey && Math.abs(event.deltaY) < 40) return;
     event.preventDefault();
     adjustPhotoZoom(event.deltaY > 0 ? -0.25 : 0.25);
@@ -3065,7 +3071,33 @@ function Modal(props) {
     setEditDetailsOpen(false);
   }
 
-  const photoTransform = video ? undefined : { transform: `translate3d(${photoPan.x}px, ${photoPan.y}px, 0) scale(${photoZoom})` };
+  const mediaTransform = { transform: `translate3d(${photoPan.x}px, ${photoPan.y}px, 0) scale(${photoZoom})` };
+
+  function formatVideoTime(value) {
+    const total = Math.max(0, Math.floor(Number(value) || 0));
+    const minutes = Math.floor(total / 60);
+    const seconds = String(total % 60).padStart(2, "0");
+    return minutes + ":" + seconds;
+  }
+
+  function toggleVideoPlayback() {
+    const node = videoRef.current;
+    if (!node) return;
+    if (node.paused) {
+      const result = node.play();
+      if (result && result.catch) result.catch(function () {});
+    } else {
+      node.pause();
+    }
+  }
+
+  function seekVideo(event) {
+    const node = videoRef.current;
+    if (!node) return;
+    const next = Number(event.target.value) || 0;
+    node.currentTime = next;
+    setVideoProgress(next);
+  }
 
   const modalNode = (
     <AnimatePresence>
@@ -3092,7 +3124,27 @@ function Modal(props) {
                 onWheel={handleViewerWheel}
                 onDoubleClick={function (event) { event.preventDefault(); setPhotoZoom(function (current) { const next = current > 1 ? 1 : 2.25; if (next <= 1) setPhotoPan({ x: 0, y: 0 }); return next; }); }}
               >
-                {video ? <video src={source} controls playsInline /> : <img src={source} alt="" draggable="false" style={photoTransform} />}
+                {video ? (
+                  <div className="pzVideoViewerShell" style={mediaTransform}>
+                    <video
+                      ref={videoRef}
+                      src={source}
+                      playsInline
+                      preload="metadata"
+                      onPlay={function () { setVideoPlaying(true); }}
+                      onPause={function () { setVideoPlaying(false); }}
+                      onLoadedMetadata={function (event) { setVideoDuration(event.currentTarget.duration || 0); }}
+                      onTimeUpdate={function (event) { setVideoProgress(event.currentTarget.currentTime || 0); }}
+                      onClick={function (event) { event.stopPropagation(); toggleVideoPlayback(); }}
+                    />
+                    <div className="pzVideoControls" onClick={function (event) { event.stopPropagation(); }}>
+                      <button type="button" aria-label={videoPlaying ? "Pause video" : "Play video"} onClick={toggleVideoPlayback}>{videoPlaying ? <span aria-hidden="true">Ⅱ</span> : <Play size={13} fill="currentColor" />}</button>
+                      <span>{formatVideoTime(videoProgress)}</span>
+                      <input type="range" min="0" max={Math.max(1, videoDuration)} step="0.01" value={Math.min(videoProgress, Math.max(1, videoDuration))} aria-label="Video timeline" onChange={seekVideo} />
+                      <span>{formatVideoTime(videoDuration)}</span>
+                    </div>
+                  </div>
+                ) : <img src={source} alt="" draggable="false" style={mediaTransform} />}
                 {memory.trashed ? <span className="pzTrashRibbon">TRASH</span> : null}
               </div>
               <div className={"fileInfoZoomCorner" + (memory.trashed ? " trashZoomCorner" : "")} aria-label="Zoom controls">
