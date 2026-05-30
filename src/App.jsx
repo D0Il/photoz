@@ -1,5 +1,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {ChevronLeft, Eye, Images, Search, Upload, X, Trash2, CircleHelp, SlidersHorizontal, CircleCheck, Music2, Volume2, VolumeX, LockKeyhole, UnlockKeyhole, FolderPen, ShieldCheck, Film, Download, PanelRightOpen, ArchiveRestore, Save, AlertTriangle, UploadCloud, Play, Clock3, HardDrive, Sparkles, Maximize2, CalendarDays, RotateCcw, Undo2, Settings, FolderUp, FileDown, Wrench, Star, Image, UserRound, ChevronDown, Glasses} from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -2521,6 +2522,7 @@ function Modal(props) {
   const [draftLabel, setDraftLabel] = useState("");
   const [showMetadata, setShowMetadata] = useState(false);
   const [showTechnical, setShowTechnical] = useState(false);
+  const [editDetailsOpen, setEditDetailsOpen] = useState(false);
 
   useEffect(function () {
     if (!props.memory) return;
@@ -2535,6 +2537,7 @@ function Modal(props) {
     setDraftLabel(props.memory.label || "");
     setShowMetadata(false);
     setShowTechnical(false);
+    setEditDetailsOpen(false);
   }, [props.memory]);
 
   if (!props.memory) return null;
@@ -2564,7 +2567,7 @@ function Modal(props) {
     });
   }
 
-  return (
+  const modalNode = (
     <AnimatePresence>
       <motion.div className="modal fileInfoModal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={props.close}>
         <motion.div className="modalCard fileInfoCard" initial={{ y: 18, scale: 0.985 }} animate={{ y: 0, scale: 1 }} onClick={function (event) { event.stopPropagation(); }}>
@@ -2600,15 +2603,15 @@ function Modal(props) {
               </div>
 
               <section className="fileInfoPanel fileInfoCoreMetaPanel">
-                <div className="fileInfoMetaLine"><span>ORIGINAL NAME</span><strong>{memory.metadata?.originalName || memory.metadata?.name || memory.fileName || "UNKNOWN"}</strong></div>
-                <div className="fileInfoMetaLine"><span>MIME TYPE</span><strong>{memory.mimeType || memory.type || memory.metadata?.type || "UNKNOWN"}</strong></div>
-                <div className="fileInfoMetaLine"><span>LAST MODIFIED</span><strong>{readableDateTime(memory.metadata?.lastModifiedISO || memory.metadata?.lastModified) || "UNKNOWN"}</strong></div>
-                <div className="fileInfoMetaLine"><span>STORAGE KEY</span><strong>{memory.storageKey || "NOT STORED"}</strong></div>
+                <div className="fileInfoMetaLine"><span>ORIGINAL</span><strong>{memory.metadata?.originalName || memory.metadata?.name || memory.fileName || "UNKNOWN"}</strong></div>
+                <div className="fileInfoMetaLine"><span>FORMAT</span><strong>{memory.mimeType || memory.type || memory.metadata?.type || "UNKNOWN"}</strong></div>
+                <div className="fileInfoMetaLine"><span>MODIFIED</span><strong>{readableDateTime(memory.metadata?.lastModifiedISO || memory.metadata?.lastModified) || "UNKNOWN"}</strong></div>
+                <div className="fileInfoMetaLine"><span>IMPORTED</span><strong>{readableDateTime(memory.createdAt || memory.importedAt || memory.date) || memory.date || "UNKNOWN"}</strong></div>
               </section>
 
-              <section className="fileInfoPanel fileInfoDetailsPanel">
-                <div className="fileInfoPanelTop"><strong>DETAILS</strong><button type="button" onClick={saveDetails}><Save size={13} /> SAVE</button></div>
-                <div className="fileInfoFormGrid">
+              <section className={"fileInfoPanel fileInfoDetailsPanel" + (editDetailsOpen ? " editing" : "") }>
+                <div className="fileInfoPanelTop"><strong>DETAILS</strong>{editDetailsOpen ? <button type="button" onClick={saveDetails}><Save size={13} /> SAVE</button> : <button type="button" onClick={function () { setEditDetailsOpen(true); }}>EDIT</button>}</div>
+                {editDetailsOpen ? <div className="fileInfoFormGrid">
                   <label><span>TITLE</span><input value={draftTitle} onChange={function (event) { setDraftTitle(event.target.value); }} /></label>
                   <label><span>DATE</span><input value={draftDate} onChange={function (event) { setDraftDate(event.target.value); }} /></label>
                   <label><span>ERA</span><input value={draftEra} onChange={function (event) { setDraftEra(event.target.value); }} /></label>
@@ -2617,7 +2620,7 @@ function Modal(props) {
                   <label><span>RATING</span><input value={draftRating} onChange={function (event) { setDraftRating(event.target.value); }} /></label>
                   <label className="wide"><span>TAGS</span><input value={draftTags} onChange={function (event) { setDraftTags(event.target.value); }} /></label>
                   <label className="wide"><span>CAPTION</span><textarea value={draftCaption} onChange={function (event) { setDraftCaption(event.target.value); }} /></label>
-                </div>
+                </div> : <div className="fileInfoDetailsSummary"><span>{draftTitle || memory.fileName || "Untitled"}</span><span>{draftDate || "No date"}</span><span>{draftEra || "Unassigned"}</span></div>}
               </section>
 
               <section className="fileInfoPanel fileInfoAlbumPanel">
@@ -2659,6 +2662,8 @@ function Modal(props) {
       </motion.div>
     </AnimatePresence>
   );
+
+  return typeof document !== "undefined" ? createPortal(modalNode, document.body) : modalNode;
 }
 
 
