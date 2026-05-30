@@ -17767,3 +17767,80 @@ body:has(.fileInfoModal) {
     bottom: 24px;
   }
 }
+
+/* PHOTOZ tooltip refinement: viewer hints should be tiny captions, not bulky glass pills. */
+.fileInfoModal [data-tooltip]::before {
+  display: none;
+  content: none;
+}
+
+.fileInfoModal .fileInfoZoomCorner button[data-tooltip]::after,
+.fileInfoModal .fileViewerPrimaryActions button[data-tooltip]::after,
+.fileInfoModal .fileInfoActionRail button[data-tooltip]::after,
+.fileInfoModal .fileViewerChromeActions button[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  z-index: 12050;
+  width: max-content;
+  max-width: 120px;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  padding: 3px 6px;
+  border-radius: 7px;
+  border: 1px solid rgba(255,255,255,.28);
+  background: rgba(24,24,24,.58);
+  color: rgba(255,255,255,.88);
+  box-shadow: 0 8px 18px rgba(0,0,0,.14);
+  backdrop-filter: blur(7px) saturate(1.02);
+  -webkit-backdrop-filter: blur(7px) saturate(1.02);
+  font-size: 7px;
+  font-weight: 760;
+  letter-spacing: .035em;
+  line-height: 1;
+  text-transform: none;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .10s ease, transform .10s ease;
+}
+
+.fileInfoModal .fileInfoZoomCorner button[data-tooltip]::after {
+  bottom: calc(100% + 7px);
+  top: auto;
+  transform: translateX(-50%) translateY(2px);
+}
+
+.fileInfoModal .fileViewerPrimaryActions button[data-tooltip]::after,
+.fileInfoModal .fileViewerChromeActions button[data-tooltip]::after {
+  top: calc(100% + 7px);
+  bottom: auto;
+  transform: translateX(-50%) translateY(-2px);
+}
+
+.fileInfoModal .fileInfoActionRail button[data-tooltip]::after {
+  bottom: calc(100% + 7px);
+  top: auto;
+  transform: translateX(-50%) translateY(2px);
+}
+
+.fileInfoModal .fileInfoZoomCorner button[data-tooltip]:hover::after,
+.fileInfoModal .fileInfoZoomCorner button[data-tooltip]:focus-visible::after,
+.fileInfoModal .fileViewerPrimaryActions button[data-tooltip]:hover::after,
+.fileInfoModal .fileViewerPrimaryActions button[data-tooltip]:focus-visible::after,
+.fileInfoModal .fileInfoActionRail button[data-tooltip]:hover::after,
+.fileInfoModal .fileInfoActionRail button[data-tooltip]:focus-visible::after,
+.fileInfoModal .fileViewerChromeActions button[data-tooltip]:hover::after,
+.fileInfoModal .fileViewerChromeActions button[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+@media (hover: none), (pointer: coarse) {
+  .fileInfoModal [data-tooltip]::after,
+  .fileInfoModal [data-tooltip]::before {
+    display: none;
+    content: none;
+  }
+}
