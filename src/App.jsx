@@ -1587,9 +1587,9 @@ function memoriesToCsv(memories, albums) {
   return header.map(csvEscape).join(",") + "\n" + rows.join("\n");
 }
 
-function confirmDelete(message) {
-  if (typeof window === "undefined") return true;
-  return window.confirm(message || "Delete this file permanently?");
+function deleteConfirmCopy(count) {
+  const amount = Number(count) || 1;
+  return amount === 1 ? "This file will be removed from PHOTOZ and storage." : amount + " files will be removed from PHOTOZ and storage.";
 }
 
 function downloadOriginal(memory) {
@@ -2950,26 +2950,7 @@ function Modal(props) {
 
               <section className="fileInfoPanel fileInfoAlbumPanel">
                 <div className="fileInfoPanelTop"><strong>PHOTO ALBUM</strong><span>{albumLabel}</span></div>
-                <div className="fileInfoAlbumControls">
-                  <select value={selectedAlbum} onChange={function (event) { setSelectedAlbum(event.target.value); }}>
-                    {availableAlbums.map(function (album) {
-                      return <option key={album.id} value={album.id}>{album.title}</option>;
-                    })}
-                  </select>
-                  <button type="button" onClick={function () { props.addToAlbum(memory, selectedAlbum); }}>ADD</button>
-                  <button type="button" onClick={function () { props.moveToAlbum(memory, selectedAlbum); }}>MOVE</button>
-                  <button type="button" onClick={function () { props.removeFromAlbum(memory, selectedAlbum); }}>REMOVE</button>
-                  <button type="button" onClick={function () { props.setAlbumCover(memory, selectedAlbum); }}>COVER</button>
-                </div>
               </section>
-
-              {memory.trashed ? <section className="fileInfoPanel fileInfoDeletePanel">
-                <div className="fileInfoPanelTop"><strong>TRASH</strong><span>Removed from PHOTOZ views</span></div>
-                <div className="fileInfoDeleteActions">
-                  <button type="button" onClick={function () { props.restoreMemory(memory); }}>RESTORE</button>
-                  <button type="button" className="danger permaDeleteButton" onClick={function () { props.permanentDeleteMemory(memory); }}>DELETE FOREVER</button>
-                </div>
-              </section> : null}
 
               {showTechnical ? (
                 <section className="fileInfoPanel fileInfoTechnicalPanel">
@@ -3234,7 +3215,7 @@ function PzFileDetailEditor(props) {
           ) : (
             <button type="button" className="danger" onClick={function () { props.onTrash(memory.id); props.onClose(); }}>TRASH</button>
           )}
-          <button type="button" className="danger permaDeleteButton" onClick={function () { if (props.onPermanentDelete) props.onPermanentDelete(memory); props.onClose(); }}>DELETE FOREVER</button>
+          <button type="button" className="danger permaDeleteButton" onClick={function () { if (props.onPermanentDelete) props.onPermanentDelete(memory); }}>DELETE FOREVER</button>
         </div>
       </section>
     </div>
@@ -3508,6 +3489,33 @@ function AmbientMusicControl() {
 }
 
 
+function DeleteConfirmModal(props) {
+  if (!props.open) return null;
+  const request = props.request || {};
+  const count = Number(request.count) || 1;
+  const title = request.title || (count === 1 ? "DELETE FOREVER" : "DELETE FILES");
+  const message = request.message || deleteConfirmCopy(count);
+  const modalNode = (
+    <AnimatePresence>
+      <motion.div className="deleteConfirmBackdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={props.onCancel}>
+        <motion.section className="deleteConfirmCard" initial={{ y: 14, scale: 0.985 }} animate={{ y: 0, scale: 1 }} exit={{ y: 10, scale: 0.985, opacity: 0 }} onClick={function (event) { event.stopPropagation(); }} role="dialog" aria-modal="true" aria-label={title}>
+          <div className="deleteConfirmSymbol"><AlertTriangle size={18} /></div>
+          <div className="deleteConfirmCopy">
+            <strong>{title}</strong>
+            <span>{message}</span>
+            <em>This cannot be undone.</em>
+          </div>
+          <div className="deleteConfirmActions">
+            <button type="button" onClick={props.onCancel}>CANCEL</button>
+            <button type="button" className="danger" onClick={props.onConfirm}>DELETE FOREVER</button>
+          </div>
+        </motion.section>
+      </motion.div>
+    </AnimatePresence>
+  );
+  return typeof document !== "undefined" ? createPortal(modalNode, document.body) : modalNode;
+}
+
 export default function App() {
   const [uploadNotice, setUploadNotice] = useState("");
   const [uploadPendingItems, setUploadPendingItems] = useState([]);
@@ -3663,6 +3671,7 @@ const [screen, setScreen] = useState("home");
   const [albumSort, setAlbumSort] = useState("recent");
   const [visibleIds, setVisibleIds] = useState([]);
   const [sync, setSync] = useState("loading");
+  const [deleteConfirmRequest, setDeleteConfirmRequest] = useState(null);
   const [undoSnapshot, setUndoSnapshot] = useState(null);
   const saving = useRef(false);
 
@@ -4364,6 +4373,22 @@ const [screen, setScreen] = useState("home");
     persist(nextMemories, albums);
   }
 
+  function requestDeleteForever(options) {
+    const request = options || {};
+    setDeleteConfirmRequest({
+      title: request.title || "DELETE FOREVER",
+      message: request.message || deleteConfirmCopy(request.count || 1),
+      count: request.count || 1,
+      onConfirm: typeof request.onConfirm === "function" ? request.onConfirm : function () {}
+    });
+  }
+
+  function runDeleteConfirm() {
+    const request = deleteConfirmRequest;
+    setDeleteConfirmRequest(null);
+    if (request && typeof request.onConfirm === "function") request.onConfirm();
+  }
+
   function bulkDelete() {
     rememberUndo("BULK TRASH");
     
@@ -4383,23 +4408,28 @@ const [screen, setScreen] = useState("home");
       return;
     }
 
-    if (!confirmDelete("Permanently delete " + ids.length + " selected trashed files from PHOTOZ storage? This cannot be undone.")) return;
+    requestDeleteForever({
+      title: "DELETE SELECTED",
+      count: ids.length,
+      message: deleteConfirmCopy(ids.length),
+      onConfirm: function () {
+        const doomed = selected;
+        const nextMemories = safeArray(memories).filter(function (memory) {
+          return ids.indexOf(memory.id) === -1;
+        });
+        const nextAlbums = ensureAlbumCoverage(nextMemories, ids.reduce(function (currentAlbums, id) {
+          return removeMemoryEverywhere(currentAlbums, id);
+        }, albums));
 
-    const doomed = selected;
-    const nextMemories = safeArray(memories).filter(function (memory) {
-      return ids.indexOf(memory.id) === -1;
-    });
-    const nextAlbums = ensureAlbumCoverage(nextMemories, ids.reduce(function (currentAlbums, id) {
-      return removeMemoryEverywhere(currentAlbums, id);
-    }, albums));
+        setMemories(nextMemories);
+        setAlbums(nextAlbums);
+        setSelectedIds({});
+        setSync("deleting");
 
-    setMemories(nextMemories);
-    setAlbums(nextAlbums);
-    setSelectedIds({});
-    setSync("deleting");
-
-    Promise.all(doomed.map(deleteOne)).finally(function () {
-      persist(nextMemories, nextAlbums);
+        Promise.all(doomed.map(deleteOne)).finally(function () {
+          persist(nextMemories, nextAlbums);
+        });
+      }
     });
   }
 
@@ -4602,54 +4632,65 @@ const [screen, setScreen] = useState("home");
   function purgeTrash() {
     const doomed = safeArray(memories).filter(function (memory) { return memory.trashed; });
     if (!doomed.length) return;
-    if (!confirmDelete("Permanently delete " + doomed.length + " trashed files from PHOTOZ storage? This cannot be undone.")) return;
-    const doomedIds = doomed.map(function (memory) { return memory.id; });
-    const nextMemories = safeArray(memories).filter(function (memory) { return !memory.trashed; });
-    const nextAlbums = ensureAlbumCoverage(nextMemories, doomedIds.reduce(function (currentAlbums, id) {
-      return removeMemoryEverywhere(currentAlbums, id);
-    }, albums));
-    setMemories(nextMemories);
-    setAlbums(nextAlbums);
-    setSync("deleting");
-    Promise.all(doomed.map(deleteOne)).finally(function () {
-      persist(nextMemories, nextAlbums);
+    requestDeleteForever({
+      title: "EMPTY TRASH",
+      count: doomed.length,
+      message: deleteConfirmCopy(doomed.length),
+      onConfirm: function () {
+        const doomedIds = doomed.map(function (memory) { return memory.id; });
+        const nextMemories = safeArray(memories).filter(function (memory) { return !memory.trashed; });
+        const nextAlbums = ensureAlbumCoverage(nextMemories, doomedIds.reduce(function (currentAlbums, id) {
+          return removeMemoryEverywhere(currentAlbums, id);
+        }, albums));
+        setMemories(nextMemories);
+        setAlbums(nextAlbums);
+        setSync("deleting");
+        Promise.all(doomed.map(deleteOne)).finally(function () {
+          persist(nextMemories, nextAlbums);
+        });
+      }
     });
   }
 
   function permanentDeleteMemory(memory) {
     if (!memory) return;
-    if (!confirmDelete("Permanently delete this file from PHOTOZ storage? This cannot be undone.")) return;
-
-    const nextMemories = safeArray(memories).filter(function (item) {
-      return item.id !== memory.id;
-    });
-    const nextAlbums = ensureAlbumCoverage(nextMemories, removeMemoryEverywhere(albums, memory.id));
-
-    setActiveMemory(null);
-    setPzDetailEditorId(null);
-    if (activeGroup) {
-      setActiveGroup({
-        ...activeGroup,
-        items: safeArray(activeGroup && activeGroup.items).filter(function (item) {
+    requestDeleteForever({
+      title: "DELETE FOREVER",
+      count: 1,
+      message: "This file will be removed from PHOTOZ and storage.",
+      onConfirm: function () {
+        const nextMemories = safeArray(memories).filter(function (item) {
           return item.id !== memory.id;
-        }),
-      });
-    }
+        });
+        const nextAlbums = ensureAlbumCoverage(nextMemories, removeMemoryEverywhere(albums, memory.id));
 
-    setMemories(nextMemories);
-    setAlbums(nextAlbums);
-    setSync("deleting");
+        setActiveMemory(null);
+        setPzDetailEditorId(null);
+        if (activeGroup) {
+          setActiveGroup({
+            ...activeGroup,
+            items: safeArray(activeGroup && activeGroup.items).filter(function (item) {
+              return item.id !== memory.id;
+            }),
+          });
+        }
 
-    deleteOne(memory)
-      .then(function () {
-        pzPushToast("DELETED", "File permanently deleted.", "success");
-        persist(nextMemories, nextAlbums);
-      })
-      .catch(function () {
-        setSync("local");
-        pzPushToast("LOCAL DELETE", "Removed locally. Storage delete will need retry.", "error");
-        persist(nextMemories, nextAlbums);
-      });
+        setMemories(nextMemories);
+        setAlbums(nextAlbums);
+        setSync("deleting");
+
+        deleteOne(memory)
+          .then(function () {
+            pzPushToast("DELETED", "File permanently deleted.", "success");
+            persist(nextMemories, nextAlbums);
+          })
+          .catch(function () {
+            setSync("local");
+            pzPushToast("LOCAL DELETE", "Removed locally. Storage delete will need retry.", "error");
+            persist(nextMemories, nextAlbums);
+          });
+      }
+    });
   }
 
   function deleteMemory(memory) {
@@ -4667,34 +4708,40 @@ const [screen, setScreen] = useState("home");
       return;
     }
 
-    if (!confirmDelete("Permanently delete this file from PHOTOZ storage? This cannot be undone.")) return;
-    const nextMemories = safeArray(memories).filter(function (item) {
-      return item.id !== memory.id;
-    });
-    const nextAlbums = ensureAlbumCoverage(nextMemories, removeMemoryEverywhere(albums, memory.id));
-
-    setActiveMemory(null);
-    if (activeGroup) {
-      setActiveGroup({
-        ...activeGroup,
-        items: safeArray(activeGroup && activeGroup.items).filter(function (item) {
+    requestDeleteForever({
+      title: "DELETE FOREVER",
+      count: 1,
+      message: "This file will be removed from PHOTOZ and storage.",
+      onConfirm: function () {
+        const nextMemories = safeArray(memories).filter(function (item) {
           return item.id !== memory.id;
-        }),
-      });
-    }
+        });
+        const nextAlbums = ensureAlbumCoverage(nextMemories, removeMemoryEverywhere(albums, memory.id));
 
-    setMemories(nextMemories);
-    setAlbums(nextAlbums);
-    setSync("deleting");
+        setActiveMemory(null);
+        if (activeGroup) {
+          setActiveGroup({
+            ...activeGroup,
+            items: safeArray(activeGroup && activeGroup.items).filter(function (item) {
+              return item.id !== memory.id;
+            }),
+          });
+        }
 
-    deleteOne(memory)
-      .then(function () {
-        persist(nextMemories, nextAlbums);
-      })
-      .catch(function () {
-        setSync("local");
-        persist(nextMemories, nextAlbums);
-      });
+        setMemories(nextMemories);
+        setAlbums(nextAlbums);
+        setSync("deleting");
+
+        deleteOne(memory)
+          .then(function () {
+            persist(nextMemories, nextAlbums);
+          })
+          .catch(function () {
+            setSync("local");
+            persist(nextMemories, nextAlbums);
+          });
+      }
+    });
   }
 
   async function runQueue(imported, files, nextAlbums) {

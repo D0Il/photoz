@@ -17458,3 +17458,94 @@ body:has(.fileInfoModal) {
     min-width: 148px;
   }
 }
+
+/* PHOTOZ in-app destructive confirmation: no generic browser popup. */
+.deleteConfirmBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(255,255,255,.55), rgba(210,214,220,.22) 36%, rgba(20,22,26,.28) 100%),
+    rgba(246,247,249,.42);
+  backdrop-filter: blur(18px) saturate(1.12);
+}
+
+.deleteConfirmCard {
+  width: min(430px, calc(100vw - 36px));
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 28px;
+  border: 1px solid rgba(255,255,255,.72);
+  background: linear-gradient(145deg, rgba(255,255,255,.91), rgba(238,240,244,.78));
+  box-shadow: 0 28px 80px rgba(17,21,28,.22), inset 0 1px 0 rgba(255,255,255,.92);
+  color: rgba(20,22,26,.92);
+}
+
+.deleteConfirmSymbol {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: rgba(255,255,255,.7);
+  border: 1px solid rgba(35,38,45,.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 12px 30px rgba(24,27,34,.12);
+}
+
+.deleteConfirmCopy {
+  display: grid;
+  gap: 5px;
+  align-content: center;
+}
+
+.deleteConfirmCopy strong {
+  font-size: 14px;
+  letter-spacing: .18em;
+  font-weight: 850;
+}
+
+.deleteConfirmCopy span,
+.deleteConfirmCopy em {
+  font-size: 12px;
+  line-height: 1.35;
+  color: rgba(36,39,46,.66);
+}
+
+.deleteConfirmActions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.deleteConfirmActions button {
+  min-height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(38,42,50,.13);
+  padding: 0 16px;
+  background: rgba(255,255,255,.68);
+  color: rgba(23,25,30,.86);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .12em;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 10px 26px rgba(20,24,32,.1);
+}
+
+.deleteConfirmActions button.danger {
+  background: linear-gradient(145deg, rgba(48,20,22,.94), rgba(18,18,20,.9));
+  border-color: rgba(255,255,255,.28);
+  color: rgba(255,255,255,.95);
+}
+
+/* PHOTOZ info panel cleanup: info is facts/details only; destructive actions stay in viewer controls. */
+.fileInfoInspector .fileInfoAlbumControls,
+.fileInfoInspector .fileInfoDeletePanel,
+.fileInfoInspector .fileInfoDeleteActions {
+  display: none;
+}

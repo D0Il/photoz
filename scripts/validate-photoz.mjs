@@ -126,6 +126,8 @@ check("permanent delete handler exists", app.includes("function permanentDeleteM
 check("file info modal wired to permanent delete", app.includes("permanentDeleteMemory={permanentDeleteMemory}"));
 check("detail editor wired to permanent delete", app.includes("onPermanentDelete={permanentDeleteMemory}"));
 check("delete forever UI exists", app.includes("DELETE FOREVER"));
+check("delete forever uses in-app confirmation not browser confirm", !app.includes("window.confirm") && !app.includes("confirmDelete(") && app.includes("function DeleteConfirmModal(props)") && app.includes("deleteConfirmBackdrop"));
+check("file info panel has no dead action pile", !app.includes("fileInfoDeletePanel") && !app.includes("fileInfoDeleteActions") && !app.includes("fileInfoAlbumControls"));
 
 
 // PHOTOZ file integrity pass checks
