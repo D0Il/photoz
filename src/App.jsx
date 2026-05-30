@@ -2524,6 +2524,11 @@ function Modal(props) {
   const [showTechnical, setShowTechnical] = useState(false);
   const [editDetailsOpen, setEditDetailsOpen] = useState(false);
   const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [photoZoom, setPhotoZoom] = useState(1);
+  const [photoPan, setPhotoPan] = useState({ x: 0, y: 0 });
+  const viewerPointersRef = useRef(new Map());
+  const pinchRef = useRef(null);
+  const lastTapRef = useRef(0);
 
   useEffect(function () {
     if (!props.memory) return;
@@ -2540,6 +2545,10 @@ function Modal(props) {
     setShowTechnical(false);
     setEditDetailsOpen(false);
     setInspectorOpen(false);
+    setPhotoZoom(1);
+    setPhotoPan({ x: 0, y: 0 });
+    viewerPointersRef.current.clear();
+    pinchRef.current = null;
   }, [props.memory]);
 
   if (!props.memory) return null;
@@ -2558,6 +2567,91 @@ function Modal(props) {
   const titleMetaLine = [originalName && originalName !== displayTitle ? originalName : "", sizeLabel, dimensionsLabel(memory), readableDateTime(memory.metadata?.lastModifiedISO || memory.metadata?.lastModified || memory.createdAt || memory.date)].filter(Boolean).join("  •  ");
   const importedLabel = readableDateTime(memory.createdAt || memory.importedAt || memory.date) || memory.date || "";
 
+  function clampZoom(value) {
+    return Math.max(1, Math.min(5, Number(value) || 1));
+  }
+
+  function resetPhotoZoom() {
+    setPhotoZoom(1);
+    setPhotoPan({ x: 0, y: 0 });
+    viewerPointersRef.current.clear();
+    pinchRef.current = null;
+  }
+
+  function adjustPhotoZoom(delta) {
+    setPhotoZoom(function (current) {
+      const next = clampZoom(current + delta);
+      if (next === 1) setPhotoPan({ x: 0, y: 0 });
+      return next;
+    });
+  }
+
+  function handleViewerPointerDown(event) {
+    if (video) return;
+    viewerPointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (event.currentTarget.setPointerCapture) event.currentTarget.setPointerCapture(event.pointerId);
+
+    const now = Date.now();
+    if (now - lastTapRef.current < 280 && viewerPointersRef.current.size === 1) {
+      event.preventDefault();
+      setPhotoZoom(function (current) {
+        const next = current > 1 ? 1 : 2.25;
+        if (next === 1) setPhotoPan({ x: 0, y: 0 });
+        return next;
+      });
+    }
+    lastTapRef.current = now;
+
+    if (viewerPointersRef.current.size === 2) {
+      const points = Array.from(viewerPointersRef.current.values());
+      pinchRef.current = {
+        distance: Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y),
+        zoom: photoZoom
+      };
+    }
+  }
+
+  function handleViewerPointerMove(event) {
+    if (video || !viewerPointersRef.current.has(event.pointerId)) return;
+    event.preventDefault();
+    const previous = viewerPointersRef.current.get(event.pointerId);
+    viewerPointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    if (viewerPointersRef.current.size === 2) {
+      const points = Array.from(viewerPointersRef.current.values());
+      const distance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+      const pinch = pinchRef.current || { distance, zoom: photoZoom };
+      const next = clampZoom(pinch.zoom * (distance / Math.max(1, pinch.distance)));
+      setPhotoZoom(next);
+      if (next === 1) setPhotoPan({ x: 0, y: 0 });
+      return;
+    }
+
+    if (photoZoom > 1 && previous) {
+      const dx = event.clientX - previous.x;
+      const dy = event.clientY - previous.y;
+      setPhotoPan(function (current) {
+        return { x: current.x + dx, y: current.y + dy };
+      });
+    }
+  }
+
+  function handleViewerPointerEnd(event) {
+    viewerPointersRef.current.delete(event.pointerId);
+    if (viewerPointersRef.current.size < 2) pinchRef.current = null;
+    if (photoZoom <= 1.001) {
+      setPhotoZoom(1);
+      setPhotoPan({ x: 0, y: 0 });
+    }
+  }
+
+  function handleViewerWheel(event) {
+    if (video) return;
+    if (!event.ctrlKey && Math.abs(event.deltaY) < 40) return;
+    event.preventDefault();
+    adjustPhotoZoom(event.deltaY > 0 ? -0.25 : 0.25);
+  }
+
   function saveDetails() {
     const nextPatch = {
       title: draftTitle,
@@ -2574,6 +2668,8 @@ function Modal(props) {
     setEditDetailsOpen(false);
   }
 
+  const photoTransform = video ? undefined : { transform: `translate3d(${photoPan.x}px, ${photoPan.y}px, 0) scale(${photoZoom})` };
+
   const modalNode = (
     <AnimatePresence>
       <motion.div className="modal fileInfoModal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={props.close}>
@@ -2589,16 +2685,25 @@ function Modal(props) {
 
           <main className={"fileInfoLayout" + (inspectorOpen ? " inspectorOpen" : "")}>
             <section className="fileInfoPreviewPanel">
-              <div className="fileInfoPreview">
-                {video ? <video src={source} controls playsInline /> : <img src={source} alt="" />}
+              <div
+                className={"fileInfoPreview" + (photoZoom > 1 ? " zoomed" : "")}
+                onPointerDown={handleViewerPointerDown}
+                onPointerMove={handleViewerPointerMove}
+                onPointerUp={handleViewerPointerEnd}
+                onPointerCancel={handleViewerPointerEnd}
+                onWheel={handleViewerWheel}
+                onDoubleClick={function (event) { event.preventDefault(); setPhotoZoom(function (current) { const next = current > 1 ? 1 : 2.25; if (next === 1) setPhotoPan({ x: 0, y: 0 }); return next; }); }}
+              >
+                {video ? <video src={source} controls playsInline /> : <img src={source} alt="" draggable="false" style={photoTransform} />}
                 {memory.trashed ? <span className="pzTrashRibbon">TRASH</span> : null}
               </div>
               <div className="fileInfoActionRail" aria-label="Photo actions">
+                <button type="button" aria-label="Zoom out" data-tooltip="Zoom out" onClick={function () { adjustPhotoZoom(-0.35); }}><span aria-hidden="true" className="zoomGlyph">−</span></button>
+                <button type="button" aria-label="Fit photo" data-tooltip={photoZoom > 1 ? "Fit" : "Fit"} className="zoomLevelButton" onClick={resetPhotoZoom}><Maximize2 size={16} /><span>{Math.round(photoZoom * 100)}%</span></button>
+                <button type="button" aria-label="Zoom in" data-tooltip="Zoom in" onClick={function () { adjustPhotoZoom(0.35); }}><span aria-hidden="true" className="zoomGlyph">+</span></button>
                 <button type="button" aria-label="Favorite" data-tooltip="Favorite" className={props.isStarred ? "active" : ""} onClick={function () { props.toggleStar(memory); }}><Star size={17} /></button>
-                <button type="button" aria-label="Me" data-tooltip="Me" className={memory.isMe ? "active" : ""} onClick={function () { props.toggleMeFlag(memory); }}><UserRound size={17} /></button>
                 <button type="button" aria-label="Mirror" data-tooltip="Mirror" className={memory.inMirror ? "active" : ""} onClick={function () { props.toggleMirror(memory); }}><Eye size={18} /></button>
-                <button type="button" aria-label={memory.archived ? "Unarchive" : "Archive"} data-tooltip={memory.archived ? "Unarchive" : "Archive"} className={memory.archived ? "active" : ""} onClick={function () { props.toggleArchive(memory); }}><ArchiveRestore size={17} /></button>
-                <button type="button" aria-label="Info" data-tooltip="Info" className={inspectorOpen ? "active" : ""} onClick={function () { setInspectorOpen(function (value) { return !value; }); }}><PanelRightOpen size={17} /></button>
+                {memory.trashed ? <button type="button" aria-label="Restore" data-tooltip="Restore" onClick={function () { props.restoreMemory(memory); }}><RotateCcw size={17} /></button> : <button type="button" aria-label="Trash" data-tooltip="Trash" className="danger" onClick={function () { props.deleteMemory(memory); }}><Trash2 size={17} /></button>}
               </div>
             </section>
 

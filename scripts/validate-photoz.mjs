@@ -198,11 +198,25 @@ if (failures.length) {
 
 
 check("light luxury media viewer overrides dark command center", css.includes("PHOTOZ LIGHT LUXURY MEDIA VIEWER PASS") && css.includes("Silver personal photo archive") && css.includes("rgba(248,248,248,.86)"));
-check("file viewer action rail uses icon controls", app.includes('aria-label="Photo actions"') && app.includes('<Star size={17} />') && app.includes('<PanelRightOpen size={17} />'));
+check("file viewer action rail uses icon controls", app.includes('aria-label="Photo actions"') && app.includes('<Star size={17} />') && app.includes('<Trash2 size={17} />'));
+check("file viewer has tablet zoom controls", app.includes('aria-label="Zoom out"') && app.includes('aria-label="Fit photo"') && app.includes('aria-label="Zoom in"') && app.includes('handleViewerPointerMove') && app.includes('onPointerDown={handleViewerPointerDown}'));
+check("file viewer rail has no duplicate info button", !app.includes('<button type="button" aria-label="Info" data-tooltip="Info" className={inspectorOpen ? "active" : ""}'));
+check("file viewer uses touch-safe zoom CSS", css.includes('touch-action: none') && css.includes('.zoomLevelButton') && css.includes('.fileInfoPreview.zoomed'));
 
 check("card media layering fix exists", css.includes("PHOTOZ card media layering fix"));
 check("photo card images scoped to thumbnail", css.includes(".photoCard .photoThumb img"));
 check("photo card metadata separated from media", css.includes(".photoCard .photoMeta") && css.includes("grid-template-rows: minmax(0, 1fr) auto"));
+
+if (failures.length) {
+  console.error("PHOTOZ validation failed:");
+  for (const failure of failures) console.error("- " + failure);
+  process.exit(1);
+}
+
+
+check("file viewer primary action rail exposes Trash", app.includes('aria-label="Trash" data-tooltip="Trash"'));
+check("file viewer primary action rail has no Archive/Unarchive", !app.includes('data-tooltip={memory.archived ? "Unarchive" : "Archive"}'));
+check("file viewer tooltip/action correction CSS exists", css.includes('PHOTOZ file-viewer action correction'));
 
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
