@@ -166,6 +166,9 @@ check("file card quick actions have no visible select button", !app.includes('ar
 
 check("no selectedCountFromMap runtime crash reference", !app.includes("selectedCountFromMap"));
 
+check("viewer uses full viewport shell", css.includes("width: 100vw") && css.includes("height: 100dvh") && css.includes("grid-template-columns: minmax(0, 1fr)"));
+check("album and shortcut tooltip css exists", css.includes(".systemRailItem[data-tooltip]::after") && css.includes(".pzAlbumCardActions button[data-tooltip]::after"));
+
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -193,6 +196,9 @@ check("album selection does not reintroduce visible card select button", !app.in
 
 check("no selectedCountFromMap runtime crash reference", !app.includes("selectedCountFromMap"));
 
+check("viewer uses full viewport shell", css.includes("width: 100vw") && css.includes("height: 100dvh") && css.includes("grid-template-columns: minmax(0, 1fr)"));
+check("album and shortcut tooltip css exists", css.includes(".systemRailItem[data-tooltip]::after") && css.includes(".pzAlbumCardActions button[data-tooltip]::after"));
+
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -208,6 +214,9 @@ check("albums can enter selection mode by long press for bulk move and mirror", 
 check("album selection does not reintroduce visible card select button", !app.includes('aria-label="Select file"') && !app.includes('<AlbumSectionHeader show title="FILES"'));
 
 check("no selectedCountFromMap runtime crash reference", !app.includes("selectedCountFromMap"));
+
+check("viewer uses full viewport shell", css.includes("width: 100vw") && css.includes("height: 100dvh") && css.includes("grid-template-columns: minmax(0, 1fr)"));
+check("album and shortcut tooltip css exists", css.includes(".systemRailItem[data-tooltip]::after") && css.includes(".pzAlbumCardActions button[data-tooltip]::after"));
 
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
@@ -226,6 +235,9 @@ check("albums can enter selection mode by long press for bulk move and mirror", 
 check("album selection does not reintroduce visible card select button", !app.includes('aria-label="Select file"') && !app.includes('<AlbumSectionHeader show title="FILES"'));
 
 check("no selectedCountFromMap runtime crash reference", !app.includes("selectedCountFromMap"));
+
+check("viewer uses full viewport shell", css.includes("width: 100vw") && css.includes("height: 100dvh") && css.includes("grid-template-columns: minmax(0, 1fr)"));
+check("album and shortcut tooltip css exists", css.includes(".systemRailItem[data-tooltip]::after") && css.includes(".pzAlbumCardActions button[data-tooltip]::after"));
 
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
@@ -251,6 +263,9 @@ check("albums can enter selection mode by long press for bulk move and mirror", 
 check("album selection does not reintroduce visible card select button", !app.includes('aria-label="Select file"') && !app.includes('<AlbumSectionHeader show title="FILES"'));
 
 check("no selectedCountFromMap runtime crash reference", !app.includes("selectedCountFromMap"));
+
+check("viewer uses full viewport shell", css.includes("width: 100vw") && css.includes("height: 100dvh") && css.includes("grid-template-columns: minmax(0, 1fr)"));
+check("album and shortcut tooltip css exists", css.includes(".systemRailItem[data-tooltip]::after") && css.includes(".pzAlbumCardActions button[data-tooltip]::after"));
 
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
@@ -286,11 +301,16 @@ check("album selection does not reintroduce visible card select button", !app.in
 
 check("no selectedCountFromMap runtime crash reference", !app.includes("selectedCountFromMap"));
 
+check("viewer uses full viewport shell", css.includes("width: 100vw") && css.includes("height: 100dvh") && css.includes("grid-template-columns: minmax(0, 1fr)"));
+check("album and shortcut tooltip css exists", css.includes(".systemRailItem[data-tooltip]::after") && css.includes(".pzAlbumCardActions button[data-tooltip]::after"));
+
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
   for (const failure of failures) console.error("- " + failure);
   process.exit(1);
 }
+
+
 
 console.log("PHOTOZ validation passed.");
 
