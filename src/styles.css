@@ -19235,3 +19235,103 @@ body:has(.fileInfoModal) {
     display: none;
   }
 }
+
+/* PHOTOZ correction: viewer is full-screen but must stay light/silver, not dark cinema mode. */
+.photozProUI .fileInfoModal.modal,
+.photozProUI .fileInfoModal,
+.fileInfoModal.modal,
+.fileInfoModal {
+  background:
+    radial-gradient(circle at 50% -18%, rgba(255,255,255,.96), rgba(255,255,255,.42) 38%, transparent 68%),
+    linear-gradient(135deg, rgba(245,245,245,.92), rgba(225,225,225,.74) 48%, rgba(250,250,250,.88)),
+    rgba(235,235,235,.92);
+  color: rgba(24,24,24,.9);
+}
+
+.photozProUI .fileInfoModal .fileInfoCard,
+.photozProUI .fileInfoCard,
+.fileInfoModal .fileInfoCard,
+.fileInfoCard {
+  background: transparent;
+  color: rgba(24,24,24,.9);
+}
+
+.photozProUI .fileInfoModal .fileInfoCard::before,
+.fileInfoModal .fileInfoCard::before,
+.photozProUI .fileInfoModal .fileInfoCard::after,
+.fileInfoModal .fileInfoCard::after {
+  display: none;
+}
+
+.photozProUI .fileInfoModal .fileInfoPreviewPanel,
+.fileInfoModal .fileInfoPreviewPanel {
+  padding: clamp(32px, 4.2vh, 46px) clamp(10px, 1.4vw, 22px) clamp(58px, 7vh, 76px);
+  min-height: 100dvh;
+}
+
+.photozProUI .fileInfoModal .fileInfoPreview,
+.fileInfoModal .fileInfoPreview {
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.photozProUI .fileInfoModal .fileInfoPreview img,
+.photozProUI .fileInfoModal .fileInfoPreview video,
+.fileInfoModal .fileInfoPreview img,
+.fileInfoModal .fileInfoPreview video {
+  max-width: calc(100vw - clamp(28px, 4vw, 74px));
+  max-height: calc(100dvh - clamp(86px, 10vh, 112px));
+  object-fit: contain;
+  border-radius: clamp(8px, 1vw, 15px);
+}
+
+.photozProUI .fileInfoModal .pzVideoViewerShell,
+.fileInfoModal .pzVideoViewerShell {
+  width: max-content;
+  max-width: calc(100vw - clamp(28px, 4vw, 74px));
+  max-height: calc(100dvh - clamp(86px, 10vh, 112px));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photozProUI .fileInfoModal .pzVideoViewerShell video,
+.fileInfoModal .pzVideoViewerShell video {
+  width: auto;
+  height: auto;
+  max-width: calc(100vw - clamp(28px, 4vw, 74px));
+  max-height: calc(100dvh - clamp(86px, 10vh, 112px));
+}
+
+.photozProUI .fileInfoModal .fileInfoLayout.inspectorOpen .fileInfoPreview img,
+.photozProUI .fileInfoModal .fileInfoLayout.inspectorOpen .fileInfoPreview video,
+.fileInfoModal .fileInfoLayout.inspectorOpen .fileInfoPreview img,
+.fileInfoModal .fileInfoLayout.inspectorOpen .fileInfoPreview video {
+  max-width: calc(72vw - clamp(28px, 4vw, 62px));
+  max-height: calc(100dvh - clamp(92px, 11vh, 126px));
+}
+
+.photozProUI .fileInfoModal .pzVideoControls,
+.fileInfoModal .pzVideoControls {
+  bottom: 18px;
+  width: min(460px, calc(100vw - 48px));
+  background: linear-gradient(180deg, rgba(255,255,255,.88), rgba(232,232,232,.72));
+  border-color: rgba(255,255,255,.76);
+  color: rgba(24,24,24,.82);
+}
+
+.photozProUI .fileInfoModal .fileInfoActionRail,
+.fileInfoModal .fileInfoActionRail {
+  bottom: 72px;
+  background: linear-gradient(180deg, rgba(255,255,255,.88), rgba(235,235,235,.72));
+  border-color: rgba(255,255,255,.76);
+  color: rgba(24,24,24,.82);
+}
+
+.photozProUI .fileInfoModal .fileInfoHeader,
+.fileInfoModal .fileInfoHeader,
+.photozProUI .fileInfoModal .fileInfoZoomCorner,
+.fileInfoModal .fileInfoZoomCorner {
+  color: rgba(24,24,24,.82);
+}
