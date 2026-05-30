@@ -1057,6 +1057,110 @@ function albumSizeBytes(items) {
   }, 0);
 }
 
+
+function albumDateRangeLabel(items) {
+  const years = Array.from(new Set(safeArray(items).map(function (memory) {
+    return String(memory.year || (memory.date ? String(memory.date).slice(0, 4) : "")).trim();
+  }).filter(Boolean))).sort();
+  if (!years.length) return "NO DATE";
+  if (years.length === 1) return years[0];
+  return years[0] + "–" + years[years.length - 1];
+}
+
+function albumStatsLabel(items, childCount) {
+  const count = safeArray(items).length;
+  const pieces = [count + " " + (count === 1 ? "FILE" : "FILES")];
+  if (childCount) pieces.push(childCount + " " + (childCount === 1 ? "ALBUM" : "ALBUMS"));
+  const size = albumSizeBytes(items);
+  if (size) pieces.push(formatBytes(size));
+  return pieces.join(" / ");
+}
+
+function AlbumCoverStack(props) {
+  const items = newest(safeArray(props.items)).slice(0, 4);
+  if (!items.length) {
+    return (
+      <div className="albumCoverStack empty">
+        <PhotozAlbumDockIcon size={36} />
+      </div>
+    );
+  }
+  return (
+    <div className="albumCoverStack">
+      {items.map(function (memory, index) {
+        const source = pzMediaSource(memory);
+        const video = pzIsVideo(memory);
+        return (
+          <span key={memory.id || index} className={"albumCoverPiece piece" + index}>
+            {video ? <video src={source} muted playsInline preload="metadata" /> : <img src={source} alt="" loading="lazy" />}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+function AlbumLibraryHeader(props) {
+  if (!props.show || props.currentAlbum) return null;
+  const realCount = safeArray(props.realGroups).length;
+  const fileCount = safeArray(props.memories).filter(function (memory) { return !memory.trashed; }).length;
+  return (
+    <div className="albumLibraryHeader">
+      <div>
+        <strong>PHOTO ALBUM</strong>
+        <span>{realCount} ALBUMS / {fileCount} FILES</span>
+      </div>
+      <em>{up(props.albumSort || "recent")}</em>
+    </div>
+  );
+}
+
+function AlbumWorkspaceHero(props) {
+  const album = props.album ? normalizeAlbumRecord(props.album) : null;
+  if (!album) return null;
+  const photos = newest(safeArray(props.photos));
+  const children = safeArray(props.children);
+  const count = photos.length;
+
+  return (
+    <section className={album.excludeFromAll ? "albumWorkspaceHero hiddenFromAll" : "albumWorkspaceHero"}>
+      <AlbumCoverStack items={photos} />
+      <div className="albumWorkspaceMain">
+        <div className="albumCrumbs">
+          <button type="button" onClick={function () { props.backToAlbums && props.backToAlbums(); }}>PHOTO ALBUM</button>
+          <span>/</span>
+          <strong>{album.title || "PHOTO ALBUM"}</strong>
+        </div>
+        <div className="albumWorkspaceTitleRow">
+          <div>
+            <h2>{album.title || "PHOTO ALBUM"}</h2>
+            {album.description ? <p>{album.description}</p> : null}
+          </div>
+          <div className="albumWorkspaceStats">
+            <span>{albumStatsLabel(photos, children.length)}</span>
+            <span>{albumDateRangeLabel(photos)}</span>
+          </div>
+        </div>
+        <div className="albumWorkspaceActions">
+          <button type="button" onClick={function () { props.openCreate && props.openCreate(); }}>+ ALBUM</button>
+          <button type="button" onClick={function () { props.editAlbum && props.editAlbum(album); }}>EDIT</button>
+          <button type="button" onClick={function () { props.toggleHidden && props.toggleHidden(album.id); }}>{album.excludeFromAll ? "SHOW IN ALL" : "HIDE FROM ALL"}</button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function AlbumSectionHeader(props) {
+  if (!props.show) return null;
+  return (
+    <div className="albumSectionHeader">
+      <strong>{props.title}</strong>
+      <span>{props.count}</span>
+    </div>
+  );
+}
+
 function storageTotal(memories) {
   return safeArray(memories).reduce(function (total, memory) {
     return total + fileSizeBytes(memory);
@@ -1883,8 +1987,13 @@ function PhotoCard(props) {
         </div>
       ) : null}
       <div className="pzCardQuickActions">
-        <button type="button" aria-label="Edit file" onClick={function (event) { event.stopPropagation(); props.onEdit && props.onEdit(memory); }}><PanelRightOpen size={12} /></button>
-        {video ? <button type="button" aria-label="Play video" onClick={function (event) { event.stopPropagation(); props.onPlayVideo && props.onPlayVideo(memory); }}><Film size={12} /></button> : null}
+        {props.setSelectionMode && props.toggleSelected ? (
+          <button type="button" aria-label="Select file" onClick={function (event) { event.stopPropagation(); props.setSelectionMode(true); props.toggleSelected(memory.id); }}><CircleCheck size={12} /></button>
+        ) : null}
+        {props.onEdit ? (
+          <button type="button" aria-label="Edit file" onClick={function (event) { event.stopPropagation(); props.onEdit(memory); }}><PanelRightOpen size={12} /></button>
+        ) : null}
+        {video && props.onPlayVideo ? <button type="button" aria-label="Play video" onClick={function (event) { event.stopPropagation(); props.onPlayVideo(memory); }}><Film size={12} /></button> : null}
       </div>
     </article>
   );
@@ -2227,14 +2336,26 @@ function UndoBar(props) {
 function BulkBar(props) {
   if (!props.selectionMode) return null;
   const count = Object.keys(props.selectedIds || {}).filter(function (id) { return props.selectedIds[id]; }).length;
+  const albumOptions = assignableAlbums(props.albums);
+  const inAlbum = Boolean(props.currentAlbumId);
+  const targetAlbum = props.bulkAlbum || UNASSIGNED_ALBUM_ID;
 
   return (
-    <div className="selectTray">
+    <div className="bulkBar albumReadyBulkBar" aria-label="Selected file actions">
       <span>{count} selected</span>
-      <button type="button" disabled={!count} onClick={props.moveSelected}>Move</button>
-      <button type="button" disabled={!count} onClick={props.archiveSelected}>Hide</button>
-      <button type="button" disabled={!count} onClick={props.trashSelected}>Trash</button>
-      <button type="button" onClick={props.clearSelection}>Clear</button>
+      <select value={targetAlbum} aria-label="Target album" onChange={function (event) { props.setBulkAlbum && props.setBulkAlbum(event.target.value); }}>
+        {albumOptions.map(function (album) {
+          return <option key={album.id} value={album.id}>{album.title || "PHOTO ALBUM"}</option>;
+        })}
+      </select>
+      <button type="button" disabled={!count || !targetAlbum} onClick={props.bulkAddToAlbum}>ADD</button>
+      <button type="button" disabled={!count || !targetAlbum} onClick={props.bulkMoveToAlbum}>MOVE</button>
+      {inAlbum ? <button type="button" disabled={!count} onClick={props.bulkRemoveFromCurrentAlbum}>REMOVE</button> : null}
+      <button type="button" disabled={!count} onClick={props.bulkMarkMe}>ME</button>
+      <button type="button" disabled={!count} onClick={props.bulkMoveToMirror}>MIRROR</button>
+      <button type="button" disabled={!count} onClick={props.bulkStar}>STAR</button>
+      <button type="button" disabled={!count} className="danger" onClick={props.bulkDelete}>TRASH</button>
+      <button type="button" onClick={props.clearSelection}>CLEAR</button>
     </div>
   );
 }
@@ -2329,21 +2450,38 @@ function SystemShortcutCard(props) {
 
 function GroupCard(props) {
   const group = props.group || {};
-  const cover = safeArray(group.items)[0] || null;
+  const items = newest(safeArray(group.items));
+  const cover = items[0] || null;
   const video = cover && pzIsVideo(cover);
+  const count = items.length;
+  const childCount = Number(group.childCount || 0);
+  const badges = [group.pinned ? "PINNED" : "", group.locked ? "LOCKED" : "", group.excludeFromAll ? "HIDDEN" : ""].filter(Boolean);
 
   return (
-    <article className="groupCard" onClick={function () { props.openGroup && props.openGroup(group); }}>
-      <div className="groupCover">
-        {cover ? (video ? <video src={cover.previewUrl || cover.storageUrl || cover.url} muted playsInline preload="metadata" /> : <img src={cover.previewUrl || cover.storageUrl || cover.url} alt="" loading="lazy" />) : <span className="pzBlankCover"><PhotozAlbumDockIcon size={28} /></span>}
+    <article className={cls("groupCard proAlbumCard", group.excludeFromAll && "excludedFromAll")} onClick={function () { props.openGroup && props.openGroup(group); }}>
+      <div className="groupCover proAlbumCover">
+        {cover ? (video ? <video src={cover.previewUrl || cover.storageUrl || cover.url} muted playsInline preload="metadata" /> : <img src={cover.previewUrl || cover.storageUrl || cover.url} alt="" loading="lazy" />) : <span className="pzBlankCover"><PhotozAlbumDockIcon size={32} /></span>}
+        {items.slice(1, 4).length ? (
+          <div className="albumMiniStack">
+            {items.slice(1, 4).map(function (memory) {
+              const source = pzMediaSource(memory);
+              return <span key={memory.id}>{pzIsVideo(memory) ? <video src={source} muted playsInline preload="metadata" /> : <img src={source} alt="" loading="lazy" />}</span>;
+            })}
+          </div>
+        ) : null}
         {video ? <span className="pzVideoBadge"><Film size={11} />{pzVideoLabel(cover)}</span> : null}
       </div>
-      <div className="groupMeta"><strong>{cleanSystemLabel(group.title || group.id)}</strong><span>{safeArray(group.items).length}</span></div>
+      <div className="groupMeta proAlbumMeta">
+        <strong>{cleanSystemLabel(group.title || group.id)}</strong>
+        {group.description ? <p>{group.description}</p> : null}
+        <span>{albumStatsLabel(items, childCount)}</span>
+      </div>
+      {badges.length ? <div className="albumBadges">{badges.map(function (badge) { return <em key={badge}>{badge}</em>; })}</div> : null}
       {!group.virtual && !isSystemAlbumGroup(group) ? <button type="button" className="pzGroupEditButton" aria-label="Edit album" onClick={function (event) { event.stopPropagation(); props.onEditAlbum && props.onEditAlbum(group); }}><FolderPen size={12} /></button> : null}
-      {group.hideFromAll ? <span className="pzHiddenBadge">HIDE</span> : null}
     </article>
   );
 }
+
 
 
 
@@ -2445,7 +2583,7 @@ function AlbumsFilter(props) {
   const currentPhotos = currentAlbum ? directAlbumMemories(props.albums, props.memories, props.currentAlbumId) : [];
 
   return (
-    <div className="pageScroll">
+    <div className="pageScroll albumsPage proAlbumsView">
       <VisibleReporter items={props.currentAlbumId ? currentPhotos : safeArray(props.memories)} reportVisibleIds={props.reportVisibleIds} />
       {isAlbums && (props.albumSearchOpen || props.albumCreateOpen) ? (
         <div className="albumControlsRow">
@@ -2473,15 +2611,18 @@ function AlbumsFilter(props) {
         </div>
       ) : null}
 
+      {isAlbums ? <AlbumLibraryHeader show={!currentAlbum} currentAlbum={currentAlbum} realGroups={realGroups} memories={props.memories} albumSort={props.albumSort} /> : null}
+
       {isAlbums && currentAlbum ? (
-        <div className="albumPathBar">
-          <button type="button" onClick={function () { props.setCurrentAlbumId(""); props.setAlbumQuery(""); props.setAlbumCreateOpen(false); }}>Albums</button>
-          <span>/</span>
-          <strong>{currentAlbum.title}</strong>
-          <button type="button" onClick={function () { props.toggleAlbumExcludeFromAll(currentAlbum.id); }}>
-            {currentAlbum.excludeFromAll ? "Show in All" : "Hide from All"}
-          </button>
-        </div>
+        <AlbumWorkspaceHero
+          album={currentAlbum}
+          photos={currentPhotos}
+          children={realGroups}
+          backToAlbums={function () { props.setCurrentAlbumId(""); props.setAlbumQuery(""); props.setAlbumCreateOpen(false); }}
+          openCreate={function () { props.setAlbumCreateOpen(true); }}
+          editAlbum={props.onEditAlbum}
+          toggleHidden={props.toggleAlbumExcludeFromAll}
+        />
       ) : null}
 
       {isAlbums && dedupedVirtualGroups.length ? (
@@ -2492,8 +2633,9 @@ function AlbumsFilter(props) {
         </div>
       ) : null}
 
-      {!isAlbums ? <div className="archiveLabel">{up(props.archiveFilter)}</div> : currentAlbum ? <div className="archiveLabel">INSIDE ALBUM</div> : null}
-      <div className={isAlbums ? "albumGrid folderFilter" : props.archiveFilter === "months" ? "albumGrid filterFilter" : "timelineStack filterFilter"}>
+      {!isAlbums ? <div className="archiveLabel">{up(props.archiveFilter)}</div> : null}
+      <AlbumSectionHeader show={isAlbums && currentAlbum && realGroups.length} title="ALBUMS" count={realGroups.length} />
+      <div className={isAlbums ? "albumGrid folderFilter proAlbumGrid" : props.archiveFilter === "months" ? "albumGrid filterFilter" : "timelineStack filterFilter"}>
         {safeArray(isAlbums ? realGroups : archiveGroups).map(function (group) {
           const editing = isAlbums && props.editingId === group.sourceId;
           if (!isAlbums) {
@@ -2519,7 +2661,7 @@ function AlbumsFilter(props) {
                   </div>
                 </Glass>
               ) : (
-                <GroupCard group={group} openGroup={props.openGroup} openMemory={props.openMemory} deleteMemory={props.deleteMemory} selectionMode={props.selectionMode} selectedIds={props.selectedIds} toggleSelected={props.toggleSelected} starredIds={props.starredIds} 
+                <GroupCard group={group} openGroup={props.openGroup} openMemory={props.openMemory} deleteMemory={props.deleteMemory} selectionMode={props.selectionMode} selectedIds={props.selectedIds} toggleSelected={props.toggleSelected} setSelectionMode={props.setSelectionMode} starredIds={props.starredIds} 
                 onEditAlbum={function (group) { props.onEditAlbum && props.onEditAlbum(group); }}/>
               )}
             </div>
@@ -2529,14 +2671,14 @@ function AlbumsFilter(props) {
 
       {isAlbums && currentAlbum ? (
         <>
-          <div className="archiveLabel">Photos</div>
+          <AlbumSectionHeader show title="FILES" count={currentPhotos.length} />
           {!currentPhotos.length && !realGroups.length ? <EmptyState /> : null}
           {currentPhotos.length ? (
-            <div className="photoGrid">
+            <div className="photoGrid albumPhotoGrid">
               {safeArray(currentPhotos).map(function (memory) {
-                return <PhotoCard key={memory.id} memory={memory} showText selectionMode={props.selectionMode} selected={props.selectedIds && props.selectedIds[memory.id]} toggleSelected={props.toggleSelected} isStarred={props.starredIds && props.starredIds[memory.id]} onDelete={props.deleteMemory} onClick={function () { props.openMemory(memory); }} 
-                onEdit={props.onEditMemory || function () {}}
-                onPlayVideo={props.onPlayVideo || function () {}}
+                return <PhotoCard key={memory.id} memory={memory} showText selectionMode={props.selectionMode} selected={props.selectedIds && props.selectedIds[memory.id]} toggleSelected={props.toggleSelected} setSelectionMode={props.setSelectionMode} isStarred={props.starredIds && props.starredIds[memory.id]} onDelete={props.deleteMemory} onClick={function () { props.openMemory(memory); }} 
+                onEdit={props.onEditMemory}
+                onPlayVideo={props.onPlayVideo}
                 onLongSelect={function (memory) { (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); if (fn) fn(memory.id); }}
                 onDragSelect={function (memory) { const lookup = (typeof selectedIds !== "undefined" ? selectedIds : (typeof props !== "undefined" ? props.selectedIds : {})); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); if (fn && (!lookup || !lookup[memory.id])) fn(memory.id); }}/>;
               })}
@@ -3507,23 +3649,17 @@ function AmbientMusicControl() {
 
 function DeleteConfirmModal(props) {
   if (!props.open) return null;
-  const request = props.request || {};
-  const count = Number(request.count) || 1;
-  const title = request.title || (count === 1 ? "DELETE FOREVER" : "DELETE FILES");
-  const message = request.message || deleteConfirmCopy(count);
+  const title = "ARE YOU SURE?";
   const modalNode = (
     <AnimatePresence>
       <motion.div className="deleteConfirmBackdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={props.onCancel}>
         <motion.section className="deleteConfirmCard" initial={{ y: 14, scale: 0.985 }} animate={{ y: 0, scale: 1 }} exit={{ y: 10, scale: 0.985, opacity: 0 }} onClick={function (event) { event.stopPropagation(); }} role="dialog" aria-modal="true" aria-label={title}>
-          <div className="deleteConfirmSymbol"><AlertTriangle size={18} /></div>
           <div className="deleteConfirmCopy">
             <strong>{title}</strong>
-            <span>{message}</span>
-            <em>This cannot be undone.</em>
           </div>
           <div className="deleteConfirmActions">
             <button type="button" onClick={props.onCancel}>CANCEL</button>
-            <button type="button" className="danger" onClick={props.onConfirm}>DELETE FOREVER</button>
+            <button type="button" className="danger" onClick={props.onConfirm}>DELETE</button>
           </div>
         </motion.section>
       </motion.div>
@@ -3883,8 +4019,14 @@ const [screen, setScreen] = useState("home");
     };
     const next = ensureAlbumCoverage(memories, albums.concat([nextAlbum]));
     setAlbums(next);
+    setCurrentAlbumId(nextAlbum.id);
+    setActivePage("albums");
+    setArchiveFilter("albums");
+    setScreen("home");
+    setActiveGroup(null);
     setDraft("");
     setAlbumCreateOpen(false);
+    setAlbumSearchOpen(false);
     persist(memories, next);
   }
 
@@ -4150,6 +4292,21 @@ const [screen, setScreen] = useState("home");
     setMemories(nextMemories);
     setAlbums(nextAlbums);
     persist(nextMemories, nextAlbums);
+  }
+
+  function bulkRemoveFromCurrentAlbum() {
+    if (!currentAlbumId) return;
+    rememberUndo("REMOVE FROM ALBUM");
+
+    const ids = selectedMemoryIds(selectedIds);
+    if (!ids.length) return;
+    let nextAlbums = albums;
+    ids.forEach(function (id) {
+      nextAlbums = removeMemoryFromAlbum(nextAlbums, currentAlbumId, id);
+    });
+    nextAlbums = ensureAlbumCoverage(memories, nextAlbums);
+    setAlbums(nextAlbums);
+    persist(memories, nextAlbums);
   }
 
   function bulkStar() {
@@ -5094,8 +5251,9 @@ async function handleUpload(eventOrFiles) {
                   <span className="utilityFileCount" aria-label={safeArray(memories).length + " files"}>{safeArray(memories).length} FILES</span>
                   <div className="floatingUtilityRail" aria-label="Quick actions">
                     <AmbientMusicControl />
-                    <button type="button" aria-label="Filter" className={filterControlsOpen ? "utilityRailButton iconUtilityButton active" : "utilityRailButton iconUtilityButton"} onClick={function () { toggleOverlay("filter", filterControlsOpen, setFilterControlsOpen); }}><SlidersHorizontal size={14} strokeWidth={2.1} /></button>
-                    <button type="button" aria-label="Settings" className={settingsOpen ? "utilityRailButton cogUtilityButton iconUtilityButton active" : "utilityRailButton cogUtilityButton iconUtilityButton"} onClick={function () { toggleOverlay("settings", settingsOpen, setSettingsOpen); }}>⚙</button>
+                    <button type="button" aria-label="Select files" data-tooltip="Choose" className={selectionMode ? "utilityRailButton selectUtilityButton iconUtilityButton active" : "utilityRailButton selectUtilityButton iconUtilityButton"} onClick={toggleSelectionMode}><CircleCheck size={14} strokeWidth={2.1} /></button>
+                    <button type="button" aria-label="Filter" data-tooltip="Filter" className={filterControlsOpen ? "utilityRailButton iconUtilityButton active" : "utilityRailButton iconUtilityButton"} onClick={function () { toggleOverlay("filter", filterControlsOpen, setFilterControlsOpen); }}><SlidersHorizontal size={14} strokeWidth={2.1} /></button>
+                    <button type="button" aria-label="Settings" data-tooltip="Settings" className={settingsOpen ? "utilityRailButton cogUtilityButton iconUtilityButton active" : "utilityRailButton cogUtilityButton iconUtilityButton"} onClick={function () { toggleOverlay("settings", settingsOpen, setSettingsOpen); }}>⚙</button>
                   </div>
                 </div>
                 <FilterPanel open={filterControlsOpen} close={function () { setFilterControlsOpen(false); }} sortMode={sortMode} setSortMode={setSortMode} showAlbumSort={activePage === "albums" && archiveFilter === "albums"} albumSort={albumSort} setAlbumSort={setAlbumSort} gridSize={gridSize} setGridSize={setGridSize} 
@@ -5117,8 +5275,8 @@ async function handleUpload(eventOrFiles) {
                 <StatusPanel open={statusOpen} memories={uploadPendingItems.concat(safeArray(memories))} close={function () { setStatusOpen(false); }} retryUpload={retryUpload} clearLocalFailedStatus={clearLocalFailedStatus} purgeTrash={purgeTrash} />
                 <DuplicatePanel open={duplicatesOpen} memories={uploadPendingItems.concat(safeArray(memories))} close={function () { setDuplicatesOpen(false); }} openMemory={openMemoryDetail} trashDuplicateOthers={trashDuplicateOthers} />
                 <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} fileAuditReport={fileAuditReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} runFileAudit={runFileAudit} repairFilesAndReload={repairFilesAndReload} repairIndex={repairIndex} />
-                <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { toggleOverlay("bulk", bulkMoreOpen, setBulkMoreOpen); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkRefilter={bulkMarkRefilter} bulkClearRefilter={bulkClearRefilter} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDelete={bulkDelete} clearSelection={clearSelection} />
-                {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} archiveFilter={archiveFilter} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditAlbum={function (group) { closeTransientOverlays("albumEditor"); setPzAlbumEditorId(group.id || group.sourceId); }} /> : null}
+                <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} currentAlbumId={currentAlbumId} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { toggleOverlay("bulk", bulkMoreOpen, setBulkMoreOpen); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkRemoveFromCurrentAlbum={bulkRemoveFromCurrentAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkRefilter={bulkMarkRefilter} bulkClearRefilter={bulkClearRefilter} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDelete={bulkDelete} clearSelection={clearSelection} />
+                {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} archiveFilter={archiveFilter} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} setSelectionMode={setSelectionMode} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays("videoPlayer"); setPzVideoPlayerId(memory.id); }} onEditAlbum={function (group) { closeTransientOverlays("albumEditor"); setPzAlbumEditorId(group.id || group.sourceId); }} /> : null}
                 {activePage === "mirror" ? <MirrorFilter mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
                 {activePage === "search" ? <SearchFilter memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={function (nextValue) { const next = typeof nextValue === "function" ? nextValue(advancedSearchOpen) : nextValue; if (next) closeTransientOverlays("searchFilter"); setAdvancedSearchOpen(Boolean(next)); }} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays("videoPlayer"); setPzVideoPlayerId(memory.id); }} /> : null}
               </Glass>

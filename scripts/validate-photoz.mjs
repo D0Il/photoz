@@ -156,6 +156,10 @@ check("app missing-file checks use original route and HEAD", app.includes('const
 check("app permanent delete posts storage key helper", app.includes('const key = storageKeyFromMemory(memory);') && app.includes('body: JSON.stringify({ key: key, id: memory.id })'));
 check("password gate uses live access endpoint", !app.includes('fetch("/api/auth", {') && app.includes('fetch("/api/access", {'));
 
+check("album file cards receive working detail editor action", app.includes("onEditMemory={function (memory) { closeTransientOverlays(\"detailEditor\"); setPzDetailEditorId(memory.id); }}"));
+check("albums can enter selection mode for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("props.setSelectionMode(true); props.toggleSelected(memory.id);"));
+check("top utility rail keeps selection visible in albums", app.includes("selectUtilityButton") && app.includes("onClick={toggleSelectionMode}"));
+
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -177,6 +181,10 @@ check("worker preserves original upload metadata", worker.includes("originalName
 check("r2 repair reads object metadata", worker.includes("bucket.head") && worker.includes("object.originalName") && worker.includes("memoryFromObject(object)"));
 check("file previewer has dedicated integrity styling", css.includes("PHOTOZ file metadata + previewer integrity pass") && css.includes(".fileInfoCoreMetaPanel") && css.includes(".fileInfoMetaLine"));
 
+check("album file cards receive working detail editor action", app.includes("onEditMemory={function (memory) { closeTransientOverlays(\"detailEditor\"); setPzDetailEditorId(memory.id); }}"));
+check("albums can enter selection mode for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("props.setSelectionMode(true); props.toggleSelected(memory.id);"));
+check("top utility rail keeps selection visible in albums", app.includes("selectUtilityButton") && app.includes("onClick={toggleSelectionMode}"));
+
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -187,6 +195,10 @@ if (failures.length) {
 check("full-photo preview guarantee block exists", css.includes("PHOTOZ full-photo preview guarantee"));
 check("media viewers/cards use contain after full-photo guarantee", css.includes("PHOTOZ full-photo preview guarantee") && /PHOTOZ full-photo preview guarantee[\s\S]*object-fit:\s*contain/.test(css));
 check("video thumbnails not forced cropped after full-photo guarantee", !/PHOTOZ full-photo preview guarantee[\s\S]*object-fit:\s*cover/.test(css));
+check("album file cards receive working detail editor action", app.includes("onEditMemory={function (memory) { closeTransientOverlays(\"detailEditor\"); setPzDetailEditorId(memory.id); }}"));
+check("albums can enter selection mode for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("props.setSelectionMode(true); props.toggleSelected(memory.id);"));
+check("top utility rail keeps selection visible in albums", app.includes("selectUtilityButton") && app.includes("onClick={toggleSelectionMode}"));
+
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -198,6 +210,10 @@ check("file info modal uses portal", app.includes("createPortal(modalNode, docum
 check("premium file viewer CSS marker missing", css.includes("PHOTOZ YES PASS: media viewer must feel like premium photo software"));
 check("file info viewer must use a photo-first split layout", css.includes("grid-template-columns: minmax(0, 1fr) clamp(320px, 24vw, 390px)"));
 check("file info media must be inset and contained, not stretched/cropped", css.includes("max-width: 100%") && css.includes("object-fit: contain"));
+
+check("album file cards receive working detail editor action", app.includes("onEditMemory={function (memory) { closeTransientOverlays(\"detailEditor\"); setPzDetailEditorId(memory.id); }}"));
+check("albums can enter selection mode for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("props.setSelectionMode(true); props.toggleSelected(memory.id);"));
+check("top utility rail keeps selection visible in albums", app.includes("selectUtilityButton") && app.includes("onClick={toggleSelectionMode}"));
 
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
@@ -217,6 +233,10 @@ check("file info title block moved into info panel", app.includes('fileInfoInspe
 check("card media layering fix exists", css.includes("PHOTOZ card media layering fix"));
 check("photo card images scoped to thumbnail", css.includes(".photoCard .photoThumb img"));
 check("photo card metadata separated from media", css.includes(".photoCard .photoMeta") && css.includes("grid-template-rows: minmax(0, 1fr) auto"));
+
+check("album file cards receive working detail editor action", app.includes("onEditMemory={function (memory) { closeTransientOverlays(\"detailEditor\"); setPzDetailEditorId(memory.id); }}"));
+check("albums can enter selection mode for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("props.setSelectionMode(true); props.toggleSelected(memory.id);"));
+check("top utility rail keeps selection visible in albums", app.includes("selectUtilityButton") && app.includes("onClick={toggleSelectionMode}"));
 
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
@@ -245,6 +265,10 @@ check("import summary reports takeout sidecars and remaining files", app.include
 check("upload filtering accepts media plus takeout json sidecars", app.includes('const sidecarFiles = incomingFiles.filter(isTakeoutSidecarFile);') && app.includes('const files = incomingFiles.filter(isMediaUploadFile);') && app.includes('accept={props.folder ? undefined : "image/*,video/*,.json"}'));
 check("year month era grouping excludes trash", app.includes('items = safeArray(items).map(normalizeMemoryRecord).filter(function (memory) {') && app.includes('return !memory.trashed;') && app.includes('const archiveGroups = props.archiveFilter === "albums" ? albums : groupBy(props.archiveFilter, safeArray(props.memories));'));
 check("trashed viewer exposes restore and delete forever in top-left primary actions", app.includes('fileViewerPrimaryActions') && app.includes('aria-label="Restore" data-tooltip="Restore"') && app.includes('aria-label="Delete forever" data-tooltip="Delete forever"') && app.includes('props.permanentDeleteMemory(memory);'));
+
+check("album file cards receive working detail editor action", app.includes("onEditMemory={function (memory) { closeTransientOverlays(\"detailEditor\"); setPzDetailEditorId(memory.id); }}"));
+check("albums can enter selection mode for bulk move and mirror", app.includes("setSelectionMode={setSelectionMode}") && app.includes("props.setSelectionMode(true); props.toggleSelected(memory.id);"));
+check("top utility rail keeps selection visible in albums", app.includes("selectUtilityButton") && app.includes("onClick={toggleSelectionMode}"));
 
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
