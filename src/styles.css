@@ -19801,3 +19801,55 @@ body:has(.fileInfoModal) {
     word-break: normal;
   }
 }
+
+/* RELEASE FIX: month labels must show the full month, not clip to SEPTEMBE. */
+.photozProUI.page-albums .albumGrid.filterFilter .pzMonthShortcut {
+  overflow: hidden;
+}
+.photozProUI.page-albums .albumGrid.filterFilter .pzMonthShortcut > span:first-child {
+  overflow: visible;
+}
+.photozProUI.page-albums .albumGrid.filterFilter .pzMonthCardLabel {
+  overflow: visible;
+  gap: 10px;
+}
+.photozProUI.page-albums .albumGrid.filterFilter .pzMonthCardLabel b,
+.photozProUI.page-albums .albumGrid.filterFilter .pzMonthCardLabel i {
+  overflow: visible;
+  text-overflow: unset;
+  white-space: nowrap;
+  letter-spacing: -.045em;
+  line-height: .86;
+}
+.photozProUI.page-albums .albumGrid.filterFilter .pzMonthCardLabel b {
+  font-size: clamp(28px, 3.35vw, 52px);
+}
+.photozProUI.page-albums .albumGrid.filterFilter .pzMonthCardLabel i {
+  font-size: clamp(38px, 4.1vw, 68px);
+}
+.photozProUI.view-densityCompact.page-albums .albumGrid.filterFilter .pzMonthCardLabel b,
+.photozProUI.page-albums .albumGrid.filterFilter.densityCompact .pzMonthCardLabel b {
+  font-size: clamp(24px, 2.65vw, 40px);
+}
+.photozProUI.view-densityCompact.page-albums .albumGrid.filterFilter .pzMonthCardLabel i,
+.photozProUI.page-albums .albumGrid.filterFilter.densityCompact .pzMonthCardLabel i {
+  font-size: clamp(30px, 3.15vw, 50px);
+}
+.photozProUI.view-densityLarge.page-albums .albumGrid.filterFilter .pzMonthCardLabel b,
+.photozProUI.page-albums .albumGrid.filterFilter.densityLarge .pzMonthCardLabel b {
+  font-size: clamp(36px, 4.25vw, 66px);
+}
+.photozProUI.view-densityLarge.page-albums .albumGrid.filterFilter .pzMonthCardLabel i,
+.photozProUI.page-albums .albumGrid.filterFilter.densityLarge .pzMonthCardLabel i {
+  font-size: clamp(48px, 5.15vw, 84px);
+}
+@media (max-width: 760px) {
+  .photozProUI.page-albums .albumGrid.filterFilter .pzMonthCardLabel b {
+    font-size: clamp(24px, 8vw, 40px);
+    letter-spacing: -.035em;
+  }
+  .photozProUI.page-albums .albumGrid.filterFilter .pzMonthCardLabel i {
+    font-size: clamp(32px, 10vw, 54px);
+    letter-spacing: -.04em;
+  }
+}
