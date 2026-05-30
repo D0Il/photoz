@@ -2579,7 +2579,7 @@ function Modal(props) {
               <h2>{memory.fileName || memory.metadata?.originalName || pzMemoryDisplayName(memory)}</h2>
               <em>{[sizeLabel, dimensionsLabel(memory), readableDateTime(memory.metadata?.lastModifiedISO || memory.metadata?.lastModified || memory.createdAt || memory.date)].filter(Boolean).join("  •  ")}</em>
             </div>
-            <div className="fileViewerChromeActions"><button type="button" className={"fileViewerInfoButton" + (inspectorOpen ? " active" : "")} onClick={function () { setInspectorOpen(function (value) { return !value; }); }}>INFO</button><button type="button" className="fileInfoClose" aria-label="Close" onClick={props.close}><X size={18} /></button></div>
+            <div className="fileViewerChromeActions"><button type="button" className={"fileViewerInfoButton" + (inspectorOpen ? " active" : "")} onClick={function () { setInspectorOpen(function (value) { return !value; }); }}><PanelRightOpen size={15} /> INFO</button><button type="button" className="fileInfoClose" aria-label="Close" onClick={props.close}><X size={18} /></button></div>
           </header>
 
           <main className={"fileInfoLayout" + (inspectorOpen ? " inspectorOpen" : "")}>
@@ -2588,12 +2588,12 @@ function Modal(props) {
                 {video ? <video src={source} controls playsInline /> : <img src={source} alt="" />}
                 {memory.trashed ? <span className="pzTrashRibbon">TRASH</span> : null}
               </div>
-              <div className="fileInfoActionRail">
-                <button type="button" className={props.isStarred ? "active" : ""} onClick={function () { props.toggleStar(memory); }}>★</button>
-                <button type="button" className={memory.isMe ? "active" : ""} onClick={function () { props.toggleMeFlag(memory); }}>ME</button>
-                <button type="button" className={memory.inMirror ? "active" : ""} onClick={function () { props.toggleMirror(memory); }}>MIRROR</button>
-                <button type="button" className={memory.archived ? "active" : ""} onClick={function () { props.toggleArchive(memory); }}>{memory.archived ? "UNARCHIVE" : "ARCHIVE"}</button>
-                <button type="button" className={inspectorOpen ? "active" : ""} onClick={function () { setInspectorOpen(function (value) { return !value; }); }}>INFO</button>
+              <div className="fileInfoActionRail" aria-label="Photo actions">
+                <button type="button" aria-label="Star" className={props.isStarred ? "active" : ""} onClick={function () { props.toggleStar(memory); }}><Star size={17} /></button>
+                <button type="button" aria-label="Mark as me" className={memory.isMe ? "active" : ""} onClick={function () { props.toggleMeFlag(memory); }}><UserRound size={17} /></button>
+                <button type="button" aria-label="Mirror" className={memory.inMirror ? "active" : ""} onClick={function () { props.toggleMirror(memory); }}><Eye size={18} /></button>
+                <button type="button" aria-label={memory.archived ? "Unarchive" : "Archive"} className={memory.archived ? "active" : ""} onClick={function () { props.toggleArchive(memory); }}><ArchiveRestore size={17} /></button>
+                <button type="button" aria-label="Info" className={inspectorOpen ? "active" : ""} onClick={function () { setInspectorOpen(function (value) { return !value; }); }}><PanelRightOpen size={17} /></button>
               </div>
             </section>
 

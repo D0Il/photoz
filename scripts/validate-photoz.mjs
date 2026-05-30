@@ -193,4 +193,18 @@ if (failures.length) {
   process.exit(1);
 }
 
+
+check("light luxury media viewer overrides dark command center", css.includes("PHOTOZ LIGHT LUXURY MEDIA VIEWER PASS") && css.includes("Silver personal photo archive") && css.includes("rgba(248,248,248,.86)"));
+check("file viewer action rail uses icon controls", app.includes('aria-label="Photo actions"') && app.includes('<Star size={17} />') && app.includes('<PanelRightOpen size={17} />'));
+
+check("card media layering fix exists", css.includes("PHOTOZ card media layering fix"));
+check("photo card images scoped to thumbnail", css.includes(".photoCard .photoThumb img"));
+check("photo card metadata separated from media", css.includes(".photoCard .photoMeta") && css.includes("grid-template-rows: minmax(0, 1fr) auto"));
+
+if (failures.length) {
+  console.error("PHOTOZ validation failed:");
+  for (const failure of failures) console.error("- " + failure);
+  process.exit(1);
+}
+
 console.log("PHOTOZ validation passed.");
