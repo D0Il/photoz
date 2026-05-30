@@ -2687,9 +2687,8 @@ function AlbumsFilter(props) {
         </div>
       ) : null}
 
-      {!isAlbums ? <div className="archiveLabel">{up(props.archiveFilter)}</div> : null}
       <AlbumSectionHeader show={isAlbums && currentAlbum && realGroups.length} title="ALBUMS" count={realGroups.length} />
-      <div className={isAlbums ? "albumGrid folderFilter proAlbumGrid" : props.archiveFilter === "months" ? "albumGrid filterFilter" : "timelineStack filterFilter"}>
+      <div className={isAlbums ? "albumGrid folderFilter proAlbumGrid" : cls(props.archiveFilter === "months" ? "albumGrid filterFilter" : "timelineStack filterFilter", densityClass(props.viewDensity))}>
         {safeArray(isAlbums ? realGroups : archiveGroups).map(function (group) {
           const editing = isAlbums && props.editingId === group.sourceId;
           if (!isAlbums) {

@@ -19529,3 +19529,102 @@ body:has(.fileInfoModal) {
   min-width: 128px;
   padding: 0 16px;
 }
+
+/* RELEASE FIX: YEAR / MONTH / ERA views are real album-scale cards, and VIEW density affects them. */
+.photozProUI.page-albums .archiveLabel {
+  display: none;
+}
+.photozProUI.page-albums .filterFilter {
+  width: 100%;
+  align-items: stretch;
+  justify-items: stretch;
+  padding: 18px 0 40px;
+}
+.photozProUI.page-albums .albumGrid.filterFilter,
+.photozProUI.page-albums .timelineStack.filterFilter {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 26px;
+}
+.photozProUI.page-albums .filterFilter .systemRailItem {
+  width: 100%;
+  min-height: 285px;
+  height: auto;
+  padding: 34px 38px;
+  border-radius: 38px;
+  display: grid;
+  align-content: space-between;
+  justify-items: start;
+  text-align: left;
+}
+.photozProUI.page-albums .filterFilter .systemRailItem span:first-child {
+  max-width: 100%;
+  font-size: clamp(64px, 7.2vw, 122px);
+  line-height: .82;
+  letter-spacing: -.085em;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+.photozProUI.page-albums .albumGrid.filterFilter .systemRailItem span:first-child {
+  font-size: clamp(52px, 5.8vw, 96px);
+}
+.photozProUI.page-albums .filterFilter .systemRailItem em {
+  font-size: 16px;
+  letter-spacing: .16em;
+  opacity: .62;
+}
+.photozProUI.view-densityCompact.page-albums .albumGrid.filterFilter,
+.photozProUI.view-densityCompact.page-albums .timelineStack.filterFilter,
+.photozProUI.page-albums .filterFilter.densityCompact {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.photozProUI.view-densityCompact.page-albums .filterFilter .systemRailItem,
+.photozProUI.page-albums .filterFilter.densityCompact .systemRailItem {
+  min-height: 170px;
+  padding: 22px 24px;
+  border-radius: 28px;
+}
+.photozProUI.view-densityCompact.page-albums .filterFilter .systemRailItem span:first-child,
+.photozProUI.page-albums .filterFilter.densityCompact .systemRailItem span:first-child {
+  font-size: clamp(36px, 4.7vw, 72px);
+}
+.photozProUI.view-densityNormal.page-albums .albumGrid.filterFilter,
+.photozProUI.view-densityNormal.page-albums .timelineStack.filterFilter,
+.photozProUI.page-albums .filterFilter.densityNormal {
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 26px;
+}
+.photozProUI.view-densityNormal.page-albums .filterFilter .systemRailItem,
+.photozProUI.page-albums .filterFilter.densityNormal .systemRailItem {
+  min-height: 285px;
+}
+.photozProUI.view-densityLarge.page-albums .albumGrid.filterFilter,
+.photozProUI.view-densityLarge.page-albums .timelineStack.filterFilter,
+.photozProUI.page-albums .filterFilter.densityLarge {
+  grid-template-columns: repeat(auto-fill, minmax(620px, 1fr));
+  gap: 34px;
+}
+.photozProUI.view-densityLarge.page-albums .filterFilter .systemRailItem,
+.photozProUI.page-albums .filterFilter.densityLarge .systemRailItem {
+  min-height: 390px;
+  padding: 46px 52px;
+  border-radius: 46px;
+}
+.photozProUI.view-densityLarge.page-albums .filterFilter .systemRailItem span:first-child,
+.photozProUI.page-albums .filterFilter.densityLarge .systemRailItem span:first-child {
+  font-size: clamp(84px, 9vw, 156px);
+}
+.photozProUI.view-densityLarge.page-albums .albumGrid.filterFilter .systemRailItem span:first-child,
+.photozProUI.page-albums .albumGrid.filterFilter.densityLarge .systemRailItem span:first-child {
+  font-size: clamp(64px, 7vw, 124px);
+}
+@media (max-width: 760px) {
+  .photozProUI.page-albums .albumGrid.filterFilter,
+  .photozProUI.page-albums .timelineStack.filterFilter,
+  .photozProUI.view-densityLarge.page-albums .albumGrid.filterFilter,
+  .photozProUI.view-densityLarge.page-albums .timelineStack.filterFilter {
+    grid-template-columns: 1fr;
+  }
+}
