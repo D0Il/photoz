@@ -1727,12 +1727,21 @@ function deleteConfirmCopy(count) {
   return amount === 1 ? "This file will be removed from PHOTOZ and storage." : amount + " files will be removed from PHOTOZ and storage.";
 }
 
-function downloadOriginal(memory) {
-  const url = downloadUrlForMemory(memory);
-  if (!memory || !url) return false;
+function openDownloadUrl(url, sameTab) {
+  if (!url) return false;
+  if (sameTab) {
+    window.location.href = url;
+    return true;
+  }
   const opened = window.open(url, "_blank", "noopener,noreferrer");
   if (!opened) window.location.href = url;
   return true;
+}
+
+function downloadOriginal(memory, sameTab) {
+  const url = downloadUrlForMemory(memory);
+  if (!memory || !url) return false;
+  return openDownloadUrl(url, sameTab !== false);
 }
 
 function openOriginal(memory) {
@@ -3174,7 +3183,7 @@ function Modal(props) {
               <div className="fileInfoActionRail" aria-label="Photo actions">
                 <button type="button" aria-label="Favorite" data-tooltip="Favorite" className={props.isStarred ? "active" : ""} onClick={function () { props.toggleStar(memory); }}><Star size={17} /></button>
                 <button type="button" aria-label="Me" data-tooltip="Me" className={isMeMemory(memory) ? "active" : ""} onClick={function () { props.toggleMeFlag(memory); }}><UserRound size={17} /></button>
-                <button type="button" aria-label="Download" data-tooltip="Download" onClick={function () { props.downloadOriginal(memory); }}><Download size={17} /></button>
+                <button type="button" aria-label="Download" data-tooltip="Download" onClick={function () { props.downloadOriginal(memory, true); }}><Download size={17} /></button>
                 {!memory.trashed ? <button type="button" aria-label="Trash" data-tooltip="Trash" className="danger" onClick={function () { props.deleteMemory(memory); }}><Trash2 size={17} /></button> : null}
               </div>
             </section>
@@ -4319,7 +4328,7 @@ const [screen, setScreen] = useState("home");
       return;
     }
     items.slice(0, 50).forEach(function (memory, index) {
-      window.setTimeout(function () { downloadOriginal(memory); }, index * 120);
+      window.setTimeout(function () { downloadOriginal(memory, false); }, index * 120);
     });
     if (items.length > 50) pzPushToast("DOWNLOAD", "Started the first 50 selected files.", "info");
   }

@@ -320,7 +320,7 @@ check('Video cards must open the main PHOTOZ viewer, not a separate playback mod
 check('Main file viewer must render videos with custom PHOTOZ controls, not native browser controls.', app.includes('className="pzVideoControls"') && app.includes('aria-label="Video timeline"') && !/<video[\s\S]{0,400}\scontrols(?:\s|>|=)/.test(app));
 check('Photo cards must enable hold-to-select without a visible Select button.', app.includes('props.setSelectionMode && props.setSelectionMode(true);'));
 check("download original is visible in the main viewer and selected toolbar", app.includes('aria-label="Download" data-tooltip="Download"') && app.includes("bulkDownloadSelected") && app.includes("bulkDownload={bulkDownloadSelected}"));
-check("tablet downloads use Worker attachment route", app.includes("function downloadUrlForMemory") && app.includes("download=1") && app.includes('window.open(url, "_blank"') && worker.includes("content-disposition") && worker.includes("attachmentName"));
+check("tablet downloads use same-tab Worker attachment route", app.includes("function downloadUrlForMemory") && app.includes("download=1") && app.includes("window.location.href = url") && worker.includes("content-disposition") && worker.includes("attachmentName"));
 check("unlock persists across tablet browser restarts", app.includes("function rememberUnlocked()") && app.includes("window.localStorage.setItem") && app.includes("function rememberedUnlocked()") && app.includes("window.localStorage.getItem"));
 check("PHOTOZ access gate reports missing PHOTOZ_ACCESS_CODE instead of denying silently", app.includes("PHOTOZ_ACCESS_CODE NOT CONFIGURED") && app.includes("checkAccess()") && app.includes("submitAccessCode(code)"));
 
