@@ -199,32 +199,57 @@ async function handleUpload(request, env) {
       const key = cleanStorageKey(requestedKeys[fileIndex] || fallbackStorageKey(value, id));
       fileIndex += 1;
       const type = value.type || metadata.type || "application/octet-stream";
+      const originalName = value.name || metadata.originalName || metadata.name || "file";
+      const uploadedAt = new Date().toISOString();
+      const fileSize = Number(value.size || metadata.size || 0);
+      const baseName = originalName.replace(/\.[^.]+$/, "");
       await bucket.put(key, value.stream(), {
         httpMetadata: {
           contentType: type,
           cacheControl: "public, max-age=31536000",
         },
         customMetadata: {
-          originalName: value.name || metadata.name || "file",
+          originalName,
+          fileName: originalName,
+          title: String(form.get("title") || metadata.baseName || baseName || originalName),
           photozId: id,
+          lastModifiedISO: metadata.lastModifiedISO || "",
+          width: metadata.width ? String(metadata.width) : "",
+          height: metadata.height ? String(metadata.height) : "",
+          duration: metadata.duration ? String(metadata.duration) : "",
         },
       });
       const storageUrl = fileUrlForKey(key);
       files.push({
         id,
-        title: String(form.get("title") || value.name || metadata.name || "Untitled").replace(/\.[^.]+$/, ""),
-        fileName: value.name || metadata.name || "file",
-        filename: value.name || metadata.name || "file",
+        title: String(form.get("title") || metadata.baseName || baseName || originalName),
+        fileName: originalName,
+        filename: originalName,
+        name: originalName,
         kind: String(type).startsWith("video") ? "video" : "photo",
         type,
-        size: value.size || metadata.size || 0,
+        mimeType: type,
+        size: fileSize,
+        width: Number(metadata.width || 0),
+        height: Number(metadata.height || 0),
+        duration: Number(metadata.duration || metadata.durationSeconds || 0),
+        durationSeconds: Number(metadata.durationSeconds || metadata.duration || 0),
         storageKey: key,
         storageUrl,
         previewUrl: storageUrl,
         uploadStatus: "r2",
-        metadata: { ...metadata, name: value.name || metadata.name || "file", type, size: value.size || metadata.size || 0 },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        metadata: {
+          ...metadata,
+          name: originalName,
+          originalName,
+          displayName: originalName,
+          type,
+          mimeType: type,
+          size: fileSize,
+          uploadedAt,
+        },
+        createdAt: uploadedAt,
+        updatedAt: uploadedAt,
         sort: Date.now(),
         albumIds: [],
       });
@@ -268,16 +293,27 @@ async function listAllObjects(bucket) {
   let cursor = undefined;
   do {
     const listed = await bucket.list({ cursor, limit: 1000 });
-    safeArray(listed.objects).forEach((object) => {
+    for (const object of safeArray(listed.objects)) {
       const key = cleanStorageKey(object && object.key);
-      if (!key || key === INDEX_KEY || key.endsWith("/")) return;
+      if (!key || key === INDEX_KEY || key.endsWith("/")) continue;
+      let head = null;
+      try { head = bucket.head ? await bucket.head(key) : null; } catch (error) {}
+      const custom = head && head.customMetadata ? head.customMetadata : {};
+      const http = head && head.httpMetadata ? head.httpMetadata : {};
       objects.push({
         key,
-        size: Number(object.size || 0),
-        uploaded: object.uploaded ? new Date(object.uploaded).toISOString() : "",
-        etag: object.etag || "",
+        size: Number(object.size || (head && head.size) || 0),
+        uploaded: object.uploaded ? new Date(object.uploaded).toISOString() : (head && head.uploaded ? new Date(head.uploaded).toISOString() : ""),
+        etag: object.etag || (head && head.etag) || "",
+        originalName: custom.originalName || custom.fileName || "",
+        title: custom.title || "",
+        type: http.contentType || custom.type || custom.mimeType || "",
+        width: Number(custom.width || 0),
+        height: Number(custom.height || 0),
+        duration: Number(custom.duration || 0),
+        lastModifiedISO: custom.lastModifiedISO || "",
       });
-    });
+    }
     cursor = listed.truncated ? listed.cursor : undefined;
   } while (cursor);
   return objects;
@@ -321,17 +357,25 @@ function bestObjectForMemory(memory, objects) {
 }
 
 function memoryFromObject(object) {
-  const fileName = basenameOf(object.key);
-  const isVideo = /\.(mp4|mov|m4v|webm|avi|mkv)$/i.test(fileName);
+  const fileName = object.originalName || basenameOf(object.key);
+  const type = object.type || (/\.(mp4|mov|m4v|webm|avi|mkv)$/i.test(fileName) ? "video/mp4" : "image/jpeg");
+  const isVideo = String(type).startsWith("video") || /\.(mp4|mov|m4v|webm|avi|mkv)$/i.test(fileName);
   const createdAt = object.uploaded || new Date().toISOString();
+  const baseName = fileName.replace(/\.[^.]+$/, "") || fileName;
   return {
     id: "r2-" + object.key.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80),
-    title: fileName.replace(/\.[^.]+$/, "") || fileName || "Recovered file",
+    title: object.title || baseName,
     fileName,
     filename: fileName,
+    name: fileName,
     kind: isVideo ? "video" : "photo",
-    type: isVideo ? "video/mp4" : "image/jpeg",
+    type,
+    mimeType: type,
     size: Number(object.size || 0),
+    width: Number(object.width || 0),
+    height: Number(object.height || 0),
+    duration: Number(object.duration || 0),
+    durationSeconds: Number(object.duration || 0),
     storageKey: object.key,
     storageUrl: fileUrlForKey(object.key),
     previewUrl: fileUrlForKey(object.key),
@@ -339,7 +383,20 @@ function memoryFromObject(object) {
     recovered: true,
     albumIds: ["unassigned"],
     tags: [],
-    metadata: { name: fileName, size: Number(object.size || 0), recoveredFromR2: true },
+    metadata: {
+      name: fileName,
+      originalName: fileName,
+      displayName: fileName,
+      baseName,
+      type,
+      mimeType: type,
+      size: Number(object.size || 0),
+      width: Number(object.width || 0),
+      height: Number(object.height || 0),
+      duration: Number(object.duration || 0),
+      lastModifiedISO: object.lastModifiedISO || createdAt,
+      recoveredFromR2: true,
+    },
     createdAt,
     updatedAt: new Date().toISOString(),
     sort: Date.parse(createdAt) || Date.now(),
@@ -372,17 +429,38 @@ function repairIndexAgainstObjects(index, objects) {
     usedKeys.add(match.key);
     const priorKey = storageKeyFromRecord(memory);
     if (priorKey !== match.key || memory.uploadStatus !== "r2" || memory.previewUrl !== fileUrlForKey(match.key)) repairedRecords += 1;
+    const displayName = memory.fileName || memory.filename || match.originalName || basenameOf(match.key);
     repaired.push({
       ...memory,
-      fileName: memory.fileName || memory.filename || basenameOf(match.key),
-      filename: memory.filename || memory.fileName || basenameOf(match.key),
+      title: memory.title && !/^r2[-_]/i.test(String(memory.title)) ? memory.title : displayName.replace(/\.[^.]+$/, ""),
+      fileName: displayName,
+      filename: memory.filename || displayName,
+      name: memory.name || displayName,
+      mimeType: memory.mimeType || memory.type || match.type || (memory.metadata && memory.metadata.type) || "",
+      type: memory.type || match.type || (memory.metadata && memory.metadata.type) || "",
+      width: Number(memory.width || (memory.metadata && memory.metadata.width) || match.width || 0),
+      height: Number(memory.height || (memory.metadata && memory.metadata.height) || match.height || 0),
+      duration: Number(memory.duration || (memory.metadata && memory.metadata.duration) || match.duration || 0),
       storageKey: match.key,
       storageUrl: fileUrlForKey(match.key),
       previewUrl: fileUrlForKey(match.key),
       uploadStatus: "r2",
       missing: false,
       size: Number(memory.size || match.size || 0),
-      metadata: { ...(memory.metadata || {}), size: Number((memory.metadata && memory.metadata.size) || memory.size || match.size || 0), repairedFromKey: priorKey && priorKey !== match.key ? priorKey : undefined },
+      metadata: {
+        ...(memory.metadata || {}),
+        name: (memory.metadata && memory.metadata.name) || displayName,
+        originalName: (memory.metadata && memory.metadata.originalName) || displayName,
+        displayName,
+        type: (memory.metadata && memory.metadata.type) || memory.type || match.type || "",
+        mimeType: (memory.metadata && memory.metadata.mimeType) || memory.mimeType || match.type || "",
+        size: Number((memory.metadata && memory.metadata.size) || memory.size || match.size || 0),
+        width: Number((memory.metadata && memory.metadata.width) || memory.width || match.width || 0),
+        height: Number((memory.metadata && memory.metadata.height) || memory.height || match.height || 0),
+        duration: Number((memory.metadata && memory.metadata.duration) || memory.duration || match.duration || 0),
+        lastModifiedISO: (memory.metadata && memory.metadata.lastModifiedISO) || match.lastModifiedISO || memory.updatedAt || "",
+        repairedFromKey: priorKey && priorKey !== match.key ? priorKey : undefined,
+      },
       updatedAt: new Date().toISOString(),
     });
   });

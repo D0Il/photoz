@@ -95,21 +95,39 @@ function safeArray(value) {
 function normalizeMemoryRecord(memory) {
   const source = memory && typeof memory === "object" ? memory : {};
   const metadata = source.metadata && typeof source.metadata === "object" ? source.metadata : {};
-  const fileName = source.fileName || source.filename || source.name || metadata.name || "";
-  const mime = source.mimeType || source.type || metadata.type || "";
+  const fileName = source.fileName || source.filename || metadata.originalName || metadata.name || source.name || "";
+  const mime = source.mimeType || source.type || metadata.mimeType || metadata.type || "";
   const storageKey = source.storageKey || source.key || source.objectKey || "";
+  const cleanTitle = source.title && !/^r2[-_]/i.test(String(source.title)) ? source.title : fileBaseName(fileName);
+  const normalizedMetadata = {
+    ...metadata,
+    name: metadata.name || fileName,
+    originalName: metadata.originalName || fileName,
+    displayName: metadata.displayName || fileName,
+    type: metadata.type || mime,
+    mimeType: metadata.mimeType || mime,
+    extension: metadata.extension || fileExtension(fileName),
+    baseName: metadata.baseName || fileBaseName(fileName),
+  };
   return {
     ...source,
     id: source.id || ("memory-" + Date.now() + "-" + Math.random().toString(36).slice(2)),
-    title: source.title || fileName.replace(/\.[^.]+$/, "") || "Untitled",
+    title: cleanTitle || fileBaseName(fileName) || "Untitled",
     fileName: fileName,
+    filename: source.filename || fileName,
     name: source.name || fileName,
     kind: source.kind || (String(mime).startsWith("video") ? "video" : "photo"),
     mimeType: mime,
+    type: source.type || mime,
+    size: Number(source.size || normalizedMetadata.size || 0),
+    width: Number(source.width || normalizedMetadata.width || 0),
+    height: Number(source.height || normalizedMetadata.height || 0),
+    duration: Number(source.duration || normalizedMetadata.duration || 0),
+    durationSeconds: Number(source.durationSeconds || normalizedMetadata.durationSeconds || 0),
     storageKey: storageKey,
     albumIds: safeArray(source.albumIds),
     tags: safeArray(source.tags),
-    metadata: metadata,
+    metadata: normalizedMetadata,
     uploadStatus: source.uploadStatus || (storageKey ? "r2" : "local"),
   };
 }
@@ -277,19 +295,121 @@ function objectUrl(file) {
   return file instanceof Blob ? URL.createObjectURL(file) : "";
 }
 
+function fileExtension(name) {
+  const text = String(name || "");
+  const match = text.match(/\.([^.\/]+)$/);
+  return match ? match[1].toLowerCase() : "";
+}
+
+function fileBaseName(name) {
+  return String(name || "FILE").replace(/\.[^.]+$/, "");
+}
+
+function readableDateTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString("en", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+function dimensionsLabel(memory) {
+  const metadata = memory && memory.metadata ? memory.metadata : {};
+  const width = Number(memory && (memory.width || metadata.width || metadata.naturalWidth || metadata.videoWidth));
+  const height = Number(memory && (memory.height || metadata.height || metadata.naturalHeight || metadata.videoHeight));
+  if (Number.isFinite(width) && width > 0 && Number.isFinite(height) && height > 0) {
+    return Math.round(width) + " × " + Math.round(height);
+  }
+  return "UNKNOWN";
+}
+
 function fileMeta(file, modified) {
+  const name = file.name || "";
+  const extension = fileExtension(name);
   return {
-    name: file.name || "",
+    name: name,
+    originalName: name,
+    displayName: name,
+    baseName: fileBaseName(name),
+    extension: extension,
     type: file.type || "",
+    mimeType: file.type || "",
     size: typeof file.size === "number" ? file.size : 0,
+    sizeLabel: formatBytes(typeof file.size === "number" ? file.size : 0),
     lastModified: file.lastModified || 0,
     lastModifiedISO: modified.toISOString(),
+    lastModifiedLabel: readableDateTime(modified),
+    importedAt: new Date().toISOString(),
     webkitRelativePath: file.webkitRelativePath || "",
     source: "browser-file-input",
     preserveEmbeddedMetadata: true,
     originalFileStoredUnmodified: true,
     signature: fileSignature(file),
   };
+}
+
+function readMediaElementMetadata(file, kind) {
+  return new Promise(function (resolve) {
+    if (typeof document === "undefined" || typeof URL === "undefined" || typeof URL.createObjectURL !== "function") {
+      resolve({});
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    const element = kind === "video" ? document.createElement("video") : document.createElement("img");
+    let done = false;
+    function finish(extra) {
+      if (done) return;
+      done = true;
+      try { URL.revokeObjectURL(url); } catch (error) {}
+      resolve(extra || {});
+    }
+    const timer = setTimeout(function () { finish({}); }, 2500);
+    function complete(extra) {
+      clearTimeout(timer);
+      finish(extra);
+    }
+    element.onerror = function () { complete({}); };
+    if (kind === "video") {
+      element.preload = "metadata";
+      element.onloadedmetadata = function () {
+        complete({
+          width: element.videoWidth || 0,
+          height: element.videoHeight || 0,
+          duration: Number.isFinite(element.duration) ? element.duration : 0,
+          durationSeconds: Number.isFinite(element.duration) ? element.duration : 0,
+        });
+      };
+    } else {
+      element.onload = function () {
+        complete({
+          width: element.naturalWidth || 0,
+          height: element.naturalHeight || 0,
+        });
+      };
+    }
+    element.src = url;
+  });
+}
+
+async function enrichMemoryWithFileMetadata(memory, file) {
+  const source = normalizeMemoryRecord(memory);
+  const kind = source.kind || (file && file.type && file.type.indexOf("video") === 0 ? "video" : "photo");
+  const mediaMeta = file ? await readMediaElementMetadata(file, kind) : {};
+  const metadata = {
+    ...(source.metadata || {}),
+    ...mediaMeta,
+  };
+  if (metadata.width && metadata.height) {
+    metadata.dimensions = Math.round(Number(metadata.width)) + " × " + Math.round(Number(metadata.height));
+    metadata.aspectRatio = Number(metadata.width) / Number(metadata.height);
+  }
+  return normalizeMemoryUrl({
+    ...source,
+    width: metadata.width || source.width || 0,
+    height: metadata.height || source.height || 0,
+    duration: metadata.duration || source.duration || 0,
+    durationSeconds: metadata.durationSeconds || source.durationSeconds || 0,
+    metadata,
+  });
 }
 
 function sortFromDateText(value, fallback) {
@@ -330,6 +450,11 @@ function fromFile(file, index) {
     id: Date.now() + index + Math.floor(Math.random() * 999999),
     title,
     date: modified.toLocaleDateString("en", { year: "numeric", month: "long", day: "numeric" }),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    size: typeof file.size === "number" ? file.size : 0,
+    mimeType: file.type || "",
+    type: file.type || "",
     sort: Number(year + String(modified.getMonth() + 1).padStart(2, "0") + String(modified.getDate()).padStart(2, "0")),
     year,
     month,
@@ -2446,8 +2571,8 @@ function Modal(props) {
           <header className="fileInfoHeader">
             <div className="fileInfoTitleBlock">
               <span>{video ? "VIDEO" : "PHOTO"}</span>
-              <h2>{up(memory.title || pzMemoryDisplayName(memory))}</h2>
-              <em>{memory.fileName || memory.metadata?.name || "FILE"}</em>
+              <h2>{memory.fileName || memory.metadata?.originalName || pzMemoryDisplayName(memory)}</h2>
+              <em>{memory.title && memory.title !== fileBaseName(memory.fileName) ? memory.title : (memory.metadata?.webkitRelativePath || memory.storageKey || "ORIGINAL FILE")}</em>
             </div>
             <button type="button" className="fileInfoClose" aria-label="Close" onClick={props.close}><X size={18} /></button>
           </header>
@@ -2470,8 +2595,16 @@ function Modal(props) {
               <div className="fileInfoStats">
                 <span><em>TYPE</em><strong>{up(memory.kind || (video ? "video" : "photo"))}</strong></span>
                 <span><em>SIZE</em><strong>{sizeLabel}</strong></span>
+                <span><em>DIMENSIONS</em><strong>{dimensionsLabel(memory)}</strong></span>
                 <span><em>STATUS</em><strong>{statusLabel}</strong></span>
               </div>
+
+              <section className="fileInfoPanel fileInfoCoreMetaPanel">
+                <div className="fileInfoMetaLine"><span>ORIGINAL NAME</span><strong>{memory.metadata?.originalName || memory.metadata?.name || memory.fileName || "UNKNOWN"}</strong></div>
+                <div className="fileInfoMetaLine"><span>MIME TYPE</span><strong>{memory.mimeType || memory.type || memory.metadata?.type || "UNKNOWN"}</strong></div>
+                <div className="fileInfoMetaLine"><span>LAST MODIFIED</span><strong>{readableDateTime(memory.metadata?.lastModifiedISO || memory.metadata?.lastModified) || "UNKNOWN"}</strong></div>
+                <div className="fileInfoMetaLine"><span>STORAGE KEY</span><strong>{memory.storageKey || "NOT STORED"}</strong></div>
+              </section>
 
               <section className="fileInfoPanel fileInfoDetailsPanel">
                 <div className="fileInfoPanelTop"><strong>DETAILS</strong><button type="button" onClick={saveDetails}><Save size={13} /> SAVE</button></div>
@@ -4405,7 +4538,7 @@ const [screen, setScreen] = useState("home");
     }, 50);
   }
 
-  function handleUploadOriginal(eventOrFiles) {
+  async function handleUploadOriginal(eventOrFiles) {
     const sourceFiles = eventOrFiles && eventOrFiles.target && eventOrFiles.target.files
       ? eventOrFiles.target.files
       : eventOrFiles;
@@ -4438,13 +4571,14 @@ const [screen, setScreen] = useState("home");
     });
     closeTransientOverlays("queue");
 
-    const imported = batchFiles.map(function (file, index) {
-      const memory = fromFile(file, index);
+    const imported = await Promise.all(batchFiles.map(async function (file, index) {
+      let memory = fromFile(file, index);
+      memory = await enrichMemoryWithFileMetadata(memory, file);
       memory.queueId = Date.now() + "-" + index + "-" + safeName(file.name);
       memory.uploadStatus = "queued";
       uploadFileRefs.current[memory.queueId] = { file: file, memory: memory };
       return memory;
-    });
+    }));
 
     const queueItems = imported.map(function (memory, index) {
       const file = batchFiles[index];

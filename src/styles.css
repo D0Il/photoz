@@ -14666,3 +14666,187 @@ svg.photozDockIcon {
     max-height: calc(100vh - 28px);
   }
 }
+
+/* PHOTOZ file metadata + previewer integrity pass */
+.fileInfoCard {
+  width: min(1240px, calc(100vw - 34px));
+  max-height: calc(100vh - 40px);
+  padding: 12px;
+}
+
+.fileInfoLayout {
+  grid-template-columns: minmax(0, 1.45fr) minmax(360px, .72fr);
+  gap: 10px;
+}
+
+.fileInfoPreviewPanel {
+  min-height: min(74vh, 760px);
+  padding: 8px;
+  background:
+    radial-gradient(circle at 35% 0%, rgba(255,255,255,.18), transparent 36%),
+    linear-gradient(135deg, rgba(255,255,255,.075), rgba(0,0,0,.045)),
+    rgba(255,255,255,.022);
+}
+
+.fileInfoPreview {
+  min-height: min(70vh, 720px);
+  max-height: none;
+  height: 100%;
+  aspect-ratio: auto;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.12), transparent 38%),
+    linear-gradient(135deg, rgba(255,255,255,.055), rgba(0,0,0,.075)),
+    rgba(0,0,0,.055);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.22),
+    inset 0 -1px 0 rgba(0,0,0,.18),
+    0 20px 48px rgba(0,0,0,.10);
+}
+
+.fileInfoPreview img,
+.fileInfoPreview video {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  border-radius: 18px;
+}
+
+.fileInfoHeader {
+  padding: 2px 4px 6px 8px;
+}
+
+.fileInfoTitleBlock h2 {
+  font-family: "Arial Narrow", "Helvetica Neue Condensed", Inter Tight, system-ui, sans-serif;
+  font-size: clamp(19px, 2vw, 32px);
+  line-height: .96;
+  font-weight: 900;
+  letter-spacing: -.035em;
+  text-transform: none;
+}
+
+.fileInfoTitleBlock em {
+  max-width: min(720px, 66vw);
+  font-size: 9px;
+  letter-spacing: .045em;
+  text-transform: none;
+}
+
+.fileInfoStats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.fileInfoCoreMetaPanel {
+  gap: 6px;
+}
+
+.fileInfoMetaLine {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  min-height: 27px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.024);
+}
+
+.fileInfoMetaLine span {
+  color: rgba(0,0,0,.34);
+  font-size: 7px;
+  font-weight: 950;
+  letter-spacing: .14em;
+}
+
+.fileInfoMetaLine strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(0,0,0,.66);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .03em;
+}
+
+.fileInfoInspector {
+  max-height: min(74vh, 760px);
+  overflow: auto;
+}
+
+@media (max-width: 900px) {
+  .fileInfoLayout {
+    grid-template-columns: 1fr;
+  }
+  .fileInfoPreviewPanel,
+  .fileInfoPreview {
+    min-height: min(54vh, 560px);
+  }
+  .fileInfoStats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .fileInfoMetaLine {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+}
+
+/* PHOTOZ full-photo preview guarantee: media must display uncropped in every viewer/card context. */
+.photoCard,
+.memoryCard,
+.albumThumb,
+.photoThumb,
+.fileInfoPreview,
+.pzDetailPreview {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.13), transparent 36%),
+    linear-gradient(135deg, rgba(255,255,255,.055), rgba(0,0,0,.075)),
+    rgba(0,0,0,.045);
+}
+
+.photoCard img,
+.photoCard video,
+.memoryCard img,
+.memoryCard video,
+.albumThumb img,
+.albumThumb video,
+.photoThumb img,
+.photoThumb video,
+.fileInfoPreview img,
+.fileInfoPreview video,
+.pzDetailPreview img,
+.pzDetailPreview video,
+.videoCard .photoThumb video {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center center;
+}
+
+.fileInfoPreview,
+.pzDetailPreview {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.fileInfoPreview img,
+.fileInfoPreview video,
+.pzDetailPreview img,
+.pzDetailPreview video {
+  display: block;
+  margin: auto;
+}
+
+.photoOverlay {
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 10%, rgba(255,255,255,.16), transparent 30%),
+    linear-gradient(to top, rgba(0,0,0,.13), transparent 48%);
+}

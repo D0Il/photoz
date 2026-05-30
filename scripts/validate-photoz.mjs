@@ -159,7 +159,22 @@ check("media source helper exists", app.includes('function pzMediaSource(memory)
 check("preview url does not use missing thumb route", !app.includes('return "/thumb/" + memory.storageKey'));
 check("fromFile does not overwrite preview with thumb route", !app.includes('previewUrl: "/thumb/" + key'));
 check("file info modal centering css exists", css.includes('PHOTOZ file-info stability pass'));
+check("file import enriches actual media metadata", app.includes("async function enrichMemoryWithFileMetadata") && app.includes("readMediaElementMetadata") && app.includes("metadata.dimensions"));
+check("file info visibly shows core metadata", app.includes("fileInfoCoreMetaPanel") && app.includes("ORIGINAL NAME") && app.includes("DIMENSIONS") && app.includes("MIME TYPE") && app.includes("LAST MODIFIED"));
+check("worker preserves original upload metadata", worker.includes("originalName") && worker.includes("customMetadata") && worker.includes("width") && worker.includes("height") && worker.includes("lastModifiedISO"));
+check("r2 repair reads object metadata", worker.includes("bucket.head") && worker.includes("object.originalName") && worker.includes("memoryFromObject(object)"));
+check("file previewer has dedicated integrity styling", css.includes("PHOTOZ file metadata + previewer integrity pass") && css.includes(".fileInfoCoreMetaPanel") && css.includes(".fileInfoMetaLine"));
 
+if (failures.length) {
+  console.error("PHOTOZ validation failed:");
+  for (const failure of failures) console.error("- " + failure);
+  process.exit(1);
+}
+
+
+check("full-photo preview guarantee block exists", css.includes("PHOTOZ full-photo preview guarantee"));
+check("media viewers/cards use contain after full-photo guarantee", css.includes("PHOTOZ full-photo preview guarantee") && /PHOTOZ full-photo preview guarantee[\s\S]*object-fit:\s*contain/.test(css));
+check("video thumbnails not forced cropped after full-photo guarantee", !/PHOTOZ full-photo preview guarantee[\s\S]*object-fit:\s*cover/.test(css));
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
   for (const failure of failures) console.error("- " + failure);
