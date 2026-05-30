@@ -3119,6 +3119,12 @@ const [screen, setScreen] = useState("home");
   const [albumQuery, setAlbumQuery] = useState("");
   const [albumSearchOpen, setAlbumSearchOpen] = useState(false);
   const [albumCreateOpen, setAlbumCreateOpen] = useState(false);
+  const [currentAlbumId, setCurrentAlbumId] = useState("");
+  const [albumSort, setAlbumSort] = useState("recent");
+  const [visibleIds, setVisibleIds] = useState([]);
+  const [sync, setSync] = useState("loading");
+  const [undoSnapshot, setUndoSnapshot] = useState(null);
+  const saving = useRef(false);
 
   function closeTransientOverlays(except) {
     if (except !== "settings") setSettingsOpen(false);
@@ -3172,13 +3178,6 @@ const [screen, setScreen] = useState("home");
     bulkMoreOpen || advancedSearchOpen || activeMemory || pzAlbumEditorId || pzDetailEditorId ||
     pzVideoPlayerId || undoSnapshot
   );
-  const [currentAlbumId, setCurrentAlbumId] = useState("");
-const [albumSort, setAlbumSort] = useState("recent");
-  const [visibleIds, setVisibleIds] = useState([]);
-  const [sync, setSync] = useState("loading");
-  const [undoSnapshot, setUndoSnapshot] = useState(null);
-  const saving = useRef(false);
-
   useEffect(function () {
     if (!hasTransientOverlayOpen) return;
     function handlePointerDown(event) {

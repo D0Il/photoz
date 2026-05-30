@@ -99,6 +99,11 @@ check("runtime filter paths use safe arrays", !app.includes("props.memories.filt
 
 
 
+
+const undoStateIndex = app.indexOf('const [undoSnapshot, setUndoSnapshot] = useState(null);');
+const overlayComputedIndex = app.indexOf('const hasTransientOverlayOpen = Boolean(');
+check("undo state is initialized before overlay computed state", undoStateIndex !== -1 && overlayComputedIndex !== -1 && undoStateIndex < overlayComputedIndex);
+
 check("every major popup is closed by overlay manager", app.includes('if (except !== "fileInfo") setActiveMemory(null);') && app.includes('if (except !== "albumEditor") setPzAlbumEditorId(null);') && app.includes('if (except !== "detailEditor") setPzDetailEditorId(null);') && app.includes('if (except !== "videoPlayer") setPzVideoPlayerId(null);') && app.includes('if (except !== "undo") setUndoSnapshot(null);'));
 check("search filter dropdown is controlled by app overlay manager", !app.includes('const [searchFilterOpen, setSearchFilterOpen] = useState(false);') && app.includes('const searchFilterOpen = Boolean(props.advancedSearchOpen);') && app.includes('closeTransientOverlays("searchFilter")'));
 check("album editor is opened through app overlay manager", app.includes('onEditAlbum={function (group) { closeTransientOverlays("albumEditor"); setPzAlbumEditorId(group.id || group.sourceId); }}') && !app.includes('onEditAlbum={function (group) { setPzAlbumEditorId(group.id || group.sourceId); }}'));
