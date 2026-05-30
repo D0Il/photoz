@@ -18776,3 +18776,150 @@ body:has(.fileInfoModal) {
   width: 100%;
   accent-color: rgba(255,255,255,.94);
 }
+
+/* Release cleanup: unassigned should not show a text instruction bar. The workflow is the toolbar after hold-selection. */
+.unassignedOrganizeHint { display: none; }
+
+/* Video viewer: controls must feel like a PHOTOZ strip, not a full-width browser scrubber, and must not fight the item action rail. */
+.fileInfoPreviewPanel:has(.pzVideoControls) {
+  padding-bottom: 112px;
+}
+.fileInfoPreviewPanel:has(.pzVideoControls) .fileInfoActionRail {
+  bottom: 74px;
+  z-index: 8;
+}
+.pzVideoControls {
+  left: 50%;
+  right: auto;
+  bottom: 18px;
+  width: min(620px, calc(100% - 96px));
+  transform: translateX(-50%);
+  grid-template-columns: 34px 42px minmax(180px, 1fr) 42px;
+  gap: 9px;
+  padding: 8px 11px;
+  z-index: 7;
+}
+.pzVideoControls input[type="range"] {
+  height: 4px;
+  min-width: 0;
+}
+.pzVideoControls input[type="range"]::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+}
+@media (max-width: 760px) {
+  .pzVideoControls {
+    width: min(560px, calc(100% - 32px));
+    grid-template-columns: 32px 38px minmax(110px, 1fr) 38px;
+    bottom: 14px;
+  }
+  .fileInfoPreviewPanel:has(.pzVideoControls) .fileInfoActionRail {
+    bottom: 68px;
+  }
+}
+
+
+/* RELEASE FILTER FIX: VIEW density must visibly change every media grid. */
+.photozProUI .photoGrid.densityCompact,
+.photozProUI.view-densityCompact .photoGrid {
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  grid-auto-rows: 118px;
+  gap: 7px;
+}
+.photozProUI .photoGrid.densityNormal,
+.photozProUI.view-densityNormal .photoGrid {
+  grid-template-columns: repeat(auto-fill, minmax(184px, 1fr));
+  grid-auto-rows: 218px;
+  gap: 12px;
+}
+.photozProUI .photoGrid.densityLarge,
+.photozProUI.view-densityLarge .photoGrid {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-auto-rows: 360px;
+  gap: 18px;
+}
+.photozProUI .photoGrid.densityCompact .photoCard {
+  border-radius: 14px;
+}
+.photozProUI .photoGrid.densityCompact .photoMeta {
+  min-height: 34px;
+  padding: 5px 7px;
+}
+.photozProUI .photoGrid.densityCompact .photoMeta strong {
+  font-size: 9px;
+}
+.photozProUI .photoGrid.densityLarge .photoMeta {
+  min-height: 58px;
+  padding: 12px 14px;
+}
+.photozProUI .photoGrid.densityLarge .photoMeta strong {
+  font-size: 15px;
+}
+@media (max-width: 760px) {
+  .photozProUI .photoGrid.densityCompact,
+  .photozProUI.view-densityCompact .photoGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-rows: 116px;
+  }
+  .photozProUI .photoGrid.densityLarge,
+  .photozProUI.view-densityLarge .photoGrid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    grid-auto-rows: 340px;
+  }
+}
+
+/* RELEASE GROUP VIEW FIX: YEAR / MONTH / ERA cards should read as real organization views, not tiny chips. */
+.photozProUI.page-albums .archiveLabel {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  margin: 2px 0 18px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.32);
+  color: rgba(0,0,0,.72);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .16em;
+  box-shadow: 0 14px 32px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.34);
+}
+.photozProUI.page-albums .timelineStack.filterFilter,
+.photozProUI.page-albums .albumGrid.filterFilter {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+.photozProUI.page-albums .timelineStack.filterFilter .systemRailItem,
+.photozProUI.page-albums .albumGrid.filterFilter .systemRailItem {
+  min-height: 118px;
+  height: auto;
+  padding: 18px;
+  display: grid;
+  align-content: space-between;
+  justify-items: start;
+  border-radius: 24px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.055) 54%, rgba(0,0,0,.055)),
+    rgba(255,255,255,.035);
+  border: 1px solid rgba(255,255,255,.32);
+  box-shadow:
+    0 22px 52px rgba(0,0,0,.13),
+    inset 0 1px 0 rgba(255,255,255,.42),
+    inset 0 -1px 0 rgba(0,0,0,.12);
+  color: rgba(0,0,0,.72);
+}
+.photozProUI.page-albums .timelineStack.filterFilter .systemRailItem span:first-child,
+.photozProUI.page-albums .albumGrid.filterFilter .systemRailItem span:first-child {
+  font-size: clamp(24px, 4vw, 42px);
+  line-height: .9;
+  letter-spacing: -.07em;
+  font-weight: 850;
+}
+.photozProUI.page-albums .timelineStack.filterFilter .systemRailItem em,
+.photozProUI.page-albums .albumGrid.filterFilter .systemRailItem em {
+  font-size: 10px;
+  letter-spacing: .16em;
+  font-weight: 850;
+  opacity: .52;
+}

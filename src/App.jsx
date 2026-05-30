@@ -1339,6 +1339,7 @@ function matchesReleaseFilter(memory, albums, filters) {
   if (source === "needs-file" && (memory.storageUrl || memory.previewUrl || memory.url || storageKeyFromMemory(memory))) return false;
 
   if (quality === "rated" && normalizeRating(memory.rating) <= 0) return false;
+  if (quality === "large" && fileSizeBytes(memory) <= 0) return false;
 
   return true;
 }
@@ -1355,8 +1356,8 @@ function filteredSortedMemories(items, albums, filters, sortMode) {
 
 function densityClass(value) {
   const density = String(value || "normal").toLowerCase();
-  if (density === "compact") return "densityCompact";
-  if (density === "large") return "densityLarge";
+  if (density === "tight" || density === "compact" || density === "small") return "densityCompact";
+  if (density === "large" || density === "big") return "densityLarge";
   return "densityNormal";
 }
 
@@ -2857,11 +2858,6 @@ function GroupFilter(props) {
         {items.length ? <strong>{title}</strong> : null}
         {items.length ? <Pill>{items.length}</Pill> : null}
       </div>
-      {isUnassigned ? (
-        <div className="unassignedOrganizeHint">
-          <span>Hold a photo, then move it into an album.</span>
-        </div>
-      ) : null}
       {props.selectionMode && selectedTotal ? (
         <div className="groupQuickOrganizeBar" aria-label="Quick organize selected photos">
           <select value={props.bulkAlbum || UNASSIGNED_ALBUM_ID} aria-label="Album" onChange={function (event) { props.setBulkAlbum && props.setBulkAlbum(event.target.value); }}>
@@ -4308,6 +4304,8 @@ const [screen, setScreen] = useState("home");
 
   function clearSelection() {
     setSelectedIds({});
+    setSelectionMode(false);
+    setBulkMoreOpen(false);
   }
 
   function selectAll() {
@@ -5336,7 +5334,7 @@ async function handleUpload(eventOrFiles) {
   const key = screen + "-" + (activeGroup ? activeGroup.id : "home");
 
   return unlocked ? (
-    <div className={"app photozProUI page-" + activePage + (hasTransientOverlayOpen ? " has-open-overlay" : "")}>
+    <div className={"app photozProUI page-" + activePage + " view-" + densityClass(viewDensity) + (hasTransientOverlayOpen ? " has-open-overlay" : "")}>
       
         {uploadNotice && !hasTransientOverlayOpen ? <div className="uploadNoticeToast">{uploadNotice}</div> : null}
         {uploadPendingItems.length && !hasTransientOverlayOpen ? <div className="uploadPendingStrip">{uploadPendingItems.length} UPLOADING</div> : null}
