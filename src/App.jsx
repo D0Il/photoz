@@ -2434,6 +2434,7 @@ function Modal(props) {
                 <button type="button" onClick={function () { setShowTechnical(function (value) { return !value; }); }}>FILE INFO</button>
                 <button type="button" onClick={function () { setShowMetadata(function (value) { return !value; }); }}>METADATA</button>
                 {memory.trashed ? <button type="button" onClick={function () { props.restoreMemory(memory); }}>RESTORE</button> : <button type="button" className="danger" onClick={function () { props.deleteMemory(memory); }}>TRASH</button>}
+                <button type="button" className="danger permaDeleteButton" onClick={function () { props.permanentDeleteMemory(memory); }}>DELETE FOREVER</button>
               </section>
 
               {showTechnical ? (
@@ -2691,6 +2692,7 @@ function PzFileDetailEditor(props) {
           ) : (
             <button type="button" className="danger" onClick={function () { props.onTrash(memory.id); props.onClose(); }}>TRASH</button>
           )}
+          <button type="button" className="danger permaDeleteButton" onClick={function () { if (props.onPermanentDelete) props.onPermanentDelete(memory); props.onClose(); }}>DELETE FOREVER</button>
         </div>
       </section>
     </div>
@@ -4039,6 +4041,44 @@ const [albumSort, setAlbumSort] = useState("recent");
     });
   }
 
+  function permanentDeleteMemory(memory) {
+    if (!memory) return;
+    if (!confirmDelete("Permanently delete this file from PHOTOZ and R2? This cannot be undone.")) return;
+
+    rememberUndo("PERMANENT DELETE");
+
+    const nextMemories = safeArray(memories).filter(function (item) {
+      return item.id !== memory.id;
+    });
+    const nextAlbums = ensureAlbumCoverage(nextMemories, removeMemoryEverywhere(albums, memory.id));
+
+    setActiveMemory(null);
+    setPzDetailEditorId(null);
+    if (activeGroup) {
+      setActiveGroup({
+        ...activeGroup,
+        items: safeArray(activeGroup && activeGroup.items).filter(function (item) {
+          return item.id !== memory.id;
+        }),
+      });
+    }
+
+    setMemories(nextMemories);
+    setAlbums(nextAlbums);
+    setSync("deleting");
+
+    deleteOne(memory)
+      .then(function () {
+        pzPushToast("DELETED", "File permanently deleted.", "success");
+        persist(nextMemories, nextAlbums);
+      })
+      .catch(function () {
+        setSync("local");
+        pzPushToast("LOCAL DELETE", "Removed locally. R2 delete will need retry.", "error");
+        persist(nextMemories, nextAlbums);
+      });
+  }
+
   function deleteMemory(memory) {
     rememberUndo("TRASH");
     
@@ -4275,7 +4315,7 @@ const [albumSort, setAlbumSort] = useState("recent");
       duplicates: plan.duplicates,
       bytes: plan.bytes,
     });
-    setImportPanelOpen(true);
+    closeTransientOverlays("queue");
 
     const imported = batchFiles.map(function (file, index) {
       const memory = fromFile(file, index);
@@ -4300,6 +4340,9 @@ const [albumSort, setAlbumSort] = useState("recent");
       return items.concat(queueItems);
     });
     setUploadQueueOpen(true);
+    setImportPanelOpen(false);
+    setStatusOpen(false);
+    setPzUploadRefilterOpen(false);
 
     const nextMemories = memories.concat(imported);
     const nextAlbums = ensureAlbumCoverage(nextMemories, albums);
@@ -4361,8 +4404,8 @@ async function handleUpload(eventOrFiles) {
   return unlocked ? (
     <div className={"app photozProUI page-" + activePage + (hasTransientOverlayOpen ? " has-open-overlay" : "")}>
       
-        {uploadNotice ? <div className="uploadNoticeToast">{uploadNotice}</div> : null}
-        {uploadPendingItems.length ? <div className="uploadPendingStrip">{uploadPendingItems.length} UPLOADING</div> : null}
+        {uploadNotice && !uploadQueueOpen && !importPanelOpen ? <div className="uploadNoticeToast">{uploadNotice}</div> : null}
+        {uploadPendingItems.length && !uploadQueueOpen && !importPanelOpen ? <div className="uploadPendingStrip">{uploadPendingItems.length} UPLOADING</div> : null}
 <Dock active={activePage} setActive={setActivePage} />
       <main>
         <AnimatePresence mode="wait">
@@ -4407,7 +4450,7 @@ async function handleUpload(eventOrFiles) {
           </motion.div>
         </AnimatePresence>
       </main>
-      <Modal memory={activeMemory} close={function () { setActiveMemory(null); }} deleteMemory={deleteMemory} restoreMemory={restoreMemory} toggleMeFlag={toggleMeFlag} toggleMirror={toggleMirror} toggleArchive={toggleArchive} toggleRefilter={toggleRefilter} togglePrivate={togglePrivate} albums={albums} addToAlbum={addToAlbum} moveToAlbum={moveToAlbum} removeFromAlbum={removeFromAlbum} updateMemoryDetails={updateMemoryDetails} downloadOriginal={downloadOriginal} openOriginal={openOriginal} copyMediaUrl={copyMediaUrl} copyStorageKey={copyStorageKey} toggleStar={toggleStar} isStarred={activeMemory ? albumHasMemory(albums, "star", activeMemory.id) : false} setAlbumCover={setAlbumCover} clearAlbumCover={clearAlbumCover} />
+      <Modal memory={activeMemory} close={function () { setActiveMemory(null); }} deleteMemory={deleteMemory} permanentDeleteMemory={permanentDeleteMemory} restoreMemory={restoreMemory} toggleMeFlag={toggleMeFlag} toggleMirror={toggleMirror} toggleArchive={toggleArchive} toggleRefilter={toggleRefilter} togglePrivate={togglePrivate} albums={albums} addToAlbum={addToAlbum} moveToAlbum={moveToAlbum} removeFromAlbum={removeFromAlbum} updateMemoryDetails={updateMemoryDetails} downloadOriginal={downloadOriginal} openOriginal={openOriginal} copyMediaUrl={copyMediaUrl} copyStorageKey={copyStorageKey} toggleStar={toggleStar} isStarred={activeMemory ? albumHasMemory(albums, "star", activeMemory.id) : false} setAlbumCover={setAlbumCover} clearAlbumCover={clearAlbumCover} />
       <PzToastStack items={pzToasts} />
       <PzAlbumEditorPanel
         open={Boolean(pzActiveAlbumEditor)}
@@ -4424,6 +4467,7 @@ async function handleUpload(eventOrFiles) {
         onClose={function () { setPzDetailEditorId(null); }}
         onSave={pzSaveMemoryDetail}
         onTrash={pzTrashMemory}
+        onPermanentDelete={permanentDeleteMemory}
         onRestore={pzRestoreMemory}
         onDownload={pzDownloadMemory}
       />

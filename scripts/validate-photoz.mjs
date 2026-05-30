@@ -102,6 +102,20 @@ check("overlay manager prevents stacked UI", app.includes("function closeTransie
 check("album search and create are mutually exclusive", app.includes("function setAlbumSearchExclusive(nextValue)") && app.includes("function setAlbumCreateExclusive(nextValue)") && app.includes('closeTransientOverlays("albumSearch")') && app.includes('closeTransientOverlays("albumCreate")'));
 check("overlay z-index system exists", css.includes("PHOTOZ overlay discipline pass") && css.includes("--pz-z-menu") && css.includes("--pz-z-modal") && css.includes("has-open-overlay"));
 
+check("upload does not open import panel as second upload popup", !app.includes('setImportPanelOpen(true);\n\n    const imported = batchFiles.map'));
+check("upload closes other overlays before queue", app.includes('closeTransientOverlays("queue");'));
+check("upload queue is the only upload panel opened", app.includes('setUploadQueueOpen(true);\n    setImportPanelOpen(false);'));
+check("upload toast does not stack over upload panels", app.includes('uploadNotice && !uploadQueueOpen && !importPanelOpen'));
+check("upload pending strip does not stack over upload panels", app.includes('uploadPendingItems.length && !uploadQueueOpen && !importPanelOpen'));
+check("centered glasses svg exists", app.includes("function CenteredGlassesIcon") && app.includes("centeredGlassesIcon") && css.includes("PHOTOZ centered album search glasses glyph"));
+check("no forced glasses offset", !css.includes("translateX(-.75px)") && !css.includes("lucide-glasses"));
+
+
+check("permanent delete handler exists", app.includes("function permanentDeleteMemory"));
+check("file info modal wired to permanent delete", app.includes("permanentDeleteMemory={permanentDeleteMemory}"));
+check("detail editor wired to permanent delete", app.includes("onPermanentDelete={permanentDeleteMemory}"));
+check("delete forever UI exists", app.includes("DELETE FOREVER"));
+
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -110,6 +124,3 @@ if (failures.length) {
 
 
 console.log("PHOTOZ validation passed.");
-
-check("centered glasses svg exists", app.includes("function CenteredGlassesIcon") && app.includes("centeredGlassesIcon") && css.includes("PHOTOZ centered album search glasses glyph"));
-check("no forced glasses offset", !css.includes("translateX(-.75px)") && !css.includes("lucide-glasses"));

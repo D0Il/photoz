@@ -14773,3 +14773,15 @@ svg.photozDockIcon {
   top: calc(100% + 8px);
   right: 0;
 }
+
+.permaDeleteButton {
+  border-color: rgba(120, 0, 0, 0.32);
+  background: linear-gradient(135deg, rgba(34, 0, 0, 0.18), rgba(255, 255, 255, 0.08));
+  color: #170000;
+  letter-spacing: 0.12em;
+}
+
+.permaDeleteButton:hover {
+  border-color: rgba(120, 0, 0, 0.52);
+  box-shadow: 0 14px 34px rgba(120, 0, 0, 0.16), inset 0 1px 0 rgba(255,255,255,0.58);
+}
