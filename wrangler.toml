@@ -1,7 +1,8 @@
 name = "photoz"
 main = "src/worker.js"
-compatibility_date = "2026-05-29"
-keep_vars = true # Preserve dashboard-managed secrets like PHOTOZ_ACCESS_CODE during wrangler deploy
+compatibility_date = "2025-01-01"
+account_id = "ede1e7633dd439375ff7a143c1c9b512"
+keep_vars = true
 workers_dev = true
 
 [assets]

@@ -1485,6 +1485,14 @@ function originalUrlForMemory(memory) {
   return MEDIA_BASE + "/" + encodedStorageKey(key);
 }
 
+function downloadUrlForMemory(memory) {
+  const url = originalUrlForMemory(memory) || (memory && (memory.storageUrl || memory.previewUrl || memory.url)) || "";
+  if (!url || isBlobUrl(url)) return url;
+  const separator = url.indexOf("?") === -1 ? "?" : "&";
+  const name = memory && (memory.fileName || memory.filename || memory.name || memory.title);
+  return url + separator + "download=1" + (name ? "&name=" + encodeURIComponent(name) : "");
+}
+
 function previewUrlForMemory(memory) {
   if (!memory) return "";
   const original = originalUrlForMemory(memory);
@@ -1720,24 +1728,23 @@ function deleteConfirmCopy(count) {
 }
 
 function downloadOriginal(memory) {
-  if (!memory || !memory.storageUrl) return;
-  const anchor = document.createElement("a");
-  anchor.href = memory.storageUrl;
-  anchor.download = memory.fileName || memory.title || "photo";
-  anchor.target = "_blank";
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
+  const url = downloadUrlForMemory(memory);
+  if (!memory || !url) return false;
+  const opened = window.open(url, "_blank", "noopener,noreferrer");
+  if (!opened) window.location.href = url;
+  return true;
 }
 
 function openOriginal(memory) {
-  if (!memory || !memory.storageUrl) return;
-  window.open(memory.storageUrl, "_blank", "noopener,noreferrer");
+  const url = originalUrlForMemory(memory) || (memory && (memory.storageUrl || memory.previewUrl || memory.url));
+  if (!memory || !url) return;
+  window.open(url, "_blank", "noopener,noreferrer");
 }
 
 function copyMediaUrl(memory) {
-  if (!memory || !memory.storageUrl) return;
-  const value = window.location.origin + memory.storageUrl;
+  const url = originalUrlForMemory(memory) || (memory && (memory.storageUrl || memory.previewUrl || memory.url));
+  if (!memory || !url) return;
+  const value = url.indexOf("http") === 0 ? url : window.location.origin + url;
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(value);
   }
@@ -1747,6 +1754,19 @@ function copyStorageKey(memory) {
   if (!memory || !memory.storageKey) return;
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(memory.storageKey);
+  }
+}
+
+function rememberUnlocked() {
+  try { window.localStorage.setItem("photozUnlocked", "true"); } catch (error) {}
+  try { window.sessionStorage.setItem("photozUnlocked", "true"); } catch (error) {}
+}
+
+function rememberedUnlocked() {
+  try {
+    return window.localStorage.getItem("photozUnlocked") === "true" || window.sessionStorage.getItem("photozUnlocked") === "true";
+  } catch (error) {
+    return false;
   }
 }
 
@@ -1978,8 +1998,7 @@ function PhotoCard(props) {
       return;
     }
 
-    // Videos open in the same PHOTOZ viewer as photos. The viewer renders a real
-    // <video controls> element with a scrub/play bar instead of launching a separate modal.
+    // Videos open in the same PHOTOZ viewer as photos, with PHOTOZ custom controls.
     props.onClick && props.onClick(memory, event);
   }
 
@@ -2020,7 +2039,7 @@ function PhotoCard(props) {
         {props.onEdit ? (
           <button type="button" aria-label="Edit file" onClick={function (event) { event.stopPropagation(); props.onEdit(memory); }}><PanelRightOpen size={12} /></button>
         ) : null}
-        {video ? <button type="button" aria-label="Open video" onClick={function (event) { event.stopPropagation(); props.onClick ? props.onClick(memory, event) : props.onPlayVideo && props.onPlayVideo(memory); }}><Film size={12} /></button> : null}
+        {video ? <button type="button" aria-label="Open video" onClick={function (event) { event.stopPropagation(); props.onClick && props.onClick(memory, event); }}><Film size={12} /></button> : null}
       </div>
     </article>
   );
@@ -2381,6 +2400,7 @@ function BulkBar(props) {
       <button type="button" disabled={!count} onClick={props.bulkMarkMe}>ME</button>
       <button type="button" disabled={!count} onClick={props.bulkMoveToMirror}>MIRROR</button>
       <button type="button" disabled={!count} onClick={props.bulkStar}>STAR</button>
+      <button type="button" disabled={!count} onClick={props.bulkDownload}><Download size={14} /> DOWNLOAD</button>
       <button type="button" disabled={!count} className="danger" onClick={props.bulkDelete}>TRASH</button>
       <button type="button" onClick={props.clearSelection}>CLEAR</button>
     </div>
@@ -2605,7 +2625,6 @@ function MirrorFilter(props) {
                 onClick={function () { props.openMemory(memory); }}
               
                 onEdit={props.onEditMemory || function () {}}
-                onPlayVideo={props.onPlayVideo || function () {}}
                 onLongSelect={function (memory) { (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); if (fn) fn(memory.id); }}
                 onDragSelect={function (memory) { const lookup = (typeof selectedIds !== "undefined" ? selectedIds : (typeof props !== "undefined" ? props.selectedIds : {})); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); if (fn && (!lookup || !lookup[memory.id])) fn(memory.id); }}/>
             );
@@ -2732,7 +2751,6 @@ function AlbumsFilter(props) {
               {safeArray(currentPhotos).map(function (memory) {
                 return <PhotoCard key={memory.id} memory={memory} showText selectionMode={props.selectionMode} selected={props.selectedIds && props.selectedIds[memory.id]} toggleSelected={props.toggleSelected} setSelectionMode={props.setSelectionMode} isStarred={props.starredIds && props.starredIds[memory.id]} onDelete={props.deleteMemory} onClick={function () { props.openMemory(memory); }} 
                 onEdit={props.onEditMemory}
-                onPlayVideo={props.onPlayVideo}
                 onLongSelect={function (memory) { (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); if (fn) fn(memory.id); }}
                 onDragSelect={function (memory) { const lookup = (typeof selectedIds !== "undefined" ? selectedIds : (typeof props !== "undefined" ? props.selectedIds : {})); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); if (fn && (!lookup || !lookup[memory.id])) fn(memory.id); }}/>;
               })}
@@ -2836,7 +2854,6 @@ function SearchFilter(props) {
                 onDelete={props.deleteMemory}
                 onClick={function () { props.openMemory(memory); }}
                 onEdit={props.onEditMemory}
-                onPlayVideo={props.onPlayVideo}
               
                 onLongSelect={function (memory) { (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); if (fn) fn(memory.id); }}
                 onDragSelect={function (memory) { const lookup = (typeof selectedIds !== "undefined" ? selectedIds : (typeof props !== "undefined" ? props.selectedIds : {})); const fn = (typeof toggleSelected !== "undefined" ? toggleSelected : (typeof props !== "undefined" ? props.toggleSelected : null)); (typeof setSelectionMode !== "undefined" ? setSelectionMode(true) : (typeof props !== "undefined" && props.setSelectionMode ? props.setSelectionMode(true) : null)); if (fn && (!lookup || !lookup[memory.id])) fn(memory.id); }}/>
@@ -2894,7 +2911,6 @@ function GroupFilter(props) {
                 onDelete={props.deleteMemory}
                 onClick={function () { props.openMemory(memory); }}
                 onEdit={props.onEditMemory}
-                onPlayVideo={props.onPlayVideo}
                 onLongSelect={function (memory) { props.setSelectionMode && props.setSelectionMode(true); props.toggleSelected && props.toggleSelected(memory.id); }}
                 onDragSelect={function (memory) { props.setSelectionMode && props.setSelectionMode(true); if (props.toggleSelected && (!props.selectedIds || !props.selectedIds[memory.id])) props.toggleSelected(memory.id); }}
               />
@@ -3158,6 +3174,7 @@ function Modal(props) {
               <div className="fileInfoActionRail" aria-label="Photo actions">
                 <button type="button" aria-label="Favorite" data-tooltip="Favorite" className={props.isStarred ? "active" : ""} onClick={function () { props.toggleStar(memory); }}><Star size={17} /></button>
                 <button type="button" aria-label="Me" data-tooltip="Me" className={isMeMemory(memory) ? "active" : ""} onClick={function () { props.toggleMeFlag(memory); }}><UserRound size={17} /></button>
+                <button type="button" aria-label="Download" data-tooltip="Download" onClick={function () { props.downloadOriginal(memory); }}><Download size={17} /></button>
                 {!memory.trashed ? <button type="button" aria-label="Trash" data-tooltip="Trash" className="danger" onClick={function () { props.deleteMemory(memory); }}><Trash2 size={17} /></button> : null}
               </div>
             </section>
@@ -3389,29 +3406,52 @@ function PzAlbumEditorPanel(props) {
 function PasswordGate(props) {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
+  const [checking, setChecking] = useState(true);
+
+  useEffect(function () {
+    checkAccess()
+      .then(function (status) {
+        if (status.required && status.authorized) {
+          rememberUnlocked();
+          if (props.onUnlock) props.onUnlock();
+        }
+        if (!status.required) setError("PHOTOZ_ACCESS_CODE NOT CONFIGURED");
+        setChecking(false);
+      })
+      .catch(function () {
+        setError("ACCESS CHECK FAILED");
+        setChecking(false);
+      });
+  }, []);
 
   async function unlock(event) {
     event.preventDefault();
     setError("");
-    try {
-      const response = await fetch("/api/access", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: code })
-      });
-      if (!response.ok) throw new Error("LOCKED");
-      window.sessionStorage.setItem("photozUnlocked", "true");
+    const ok = await submitAccessCode(code);
+    if (ok) {
+      rememberUnlocked();
       if (props.onUnlock) props.onUnlock();
-    } catch (err) {
+    } else {
       setError("ACCESS DENIED");
     }
+  }
+
+  if (checking) {
+    return (
+      <div className="passwordGate">
+        <form className="passwordCard">
+          <span>PHOTOZ</span>
+          <em>CHECKING ACCESS</em>
+        </form>
+      </div>
+    );
   }
 
   return (
     <div className="passwordGate">
       <form className="passwordCard" onSubmit={unlock}>
         <span>PHOTOZ</span>
-        <input value={code} onChange={function (event) { setCode(event.target.value); }} placeholder="ACCESS CODE" autoFocus />
+        <input value={code} onChange={function (event) { setCode(event.target.value); }} placeholder="ACCESS CODE" type="password" autoFocus />
         <button type="submit">ENTER</button>
         {error ? <em>{error}</em> : null}
       </form>
@@ -3448,7 +3488,7 @@ function PzFileDetailEditor(props) {
           <button type="button" className="closeButton" onClick={props.onClose}>×</button>
         </header>
         <div className="pzDetailPreview">
-          {video ? <video src={source} controls playsInline /> : <img src={source} alt="" />}
+          {video ? <video src={source} muted playsInline preload="metadata" /> : <img src={source} alt="" />}
           {video ? <span className="pzVideoBadge"><Film size={12} />{pzVideoRuntime(memory)}</span> : null}
           {memory.trashed ? <span className="pzTrashRibbon">TRASH</span> : null}
         </div>
@@ -3531,7 +3571,7 @@ function PzVideoPlaybackModal(props) {
         </header>
         <main>
           <div className="pzCinemaStage">
-            <video src={source} controls autoPlay playsInline />
+            <video src={source} muted playsInline preload="metadata" />
           </div>
           <aside className="pzCinemaInfo">
             <div><span>DURATION</span><strong>{pzVideoRuntime(memory)}</strong></div>
@@ -3780,7 +3820,6 @@ const [filterType, setFilterType] = useState("all");
 
   const [pzAlbumEditorId, setPzAlbumEditorId] = useState(null);
   const [pzDetailEditorId, setPzDetailEditorId] = useState(null);
-  const [pzVideoPlayerId, setPzVideoPlayerId] = useState(null);
   const [pzUploadRefilterOpen, setPzUploadRefilterOpen] = useState(false);
   const [pzUploadQueue, setPzUploadQueue] = useState([]);
   const [pzBackupState, setPzBackupState] = useState({ lastSavedAt: "", lastBackupAt: "" });
@@ -3798,7 +3837,7 @@ const [filterType, setFilterType] = useState("all");
 
 
   const [unlocked, setUnlocked] = useState(function () {
-    try { return window.sessionStorage.getItem("photozUnlocked") === "true"; } catch (error) { return false; }
+    return rememberedUnlocked();
   });
 
 
@@ -3844,7 +3883,7 @@ const [filterType, setFilterType] = useState("all");
   }
 
   function pzDownloadMemory(memory) {
-    if (!pzDownload(memory)) pzPushToast("NO FILE", "Original file is unavailable.", "warn");
+    if (!downloadOriginal(memory)) pzPushToast("NO FILE", "Original file is unavailable.", "warn");
   }
 
 
@@ -3878,7 +3917,6 @@ const [screen, setScreen] = useState("home");
   const [albums, setAlbums] = useState(ensureCoreAlbums(INITIAL_ALBUMS));
   const pzActiveAlbumEditor = albumById(albums, pzAlbumEditorId);
   const pzActiveDetailMemory = safeArray(memories).map(normalizeMemoryRecord).find(function (memory) { return memory.id === pzDetailEditorId; }) || null;
-  const pzActiveVideoMemory = safeArray(memories).map(normalizeMemoryRecord).find(function (memory) { return memory.id === pzVideoPlayerId; }) || null;
 
 
   const [draft, setDraft] = useState("");
@@ -3944,7 +3982,6 @@ const [screen, setScreen] = useState("home");
     if (except !== "fileInfo") setActiveMemory(null);
     if (except !== "albumEditor") setPzAlbumEditorId(null);
     if (except !== "detailEditor") setPzDetailEditorId(null);
-    if (except !== "videoPlayer") setPzVideoPlayerId(null);
     if (except !== "undo") setUndoSnapshot(null);
   }
 
@@ -3998,14 +4035,14 @@ const [screen, setScreen] = useState("home");
     settingsOpen || filterControlsOpen || importPanelOpen || uploadQueueOpen || statusOpen ||
     duplicatesOpen || healthOpen || pzUploadRefilterOpen || albumSearchOpen || albumCreateOpen ||
     bulkMoreOpen || advancedSearchOpen || activeMemory || pzAlbumEditorId || pzDetailEditorId ||
-    pzVideoPlayerId || undoSnapshot
+    undoSnapshot
   );
   useEffect(function () {
     if (!hasTransientOverlayOpen) return;
     function handlePointerDown(event) {
       const target = event.target;
       if (!target || !target.closest) return;
-      if (target.closest(".photozOverlaySurface, .floatingPanel, .settingsPopover, .filterPopover, .filterPanel, .albumControlsRow, .albumInlineActions, .floatingUtilityCluster, .bulkBar, .dockWrap, .modal, .modalCard, .modalBackdrop, .pzEditorSheet, .pzVideoCinemaPanel, .undoBar")) return;
+      if (target.closest(".photozOverlaySurface, .floatingPanel, .settingsPopover, .filterPopover, .filterPanel, .albumControlsRow, .albumInlineActions, .floatingUtilityCluster, .bulkBar, .dockWrap, .modal, .modalCard, .modalBackdrop, .pzEditorSheet, .undoBar")) return;
       closeTransientOverlays();
     }
     function handleKeyDown(event) {
@@ -4271,6 +4308,20 @@ const [screen, setScreen] = useState("home");
     const ids = selectedMemoryIds(selectedIds);
     const selected = safeArray(memories).filter(function (memory) { return ids.indexOf(memory.id) !== -1; });
     downloadJson("photoz-selected-" + new Date().toISOString().slice(0, 10) + ".json", { version: 1, exportedAt: new Date().toISOString(), memories: selected, albums: albums });
+  }
+
+  function bulkDownloadSelected() {
+    const items = selectedMemories().filter(function (memory) {
+      return Boolean(originalUrlForMemory(memory) || memory.storageUrl || memory.previewUrl || memory.url);
+    });
+    if (!items.length) {
+      pzPushToast("NO FILE", "No selected originals are available.", "warn");
+      return;
+    }
+    items.slice(0, 50).forEach(function (memory, index) {
+      window.setTimeout(function () { downloadOriginal(memory); }, index * 120);
+    });
+    if (items.length > 50) pzPushToast("DOWNLOAD", "Started the first 50 selected files.", "info");
   }
 
   function exportManifestCsv() {
@@ -5370,7 +5421,7 @@ async function handleUpload(eventOrFiles) {
                 setFilterQuality={setFilterQuality}
                 viewDensity={viewDensity}
                 setViewDensity={setViewDensity}/>
-                <UndoBar snapshot={(settingsOpen || filterControlsOpen || importPanelOpen || uploadQueueOpen || statusOpen || duplicatesOpen || healthOpen || pzUploadRefilterOpen || albumSearchOpen || albumCreateOpen || bulkMoreOpen || advancedSearchOpen || activeMemory || pzAlbumEditorId || pzDetailEditorId || pzVideoPlayerId) ? null : undoSnapshot} undo={undoLastAction} clear={function () { setUndoSnapshot(null); }} />
+                <UndoBar snapshot={(settingsOpen || filterControlsOpen || importPanelOpen || uploadQueueOpen || statusOpen || duplicatesOpen || healthOpen || pzUploadRefilterOpen || albumSearchOpen || albumCreateOpen || bulkMoreOpen || advancedSearchOpen || activeMemory || pzAlbumEditorId || pzDetailEditorId) ? null : undoSnapshot} undo={undoLastAction} clear={function () { setUndoSnapshot(null); }} />
                 <SettingsPanel onUpload={handleUpload} open={settingsOpen} close={function () { setSettingsOpen(false); }} toggleImportPanel={function () { closeTransientOverlays("import"); setImportPanelOpen(true); }} toggleUploadQueuePanel={function () { closeTransientOverlays("queue"); setUploadQueueOpen(true); }} toggleStatusPanel={function () { closeTransientOverlays("status"); setStatusOpen(true); }} toggleDuplicatePanel={function () { closeTransientOverlays("duplicates"); setDuplicatesOpen(true); }} toggleHealthPanel={function () { closeTransientOverlays("health"); setHealthOpen(true); }} exportVaultIndex={exportVaultIndex} exportManifestCsv={exportManifestCsv} importVaultIndex={importVaultIndex} 
                 toggleUploadRefilterPanel={function () { closeTransientOverlays("uploadRefilter"); setPzUploadRefilterOpen(true); }}/>
                 <ImportPanel open={importPanelOpen} close={function () { setImportPanelOpen(false); }} uploadBatchSize={uploadBatchSize} setUploadBatchSize={setUploadBatchSize} uploadConcurrency={uploadConcurrency} setUploadConcurrency={setUploadConcurrency} skipDuplicates={skipDuplicates} setSkipDuplicates={setSkipDuplicates} importSummary={importSummary} />
@@ -5378,10 +5429,10 @@ async function handleUpload(eventOrFiles) {
                 <StatusPanel open={statusOpen} memories={uploadPendingItems.concat(safeArray(memories))} close={function () { setStatusOpen(false); }} retryUpload={retryUpload} clearLocalFailedStatus={clearLocalFailedStatus} purgeTrash={purgeTrash} />
                 <DuplicatePanel open={duplicatesOpen} memories={uploadPendingItems.concat(safeArray(memories))} close={function () { setDuplicatesOpen(false); }} openMemory={openMemoryDetail} trashDuplicateOthers={trashDuplicateOthers} />
                 <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} fileAuditReport={fileAuditReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} runFileAudit={runFileAudit} repairFilesAndReload={repairFilesAndReload} repairIndex={repairIndex} />
-                <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} currentAlbumId={currentAlbumId} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { toggleOverlay("bulk", bulkMoreOpen, setBulkMoreOpen); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkRemoveFromCurrentAlbum={bulkRemoveFromCurrentAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkRefilter={bulkMarkRefilter} bulkClearRefilter={bulkClearRefilter} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDelete={bulkDelete} clearSelection={clearSelection} />
-                {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} archiveFilter={archiveFilter} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} setSelectionMode={setSelectionMode} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays("videoPlayer"); setPzVideoPlayerId(memory.id); }} onEditAlbum={function (group) { closeTransientOverlays("albumEditor"); setPzAlbumEditorId(group.id || group.sourceId); }} sortMode={sortMode} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} /> : null}
+                <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} currentAlbumId={currentAlbumId} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { toggleOverlay("bulk", bulkMoreOpen, setBulkMoreOpen); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkRemoveFromCurrentAlbum={bulkRemoveFromCurrentAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkRefilter={bulkMarkRefilter} bulkClearRefilter={bulkClearRefilter} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDownload={bulkDownloadSelected} bulkDelete={bulkDelete} clearSelection={clearSelection} />
+                {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} archiveFilter={archiveFilter} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} setSelectionMode={setSelectionMode} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onEditAlbum={function (group) { closeTransientOverlays("albumEditor"); setPzAlbumEditorId(group.id || group.sourceId); }} sortMode={sortMode} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} /> : null}
                 {activePage === "mirror" ? <MirrorFilter mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} /> : null}
-                {activePage === "search" ? <SearchFilter memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={function (nextValue) { const next = typeof nextValue === "function" ? nextValue(advancedSearchOpen) : nextValue; if (next) closeTransientOverlays("searchFilter"); setAdvancedSearchOpen(Boolean(next)); }} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays("videoPlayer"); setPzVideoPlayerId(memory.id); }} /> : null}
+                {activePage === "search" ? <SearchFilter memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={function (nextValue) { const next = typeof nextValue === "function" ? nextValue(advancedSearchOpen) : nextValue; if (next) closeTransientOverlays("searchFilter"); setAdvancedSearchOpen(Boolean(next)); }} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} /> : null}
               </Glass>
             ) : null}
             {screen === "group" && activeGroup ? (
@@ -5404,7 +5455,7 @@ async function handleUpload(eventOrFiles) {
                 <SettingsPanel onUpload={handleUpload} open={settingsOpen} close={function () { setSettingsOpen(false); }} toggleImportPanel={function () { closeTransientOverlays("import"); setImportPanelOpen(true); }} toggleUploadQueuePanel={function () { closeTransientOverlays("queue"); setUploadQueueOpen(true); }} toggleStatusPanel={function () { closeTransientOverlays("status"); setStatusOpen(true); }} toggleDuplicatePanel={function () { closeTransientOverlays("duplicates"); setDuplicatesOpen(true); }} toggleHealthPanel={function () { closeTransientOverlays("health"); setHealthOpen(true); }} exportVaultIndex={exportVaultIndex} exportManifestCsv={exportManifestCsv} importVaultIndex={importVaultIndex} toggleUploadRefilterPanel={function () { closeTransientOverlays("uploadRefilter"); setPzUploadRefilterOpen(true); }}/>
               </>
             ) : null}
-            {screen === "group" && activeGroup ? <GroupFilter group={activeGroup} albums={albums} back={goHome} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkMoveToMirror={bulkMoveToMirror} bulkStar={bulkStar} bulkDelete={bulkDelete} clearSelection={clearSelection} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays("videoPlayer"); setPzVideoPlayerId(memory.id); }} /> : null}
+            {screen === "group" && activeGroup ? <GroupFilter group={activeGroup} albums={albums} back={goHome} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkMoveToMirror={bulkMoveToMirror} bulkStar={bulkStar} bulkDelete={bulkDelete} clearSelection={clearSelection} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} /> : null}
           </motion.div>
         </AnimatePresence>
       </main>

@@ -104,10 +104,10 @@ const undoStateIndex = app.indexOf('const [undoSnapshot, setUndoSnapshot] = useS
 const overlayComputedIndex = app.indexOf('const hasTransientOverlayOpen = Boolean(');
 check("undo state is initialized before overlay computed state", undoStateIndex !== -1 && overlayComputedIndex !== -1 && undoStateIndex < overlayComputedIndex);
 
-check("every major popup is closed by overlay manager", app.includes('if (except !== "fileInfo") setActiveMemory(null);') && app.includes('if (except !== "albumEditor") setPzAlbumEditorId(null);') && app.includes('if (except !== "detailEditor") setPzDetailEditorId(null);') && app.includes('if (except !== "videoPlayer") setPzVideoPlayerId(null);') && app.includes('if (except !== "undo") setUndoSnapshot(null);'));
+check("every major popup is closed by overlay manager", app.includes('if (except !== "fileInfo") setActiveMemory(null);') && app.includes('if (except !== "albumEditor") setPzAlbumEditorId(null);') && app.includes('if (except !== "detailEditor") setPzDetailEditorId(null);') && app.includes('if (except !== "undo") setUndoSnapshot(null);'));
 check("search filter dropdown is controlled by app overlay manager", !app.includes('const [searchFilterOpen, setSearchFilterOpen] = useState(false);') && app.includes('const searchFilterOpen = Boolean(props.advancedSearchOpen);') && app.includes('closeTransientOverlays("searchFilter")'));
 check("album editor is opened through app overlay manager", app.includes('onEditAlbum={function (group) { closeTransientOverlays("albumEditor"); setPzAlbumEditorId(group.id || group.sourceId); }}') && !app.includes('onEditAlbum={function (group) { setPzAlbumEditorId(group.id || group.sourceId); }}'));
-check("undo toast hides while another overlay is open", app.includes('settingsOpen || filterControlsOpen || importPanelOpen || uploadQueueOpen || statusOpen || duplicatesOpen || healthOpen || pzUploadRefilterOpen || albumSearchOpen || albumCreateOpen || bulkMoreOpen || advancedSearchOpen || activeMemory || pzAlbumEditorId || pzDetailEditorId || pzVideoPlayerId) ? null : undoSnapshot'));
+check("undo toast hides while another overlay is open", app.includes('settingsOpen || filterControlsOpen || importPanelOpen || uploadQueueOpen || statusOpen || duplicatesOpen || healthOpen || pzUploadRefilterOpen || albumSearchOpen || albumCreateOpen || bulkMoreOpen || advancedSearchOpen || activeMemory || pzAlbumEditorId || pzDetailEditorId) ? null : undoSnapshot'));
 
 check("overlay manager prevents stacked UI", app.includes("function closeTransientOverlays(except)") && app.includes("function toggleOverlay(name, isOpen, setter)") && app.includes("hasTransientOverlayOpen") && app.includes('document.addEventListener("pointerdown", handlePointerDown, true)') && app.includes("Escape"));
 check("album search and create are mutually exclusive", app.includes("function setAlbumSearchExclusive(nextValue)") && app.includes("function setAlbumCreateExclusive(nextValue)") && app.includes('closeTransientOverlays("albumSearch")') && app.includes('closeTransientOverlays("albumCreate")'));
@@ -310,20 +310,28 @@ if (failures.length) {
   process.exit(1);
 }
 
-
-
-console.log("PHOTOZ validation passed.");
-
 check("album nav escapes album context", app.includes("function leaveAlbumContext()") && app.includes("function navigatePage(pageId)") && app.includes("leaveAlbumContext();\n    setActivePage(pageId);") && app.includes("function setArchiveFilterFromNav(filter)") && app.includes("YEAR / MONTH / ERA are global archive views"));
 
 check("release filter helper applies type source quality", app.includes("function matchesReleaseFilter") && app.includes('type === "photos"') && app.includes('source === "takeout"') && app.includes('quality === "rated"'));
 check("release filters applied to album search mirror and group grids", app.includes("filteredLibraryMemories") && app.includes("filteredSortedMemories(primaryFiltered") && app.includes("filteredSortedMemories(rawItems") && app.includes("filteredSortedMemories(safeArray(group.items)"));
 check("view density applies to media grids", app.includes("densityClass(props.viewDensity)") && css.includes(".photoGrid.densityCompact") && css.includes(".photoGrid.densityLarge"));
 
-check('Video cards must open the main PHOTOZ viewer, not a separate playback modal.', !app.includes('props.onPlayVideo(memory);')); 
-check('Main file viewer must render videos with native controls/playbar.', app.includes('<video src={source} controls playsInline')); 
-check('Photo cards must enable hold-to-select without a visible Select button.', app.includes('props.setSelectionMode && props.setSelectionMode(true);')); 
+check('Video cards must open the main PHOTOZ viewer, not a separate playback modal.', !app.includes('props.onPlayVideo(memory);'));
+check('Main file viewer must render videos with custom PHOTOZ controls, not native browser controls.', app.includes('className="pzVideoControls"') && app.includes('aria-label="Video timeline"') && !/<video[\s\S]{0,400}\scontrols(?:\s|>|=)/.test(app));
+check('Photo cards must enable hold-to-select without a visible Select button.', app.includes('props.setSelectionMode && props.setSelectionMode(true);'));
+check("download original is visible in the main viewer and selected toolbar", app.includes('aria-label="Download" data-tooltip="Download"') && app.includes("bulkDownloadSelected") && app.includes("bulkDownload={bulkDownloadSelected}"));
+check("tablet downloads use Worker attachment route", app.includes("function downloadUrlForMemory") && app.includes("download=1") && app.includes('window.open(url, "_blank"') && worker.includes("content-disposition") && worker.includes("attachmentName"));
+check("unlock persists across tablet browser restarts", app.includes("function rememberUnlocked()") && app.includes("window.localStorage.setItem") && app.includes("function rememberedUnlocked()") && app.includes("window.localStorage.getItem"));
+check("PHOTOZ access gate reports missing PHOTOZ_ACCESS_CODE instead of denying silently", app.includes("PHOTOZ_ACCESS_CODE NOT CONFIGURED") && app.includes("checkAccess()") && app.includes("submitAccessCode(code)"));
 
 check("release density classes use strong PHOTOZ-scoped grid rules", css.includes(".photozProUI .photoGrid.densityCompact") && css.includes(".photozProUI .photoGrid.densityLarge") && css.includes("view-densityCompact"));
 check("album year month era groups are not tiny chips", css.includes("RELEASE GROUP VIEW FIX") && css.includes("timelineStack.filterFilter .systemRailItem") && css.includes("min-height: 118px"));
 check("large filter path is not a dead control", app.includes('quality === "large" && fileSizeBytes(memory) <= 0'));
+
+if (failures.length) {
+  console.error("PHOTOZ validation failed:");
+  for (const failure of failures) console.error("- " + failure);
+  process.exit(1);
+}
+
+console.log("PHOTOZ validation passed.");

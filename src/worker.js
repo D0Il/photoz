@@ -106,6 +106,11 @@ function safeName(name) {
   return String(name || "file").normalize("NFKD").replace(/[^\w.()\-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").slice(0, 140) || "file";
 }
 
+function attachmentName(value, fallback) {
+  const name = safeName(value || fallback || "photoz-file");
+  return name.replace(/"/g, "");
+}
+
 function fallbackStorageKey(file, id) {
   const now = new Date();
   return [
@@ -508,6 +513,8 @@ async function handleFileAudit(env, repair = false) {
 
 async function handleFile(env, pathname, method, request) {
   const key = decodeURIComponent(pathname.replace(/^\/(api\/file|media|thumb)\//, ""));
+  const url = request ? new URL(request.url) : null;
+  const forceDownload = url && (url.searchParams.get("download") === "1" || url.searchParams.get("download") === "true");
   const bucket = getMediaBucket(env);
   if (!bucket || typeof bucket.get !== "function") {
     return new Response("Missing bucket", { status: 404, headers: corsHeaders() });
@@ -543,6 +550,9 @@ async function handleFile(env, pathname, method, request) {
     "accept-ranges": "bytes",
     ...corsHeaders(),
   };
+  if (forceDownload) {
+    headers["content-disposition"] = `attachment; filename="${attachmentName(url.searchParams.get("name"), resolvedKey.split("/").pop())}"`;
+  }
 
   if (method === "HEAD") {
     if (size) headers["content-length"] = String(size);
