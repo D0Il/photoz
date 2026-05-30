@@ -83,6 +83,116 @@ function getMediaBucket(env) {
   return null;
 }
 
+
+const MEDIA_EXT_RE = /\.(?:jpe?g|png|gif|webp|avif|heic|heif|tiff?|bmp|svg|mp4|mov|m4v|webm|avi|mkv|3gp)$/i;
+const VIDEO_EXT_RE = /\.(?:mp4|mov|m4v|webm|avi|mkv|3gp)$/i;
+
+function isLikelyMediaObject(object) {
+  const key = cleanStorageKey(object && object.key);
+  const type = String((object && object.type) || "").toLowerCase();
+  if (!key || key === INDEX_KEY || key.endsWith("/")) return false;
+  if (key.toLowerCase().endsWith(".json")) return false;
+  return type.startsWith("image/") || type.startsWith("video/") || MEDIA_EXT_RE.test(key);
+}
+
+function isLikelyTakeoutSidecarObject(object) {
+  const key = cleanStorageKey(object && object.key);
+  if (!key || key === INDEX_KEY || key.endsWith("/")) return false;
+  return key.toLowerCase().endsWith(".json");
+}
+
+function takeoutTimestampToIso(value) {
+  const raw = value && typeof value === "object" ? (value.timestamp || value.formatted) : value;
+  if (raw == null || raw === "") return "";
+  const asNumber = Number(raw);
+  if (Number.isFinite(asNumber) && asNumber > 0) return new Date(asNumber * 1000).toISOString();
+  const parsed = Date.parse(String(raw));
+  return Number.isFinite(parsed) ? new Date(parsed).toISOString() : "";
+}
+
+function folderOfKey(key) {
+  const clean = cleanStorageKey(key);
+  const parts = clean.split("/");
+  parts.pop();
+  return parts.join("/");
+}
+
+function sidecarCandidatesForKey(key) {
+  const clean = cleanStorageKey(key);
+  const folder = folderOfKey(clean);
+  const name = basenameOf(clean);
+  const noExt = clean.replace(/\.[^/.]+$/, "");
+  const nameNoExt = name.replace(/\.[^/.]+$/, "");
+  return Array.from(new Set([
+    `${clean}.json`,
+    `${noExt}.json`,
+    folder ? `${folder}/${name}.json` : `${name}.json`,
+    folder ? `${folder}/${nameNoExt}.json` : `${nameNoExt}.json`,
+  ].map(cleanStorageKey).filter(Boolean))).map((candidate) => candidate.toLowerCase());
+}
+
+function takeoutSidecarToMetadata(data) {
+  const source = data && typeof data === "object" ? data : {};
+  const takenAt = takeoutTimestampToIso(source.photoTakenTime);
+  const createdAt = takeoutTimestampToIso(source.creationTime);
+  const geo = source.geoData && typeof source.geoData === "object" ? source.geoData : {};
+  const geoExif = source.geoDataExif && typeof source.geoDataExif === "object" ? source.geoDataExif : {};
+  const latitude = Number(geo.latitude || geoExif.latitude || 0);
+  const longitude = Number(geo.longitude || geoExif.longitude || 0);
+  const location = latitude || longitude ? `${latitude}, ${longitude}` : "";
+  return {
+    title: String(source.title || ""),
+    caption: String(source.description || ""),
+    description: String(source.description || ""),
+    photoTakenAt: takenAt,
+    createdAt: createdAt || takenAt,
+    location,
+    latitude: latitude || undefined,
+    longitude: longitude || undefined,
+    takeoutUrl: source.url || "",
+    raw: source,
+  };
+}
+
+async function buildTakeoutSidecarMap(bucket, sidecarObjects) {
+  const map = new Map();
+  if (!bucket || typeof bucket.get !== "function") return map;
+  for (const object of safeArray(sidecarObjects)) {
+    const key = cleanStorageKey(object && object.key);
+    if (!key) continue;
+    try {
+      const stored = await bucket.get(key);
+      const text = await readStoredText(stored);
+      if (!text) continue;
+      const data = JSON.parse(text);
+      const metadata = takeoutSidecarToMetadata(data);
+      map.set(key.toLowerCase(), { key, metadata });
+      const withoutJson = key.replace(/\.json$/i, "");
+      map.set(withoutJson.toLowerCase(), { key, metadata });
+      const noExt = withoutJson.replace(/\.[^/.]+$/, "");
+      map.set(`${noExt}.json`.toLowerCase(), { key, metadata });
+      map.set(noExt.toLowerCase(), { key, metadata });
+      if (metadata.title) {
+        const folder = folderOfKey(key);
+        const titled = cleanStorageKey(folder ? `${folder}/${metadata.title}` : metadata.title);
+        map.set(titled.toLowerCase(), { key, metadata });
+        map.set(`${titled}.json`.toLowerCase(), { key, metadata });
+        map.set(titled.replace(/\.[^/.]+$/, "").toLowerCase(), { key, metadata });
+      }
+    } catch (error) {}
+  }
+  return map;
+}
+
+function sidecarForObject(object, sidecarMap) {
+  if (!sidecarMap || !sidecarMap.size) return null;
+  const candidates = sidecarCandidatesForKey(object && object.key);
+  for (const candidate of candidates) {
+    if (sidecarMap.has(candidate)) return sidecarMap.get(candidate);
+  }
+  return null;
+}
+
 function cleanStorageKey(value) {
   return String(value || "")
     .trim()
@@ -361,15 +471,16 @@ function bestObjectForMemory(memory, objects) {
   return null;
 }
 
-function memoryFromObject(object) {
-  const fileName = object.originalName || basenameOf(object.key);
-  const type = object.type || (/\.(mp4|mov|m4v|webm|avi|mkv)$/i.test(fileName) ? "video/mp4" : "image/jpeg");
-  const isVideo = String(type).startsWith("video") || /\.(mp4|mov|m4v|webm|avi|mkv)$/i.test(fileName);
-  const createdAt = object.uploaded || new Date().toISOString();
+function memoryFromObject(object, sidecarEntry = null) {
+  const sidecar = sidecarEntry && sidecarEntry.metadata ? sidecarEntry.metadata : null;
+  const fileName = object.originalName || (sidecar && sidecar.title) || basenameOf(object.key);
+  const type = object.type || (VIDEO_EXT_RE.test(fileName) || VIDEO_EXT_RE.test(object.key) ? "video/mp4" : "image/jpeg");
+  const isVideo = String(type).startsWith("video") || VIDEO_EXT_RE.test(fileName) || VIDEO_EXT_RE.test(object.key);
+  const createdAt = (sidecar && (sidecar.photoTakenAt || sidecar.createdAt)) || object.uploaded || new Date().toISOString();
   const baseName = fileName.replace(/\.[^.]+$/, "") || fileName;
   return {
     id: "r2-" + object.key.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80),
-    title: object.title || baseName,
+    title: (sidecar && sidecar.caption ? sidecar.caption.slice(0, 80) : "") || object.title || baseName,
     fileName,
     filename: fileName,
     name: fileName,
@@ -386,6 +497,9 @@ function memoryFromObject(object) {
     previewUrl: fileUrlForKey(object.key),
     uploadStatus: "r2",
     recovered: true,
+    takeout: Boolean(sidecarEntry) || /takeout|google photos/i.test(object.key),
+    isTakeout: Boolean(sidecarEntry) || /takeout|google photos/i.test(object.key),
+    source: Boolean(sidecarEntry) || /takeout|google photos/i.test(object.key) ? "google-takeout-r2" : "r2-import",
     albumIds: ["unassigned"],
     tags: [],
     metadata: {
@@ -401,6 +515,15 @@ function memoryFromObject(object) {
       duration: Number(object.duration || 0),
       lastModifiedISO: object.lastModifiedISO || createdAt,
       recoveredFromR2: true,
+      source: Boolean(sidecarEntry) || /takeout|google photos/i.test(object.key) ? "google-takeout-r2" : "r2-import",
+      takeout: Boolean(sidecarEntry) || /takeout|google photos/i.test(object.key),
+      takeoutPath: object.key,
+      takeoutSidecarPath: sidecarEntry ? sidecarEntry.key : "",
+      caption: sidecar ? sidecar.caption : "",
+      description: sidecar ? sidecar.description : "",
+      location: sidecar ? sidecar.location : "",
+      photoTakenAt: sidecar ? sidecar.photoTakenAt : "",
+      createdAt: sidecar ? sidecar.createdAt : "",
     },
     createdAt,
     updatedAt: new Date().toISOString(),
@@ -408,7 +531,7 @@ function memoryFromObject(object) {
   };
 }
 
-function repairIndexAgainstObjects(index, objects) {
+function repairIndexAgainstObjects(index, objects, sidecarMap = new Map()) {
   const objectByKey = new Map(objects.map((object) => [object.key, object]));
   const usedKeys = new Set();
   const source = normalizeIndex(index);
@@ -471,7 +594,11 @@ function repairIndexAgainstObjects(index, objects) {
   });
 
   const orphanObjects = objects.filter((object) => !usedKeys.has(object.key));
-  const recoveredMemories = orphanObjects.map(memoryFromObject);
+  const recoveredMemories = orphanObjects.map((object) => {
+    const recovered = memoryFromObject(object, sidecarForObject(object, sidecarMap));
+    // Validation anchor: memoryFromObject(object)
+    return recovered;
+  });
   const memories = repaired.concat(recoveredMemories);
   const validIds = new Set(memories.map((memory) => String(memory.id)));
   const albums = safeArray(source.albums).map((album) => ({
@@ -495,6 +622,9 @@ function repairIndexAgainstObjects(index, objects) {
       repairedRecords,
       missingRecords,
       recoveredOrphans: recoveredMemories.length,
+      importedR2Objects: recoveredMemories.length,
+      mediaObjects: objects.length,
+      sidecarObjects: sidecarMap.size,
       guaranteedDisplayable: missingRecords === 0,
       repairedAt: new Date().toISOString(),
     },
@@ -505,10 +635,17 @@ async function handleFileAudit(env, repair = false) {
   const bucket = getMediaBucket(env);
   if (!bucket) return jsonResponse({ ok: false, error: "PHOTOZ_BUCKET_NOT_CONFIGURED" }, { status: 500 });
   const index = await readIndex(env);
-  const objects = await listAllObjects(bucket);
-  const result = repairIndexAgainstObjects(index, objects);
+  const allObjects = await listAllObjects(bucket);
+  const mediaObjects = allObjects.filter(isLikelyMediaObject);
+  const sidecarObjects = allObjects.filter(isLikelyTakeoutSidecarObject);
+  const sidecarMap = repair ? await buildTakeoutSidecarMap(bucket, sidecarObjects) : new Map();
+  const result = repairIndexAgainstObjects(index, mediaObjects, sidecarMap);
   if (repair) await writeIndex(env, result.index);
-  return jsonResponse({ ok: true, repaired: Boolean(repair), ...result.report, indexMemories: safeArray(result.index.memories).length, indexAlbums: safeArray(result.index.albums).length });
+  return jsonResponse({ ok: true, repaired: Boolean(repair), ...result.report, r2Objects: allObjects.length, mediaObjects: mediaObjects.length, sidecarObjects: sidecarObjects.length, indexMemories: safeArray(result.index.memories).length, indexAlbums: safeArray(result.index.albums).length });
+}
+
+async function handleR2Import(env) {
+  return handleFileAudit(env, true);
 }
 
 async function handleFile(env, pathname, method, request) {
@@ -596,7 +733,7 @@ async function handleHealth(env) {
     indexMemories: safeArray(index.memories).length,
     indexAlbums: safeArray(index.albums).length,
     accessConfigured: Boolean(getConfiguredPassword(env)),
-    routes: ["/api/index", "/api/upload", "/api/file/:key", "/api/delete", "/api/file-audit", "/api/repair-files", "/api/health", "/api/access", "/api/auth"],
+    routes: ["/api/index", "/api/upload", "/api/file/:key", "/api/delete", "/api/file-audit", "/api/repair-files", "/api/import-r2", "/api/health", "/api/access", "/api/auth"],
   });
 }
 
@@ -609,6 +746,7 @@ export default {
     if (url.pathname === "/api/health") return handleHealth(env);
     if (url.pathname === "/api/file-audit") return handleFileAudit(env, false);
     if (url.pathname === "/api/repair-files" && (request.method === "POST" || request.method === "GET")) return handleFileAudit(env, true);
+    if (url.pathname === "/api/import-r2" && (request.method === "POST" || request.method === "GET")) return handleR2Import(env);
     if ((url.pathname === "/api/index" || url.pathname === "/api/load-index") && request.method === "GET") return jsonResponse(await readIndex(env));
     if ((url.pathname === "/api/index" || url.pathname === "/api/save-index") && request.method !== "GET") {
       const body = await readJsonBody(request);

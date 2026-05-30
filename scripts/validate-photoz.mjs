@@ -169,6 +169,11 @@ check("no selectedCountFromMap runtime crash reference", !app.includes("selected
 check("viewer uses full viewport shell", css.includes("width: 100vw") && css.includes("height: 100dvh") && css.includes("grid-template-columns: minmax(0, 1fr)"));
 check("album and shortcut tooltip css exists", css.includes(".systemRailItem[data-tooltip]::after") && css.includes(".pzAlbumCardActions button[data-tooltip]::after"));
 
+check("worker imports existing R2 media without importing JSON sidecars", worker.includes("function isLikelyMediaObject") && worker.includes("function isLikelyTakeoutSidecarObject") && worker.includes("allObjects.filter(isLikelyMediaObject)"));
+check("worker exposes R2 import route", worker.includes('url.pathname === "/api/import-r2"') && worker.includes("handleR2Import(env)"));
+check("worker merges Google Takeout sidecars during R2 import", worker.includes("buildTakeoutSidecarMap") && worker.includes("takeoutSidecarPath") && worker.includes("google-takeout-r2"));
+check("app exposes R2 import action in repair panel", app.includes("fetchR2Import") && app.includes("IMPORT R2 FOLDER") && app.includes("importR2AndReload={importR2AndReload}"));
+
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
   for (const failure of failures) console.error("- " + failure);
