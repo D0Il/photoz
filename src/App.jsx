@@ -1865,11 +1865,11 @@ function EmptyState() {
 
 function UploadButton(props) {
   const inputRef = useRef(null);
-  const label = props.folder ? "Folder" : "Upload";
+  const label = props.label || (props.folder ? "Folder" : "Upload");
   return (
     <>
-      <button type="button" className="uploadButton" {...withSettingtip(props.folder ? "Upload folder" : "Upload files")} onClick={function () { inputRef.current && inputRef.current.click(); }}>
-        <Upload size={14} />
+      <button type="button" className={props.takeout ? "uploadButton takeoutUploadButton" : "uploadButton"} {...withSettingtip(props.tooltip || (props.folder ? "Upload folder" : "Upload files"))} onClick={function () { inputRef.current && inputRef.current.click(); }}>
+        {props.folder ? <FolderUp size={14} /> : <Upload size={14} />}
         <span>{label}</span>
       </button>
       <input
@@ -1892,14 +1892,13 @@ function ImportBackupButton(props) {
   const inputRef = useRef(null);
   return (
     <>
-      <button type="button" className="importButton" {...withSettingtip("Import backup file")} onClick={function () { inputRef.current && inputRef.current.click(); }}>Import file</button>
+      <button type="button" className="importButton" {...withSettingtip("Restore backup")} onClick={function () { inputRef.current && inputRef.current.click(); }}><ArchiveRestore size={14} strokeWidth={2.05} /> <span>Restore</span></button>
       <input
         ref={inputRef}
         type="file"
         accept=".json,application/json"
         onChange={function (event) {
-          const file = event.target.files && event.target.files[0];
-          if (file) props.onImport(file);
+          if (event.target.files && event.target.files[0]) props.onImport(event);
           event.target.value = "";
         }}
       />
@@ -2130,8 +2129,9 @@ function SettingsPanel(props) {
       <section className="panelSection settingsMenuGroup primary">
         <span className="panelLabel">IMPORT</span>
         <div className="panelActionList">
-          <UploadButton onUpload={props.onUpload} />
-          <UploadButton onUpload={props.onUpload} folder />
+          <UploadButton onUpload={props.onUpload} label="Photos" tooltip="Upload photos or videos" />
+          <UploadButton onUpload={props.onUpload} label="Takeout" tooltip="Upload Google Takeout photos, videos, and JSON" takeout />
+          <UploadButton onUpload={props.onUpload} label="Folder" tooltip="Upload an extracted Takeout folder" folder />
           <button type="button" {...withTooltip("Upload queue")} onClick={props.toggleUploadRefilterPanel || props.toggleUploadQueuePanel}>
             <UploadCloud size={14} strokeWidth={2.05} /> <span>Queue</span>
           </button>
@@ -2141,9 +2141,7 @@ function SettingsPanel(props) {
       <section className="panelSection settingsMenuGroup">
         <span className="panelLabel">LIBRARY</span>
         <div className="panelActionList">
-          <button type="button" {...withTooltip("Import backup")} onClick={props.toggleImportPanel}>
-            <ArchiveRestore size={14} strokeWidth={2.05} /> <span>Import</span>
-          </button>
+          <ImportBackupButton onImport={props.importVaultIndex} />
           <button type="button" {...withTooltip("Export backup index")} onClick={props.exportVaultIndex}>
             <FileDown size={14} strokeWidth={2.05} /> <span>Backup</span>
           </button>
@@ -5364,6 +5362,12 @@ async function handleUpload(eventOrFiles) {
   }
 
   const mediaIncomingFiles = incomingFiles.filter(isMediaUploadFile);
+  if (!mediaIncomingFiles.length) {
+    const result = await handleUploadOriginal(eventOrFiles);
+    setUploadNotice("NO PHOTOS FOUND");
+    window.setTimeout(function () { setUploadNotice(""); }, 1400);
+    return result;
+  }
   const pending = mediaIncomingFiles.map(makePendingUploadMemory);
   setUploadPendingItems(function (items) { return pending.concat(items); });
   setUploadNotice(mediaIncomingFiles.length === 1 ? "UPLOADING 1 FILE" : "UPLOADING " + mediaIncomingFiles.length + " FILES");
