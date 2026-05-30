@@ -5136,6 +5136,12 @@ async function handleUpload(eventOrFiles) {
         onClearComplete={pzClearCompleteUploads}
         onClose={function () { setPzUploadRefilterOpen(false); }}
       />
+      <DeleteConfirmModal
+        open={Boolean(deleteConfirmRequest)}
+        request={deleteConfirmRequest}
+        onCancel={function () { setDeleteConfirmRequest(null); }}
+        onConfirm={runDeleteConfirm}
+      />
 
     </div>
   ) : <PasswordGate onUnlock={function () { setUnlocked(true); }} />;

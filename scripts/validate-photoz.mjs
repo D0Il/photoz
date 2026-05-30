@@ -126,7 +126,7 @@ check("permanent delete handler exists", app.includes("function permanentDeleteM
 check("file info modal wired to permanent delete", app.includes("permanentDeleteMemory={permanentDeleteMemory}"));
 check("detail editor wired to permanent delete", app.includes("onPermanentDelete={permanentDeleteMemory}"));
 check("delete forever UI exists", app.includes("DELETE FOREVER"));
-check("delete forever uses in-app confirmation not browser confirm", !app.includes("window.confirm") && !app.includes("confirmDelete(") && app.includes("function DeleteConfirmModal(props)") && app.includes("deleteConfirmBackdrop"));
+check("delete forever uses in-app confirmation not browser confirm", !app.includes("window.confirm") && !app.includes("confirmDelete(") && app.includes("function DeleteConfirmModal(props)") && app.includes("deleteConfirmBackdrop") && app.includes("<DeleteConfirmModal") && app.includes("open={Boolean(deleteConfirmRequest)}"));
 check("file info panel has no dead destructive action pile", !app.includes("fileInfoDeletePanel") && !app.includes("fileInfoDeleteActions"));
 check("file info album controls keep useful move path", app.includes("fileInfoAlbumControls") && app.includes("props.moveToAlbum(memory, selectedAlbum)") && app.includes("props.addToAlbum(memory, selectedAlbum)") && app.includes("props.removeFromAlbum(memory, selectedAlbum)"));
 
