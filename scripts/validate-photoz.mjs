@@ -211,7 +211,7 @@ check("file viewer action rail uses icon controls", app.includes('aria-label="Ph
 check("file viewer has tablet zoom controls", app.includes('aria-label="Zoom out"') && app.includes('aria-label="Fit photo"') && app.includes('aria-label="Zoom in"') && app.includes('handleViewerPointerMove') && app.includes('onPointerDown={handleViewerPointerDown}'));
 check("file viewer rail has no duplicate info button", !app.includes('<button type="button" aria-label="Info" data-tooltip="Info" className={inspectorOpen ? "active" : ""}'));
 check("file viewer uses touch-safe zoom CSS", css.includes('touch-action: none') && css.includes('.zoomLevelButton') && css.includes('.fileInfoPreview.zoomed'));
-check("file viewer zoom controls are in bottom corner, not main rail", app.includes('className="fileInfoZoomCorner"') && css.includes('.fileInfoZoomCorner') && !app.includes('className="zoomLevelButton" onClick={resetPhotoZoom}><Maximize2 size={16}'));
+check("file viewer zoom controls are corner-mounted and out of the main rail", app.includes('className={"fileInfoZoomCorner" + (memory.trashed ? " trashZoomCorner" : "")}') && css.includes('.fileInfoZoomCorner.trashZoomCorner') && !app.includes('className="zoomLevelButton" onClick={resetPhotoZoom}><Maximize2 size={16}'));
 check("file info title block moved into info panel", app.includes('fileInfoInspectorTitleBlock') && !app.includes('<header className="fileInfoHeader">\n            <div className="fileInfoTitleBlock">'));
 
 check("card media layering fix exists", css.includes("PHOTOZ card media layering fix"));

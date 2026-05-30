@@ -2907,7 +2907,7 @@ function Modal(props) {
                 {video ? <video src={source} controls playsInline /> : <img src={source} alt="" draggable="false" style={photoTransform} />}
                 {memory.trashed ? <span className="pzTrashRibbon">TRASH</span> : null}
               </div>
-              <div className="fileInfoZoomCorner" aria-label="Zoom controls">
+              <div className={"fileInfoZoomCorner" + (memory.trashed ? " trashZoomCorner" : "")} aria-label="Zoom controls">
                 <button type="button" aria-label="Zoom out" data-tooltip="Zoom out" onClick={function () { adjustPhotoZoom(-0.35); }}><span aria-hidden="true" className="zoomGlyph">−</span></button>
                 <button type="button" aria-label="Fit photo" data-tooltip="Fit" className="zoomLevelButton" onClick={resetPhotoZoom}><Maximize2 size={14} /><span>{Math.round(photoZoom * 100)}%</span></button>
                 <button type="button" aria-label="Zoom in" data-tooltip="Zoom in" onClick={function () { adjustPhotoZoom(0.35); }}><span aria-hidden="true" className="zoomGlyph">+</span></button>
