@@ -17292,3 +17292,81 @@ body:has(.fileInfoModal) {
   }
   .fileInfoModal .fileInfoActionRail::-webkit-scrollbar { display: none; }
 }
+
+
+/* PHOTOZ viewer tooltip + zoom-out correction: clear captions, no button overlap, 25% minimum zoom. */
+.fileInfoModal .fileInfoActionRail button[data-tooltip]::after,
+.fileViewerChromeActions button[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 12050;
+  width: max-content;
+  max-width: 180px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  color: rgba(255,255,255,.92);
+  font-size: 8px;
+  font-weight: 850;
+  line-height: 1;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background:
+    linear-gradient(180deg, rgba(42,42,42,.82), rgba(14,14,14,.76)),
+    rgba(20,20,20,.70);
+  border: 1px solid rgba(255,255,255,.22);
+  box-shadow:
+    0 16px 36px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.18);
+  backdrop-filter: blur(8px) saturate(1.05);
+  -webkit-backdrop-filter: blur(8px) saturate(1.05);
+  transition: opacity .12s ease, transform .12s ease;
+}
+
+.fileInfoModal .fileInfoActionRail button[data-tooltip]::before,
+.fileViewerChromeActions button[data-tooltip]::before {
+  display: none;
+  content: none;
+}
+
+.fileInfoModal .fileInfoActionRail button[data-tooltip]::after {
+  bottom: calc(100% + 18px);
+  top: auto;
+  transform: translateX(-50%) translateY(6px);
+}
+
+.fileInfoModal .fileInfoActionRail button[data-tooltip]:hover::after,
+.fileInfoModal .fileInfoActionRail button[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.fileViewerChromeActions .fileInfoClose[data-tooltip]::after,
+.fileViewerChromeActions .fileViewerInfoButton[data-tooltip]::after,
+.fileViewerChromeActions button[data-tooltip]::after {
+  top: calc(100% + 14px);
+  bottom: auto;
+  transform: translateX(-50%) translateY(-5px);
+}
+
+.fileViewerChromeActions .fileInfoClose[data-tooltip]:hover::after,
+.fileViewerChromeActions .fileInfoClose[data-tooltip]:focus-visible::after,
+.fileViewerChromeActions .fileViewerInfoButton[data-tooltip]:hover::after,
+.fileViewerChromeActions .fileViewerInfoButton[data-tooltip]:focus-visible::after,
+.fileViewerChromeActions button[data-tooltip]:hover::after,
+.fileViewerChromeActions button[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.fileInfoModal .fileInfoPreview img {
+  transform-origin: center center;
+}
+
+.fileInfoModal .fileInfoActionRail .zoomLevelButton span {
+  min-width: 34px;
+  text-align: center;
+}

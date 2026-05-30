@@ -2152,11 +2152,16 @@ function GroupCard(props) {
 
 
 function mirrorAllMemories(memories) {
+  // MIRROR all layer: every file marked ME, regardless of whether it is also starred.
   return meMemories(memories);
 }
 
 function mirrorFeaturedMemories(memories, albums) {
-  return starredMeMemories(memories, albums);
+  // MIRROR first layer: only files that are BOTH marked ME and starred.
+  // ME and STARRED are tags, not exclusive folders, so the same file must live in both views.
+  return newest(safeArray(memories).map(normalizeMemoryRecord).filter(function (memory) {
+    return isMeMemory(memory) && isStarredMemory(memory, albums) && !memory.trashed && !memory.archived;
+  }));
 }
 
 
@@ -2568,7 +2573,7 @@ function Modal(props) {
   const importedLabel = readableDateTime(memory.createdAt || memory.importedAt || memory.date) || memory.date || "";
 
   function clampZoom(value) {
-    return Math.max(1, Math.min(5, Number(value) || 1));
+    return Math.max(0.25, Math.min(6, Number(value) || 1));
   }
 
   function resetPhotoZoom() {
@@ -2581,7 +2586,7 @@ function Modal(props) {
   function adjustPhotoZoom(delta) {
     setPhotoZoom(function (current) {
       const next = clampZoom(current + delta);
-      if (next === 1) setPhotoPan({ x: 0, y: 0 });
+      if (next <= 1) setPhotoPan({ x: 0, y: 0 });
       return next;
     });
   }
@@ -2596,7 +2601,7 @@ function Modal(props) {
       event.preventDefault();
       setPhotoZoom(function (current) {
         const next = current > 1 ? 1 : 2.25;
-        if (next === 1) setPhotoPan({ x: 0, y: 0 });
+        if (next <= 1) setPhotoPan({ x: 0, y: 0 });
         return next;
       });
     }
@@ -2623,7 +2628,7 @@ function Modal(props) {
       const pinch = pinchRef.current || { distance, zoom: photoZoom };
       const next = clampZoom(pinch.zoom * (distance / Math.max(1, pinch.distance)));
       setPhotoZoom(next);
-      if (next === 1) setPhotoPan({ x: 0, y: 0 });
+      if (next <= 1) setPhotoPan({ x: 0, y: 0 });
       return;
     }
 
@@ -2640,7 +2645,6 @@ function Modal(props) {
     viewerPointersRef.current.delete(event.pointerId);
     if (viewerPointersRef.current.size < 2) pinchRef.current = null;
     if (photoZoom <= 1.001) {
-      setPhotoZoom(1);
       setPhotoPan({ x: 0, y: 0 });
     }
   }
@@ -2692,7 +2696,7 @@ function Modal(props) {
                 onPointerUp={handleViewerPointerEnd}
                 onPointerCancel={handleViewerPointerEnd}
                 onWheel={handleViewerWheel}
-                onDoubleClick={function (event) { event.preventDefault(); setPhotoZoom(function (current) { const next = current > 1 ? 1 : 2.25; if (next === 1) setPhotoPan({ x: 0, y: 0 }); return next; }); }}
+                onDoubleClick={function (event) { event.preventDefault(); setPhotoZoom(function (current) { const next = current > 1 ? 1 : 2.25; if (next <= 1) setPhotoPan({ x: 0, y: 0 }); return next; }); }}
               >
                 {video ? <video src={source} controls playsInline /> : <img src={source} alt="" draggable="false" style={photoTransform} />}
                 {memory.trashed ? <span className="pzTrashRibbon">TRASH</span> : null}
@@ -4815,7 +4819,7 @@ async function handleUpload(eventOrFiles) {
                 <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} fileAuditReport={fileAuditReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} runFileAudit={runFileAudit} repairFilesAndReload={repairFilesAndReload} repairIndex={repairIndex} />
                 <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { toggleOverlay("bulk", bulkMoreOpen, setBulkMoreOpen); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkRefilter={bulkMarkRefilter} bulkClearRefilter={bulkClearRefilter} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDelete={bulkDelete} clearSelection={clearSelection} />
                 {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} archiveFilter={archiveFilter} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditAlbum={function (group) { closeTransientOverlays("albumEditor"); setPzAlbumEditorId(group.id || group.sourceId); }} /> : null}
-                {activePage === "mirror" ? <MirrorFilter mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={uploadPendingItems.concat(safeArray(memories))} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
+                {activePage === "mirror" ? <MirrorFilter mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
                 {activePage === "search" ? <SearchFilter memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={function (nextValue) { const next = typeof nextValue === "function" ? nextValue(advancedSearchOpen) : nextValue; if (next) closeTransientOverlays("searchFilter"); setAdvancedSearchOpen(Boolean(next)); }} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays("videoPlayer"); setPzVideoPlayerId(memory.id); }} /> : null}
               </Glass>
             ) : null}

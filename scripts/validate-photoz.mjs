@@ -218,6 +218,11 @@ check("file viewer primary action rail exposes Trash", app.includes('aria-label=
 check("file viewer primary action rail has no Archive/Unarchive", !app.includes('data-tooltip={memory.archived ? "Unarchive" : "Archive"}'));
 check("file viewer tooltip/action correction CSS exists", css.includes('PHOTOZ file-viewer action correction'));
 
+
+check("mirror receives albums for starred lookup", app.includes('albums={albums} openGroup={openGroup} openMemory={openMemoryDetail}'));
+check("mirror first layer is BOTH me and starred", app.includes('return isMeMemory(memory) && isStarredMemory(memory, albums)'));
+check("mirror documents tag multi-membership", app.includes('ME and STARRED are tags, not exclusive folders'));
+
 if (failures.length) {
   console.error("PHOTOZ validation failed:");
   for (const failure of failures) console.error("- " + failure);
