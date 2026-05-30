@@ -2018,30 +2018,61 @@ pre {
 
 
 .undoBar {
-  display: flex;
+  position: fixed;
+  left: 22px;
+  bottom: 22px;
+  z-index: var(--pz-z-toast, 210);
+  width: auto;
+  max-width: min(320px, calc(100vw - 44px));
+  min-height: 42px;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin: -7px 0 12px;
-  padding: 9px 10px;
+  justify-content: center;
+  gap: 12px;
+  margin: 0;
+  padding: 7px 8px 7px 13px;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.36);
+  border: 1px solid rgba(255,255,255,.28);
   background:
-    linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.035)),
-    rgba(0,0,0,.025);
+    linear-gradient(180deg, rgba(24,24,24,.78), rgba(8,8,8,.68)),
+    rgba(0,0,0,.50);
+  color: rgba(255,255,255,.88);
   box-shadow:
-    0 14px 34px rgba(0,0,0,.10),
-    inset 0 1px 0 rgba(255,255,255,.38),
-    inset 0 -1px 0 rgba(0,0,0,.10);
-  backdrop-filter: blur(7px);
+    0 18px 54px rgba(0,0,0,.28),
+    0 4px 12px rgba(0,0,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.22);
+  backdrop-filter: blur(5px) saturate(1.04);
 }
-.undoBar span {
-  color: rgba(0,0,0,.48);
+
+.undoBarLabel {
+  color: rgba(255,255,255,.72);
   font-size: 10px;
   font-weight: 900;
-  letter-spacing: .14em;
+  letter-spacing: .13em;
+  white-space: nowrap;
 }
-.undoBar button,
+.undoBarActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.undoBar button {
+  height: 28px;
+  min-width: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.82);
+  padding: 0 9px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .10em;
+}
+.undoBar button:hover {
+  background: rgba(255,255,255,.14);
+  color: #fff;
+}
 .duplicateGroupTop button {
   height: 30px;
   border-radius: 999px;
@@ -2053,215 +2084,7 @@ pre {
   font-weight: 900;
   letter-spacing: .12em;
 }
-.duplicateReviewPanel {
-  gap: 12px;
-}
-.duplicateGroupTop {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  align-items: center;
-  gap: 8px;
-}
-.duplicateGroupTop span {
-  color: rgba(0,0,0,.36);
-  font-size: 9px;
-  font-weight: 900;
-  letter-spacing: .12em;
-}
-.duplicateCandidates {
-  display: grid;
-  gap: 7px;
-}
-.duplicateCandidates button {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 4px 8px;
-  text-align: left;
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,.30);
-  background: rgba(255,255,255,.04);
-  padding: 8px 10px;
-}
-.duplicateCandidates b {
-  color: rgba(0,0,0,.54);
-  font-size: 9px;
-  font-weight: 950;
-  letter-spacing: .12em;
-}
-.duplicateCandidates span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: rgba(0,0,0,.54);
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: .10em;
-}
-.duplicateCandidates em {
-  grid-column: 2;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: rgba(0,0,0,.34);
-  font-size: 9px;
-  font-style: normal;
-  font-weight: 800;
-  letter-spacing: .08em;
-}
-.keeperCandidate {
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.05)),
-    rgba(255,255,255,.06);
-}
-.systemFolderBadge {
-  position: absolute;
-  z-index: 5;
-  top: 12px;
-  left: 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.40);
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.04)),
-    rgba(0,0,0,.04);
-  color: rgba(0,0,0,.50);
-  padding: 6px 8px;
-  font-size: 9px;
-  font-weight: 900;
-  letter-spacing: .14em;
-  box-shadow:
-    0 12px 26px rgba(0,0,0,.14),
-    inset 0 1px 0 rgba(255,255,255,.40),
-    inset 0 -1px 0 rgba(0,0,0,.10);
-  backdrop-filter: blur(8px);
-}
 
-
-.uploadQueuePanel .statusCleanup {
-  margin-right: 6px;
-}
-.uploadQueueRow.uploading {
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.045)),
-    rgba(255,255,255,.055);
-}
-.uploadQueueRow.queued em {
-  color: rgba(0,0,0,.36);
-}
-
-
-/* Hard declutter pass */
-.controlMiniRow {
-  display: none;
-}
-.viewPanel {
-  display: grid;
-  gap: 10px;
-  margin: -7px 0 12px;
-  padding: 11px;
-  border-radius: 22px;
-  border: 1px solid rgba(255,255,255,.38);
-  background:
-    linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.028) 54%, rgba(0,0,0,.045)),
-    rgba(0,0,0,.018);
-  box-shadow:
-    0 18px 54px rgba(0,0,0,.12),
-    inset 0 1px 0 rgba(255,255,255,.44),
-    inset 0 -1px 0 rgba(0,0,0,.12);
-  backdrop-filter: blur(7px) saturate(1.07);
-}
-.viewPanelGrid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.searchFilters {
-  display: flex;
-  gap: 7px;
-  overflow-x: auto;
-  flex-wrap: nowrap;
-  max-width: 100%;
-  padding-bottom: 5px;
-  scrollbar-width: none;
-}
-.searchFilters::-webkit-scrollbar {
-  display: none;
-}
-.searchFilters button {
-  flex: 0 0 auto;
-}
-.advancedFilterRow {
-  margin-top: -8px;
-}
-.bulkBar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-}
-.bulkMore {
-  flex: 1 1 100%;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  padding-top: 7px;
-  border-top: 1px solid rgba(255,255,255,.18);
-}
-.ratingBadge,
-.labelBadge,
-.reviewBadge,
-.privateBadge {
-  display: none;
-}
-.photoCard .tagStrip,
-.photoCard .meBadge,
-.photoCard .archiveBadge {
-  opacity: 0;
-  pointer-events: none;
-}
-.photoCard:hover .tagStrip,
-.photoCard:hover .meBadge,
-.photoCard:hover .archiveBadge {
-  opacity: 1;
-}
-
-
-/* Shape system cleanup: glass, not bubbles */
-:root {
-  --radius-window: 26px;
-  --radius-panel: 20px;
-  --radius-card: 18px;
-  --radius-control: 12px;
-  --radius-small: 9px;
-  --radius-pill: 999px;
-}
-
-/* Main glass containers should feel like windows/sheets, not capsules */
-.shell,
-.glass,
-.toolsPanel,
-.viewPanel,
-.importPanel,
-.uploadQueuePanel,
-.statusPanel,
-.duplicatePanel,
-.healthPanel,
-.accessCard {
-  border-radius: var(--radius-window);
-}
-
-/* Cards get refined rectangles */
-.photoCard,
-.groupCard,
-.modalPhoto,
-.duplicateGroup,
-.reviewGroup {
-  border-radius: var(--radius-card);
-}
-
-/* Nested rows and small panels */
-.statusStats span,
-.statusClean,
 .statusIssues,
 .fileInfoRow span,
 .legacyMetaPanel span,
@@ -2271,8 +2094,7 @@ pre {
 .detailsEditPanel,
 .albumAssignPanel,
 .metadataPanel,
-.bulkMore,
-.undoBar {
+.bulkMore{
   border-radius: var(--radius-control);
 }
 
@@ -8858,7 +8680,6 @@ body:has(.selectUtilityButton.active) .bulkBar,
 .duplicatesPanel,
 .healthPanel,
 .editPanel,
-.undoBar,
 .detailPanel,
 .memoryModal,
 .modalPanel,
@@ -14785,3 +14606,5 @@ svg.photozDockIcon {
   border-color: rgba(120, 0, 0, 0.52);
   box-shadow: 0 14px 34px rgba(120, 0, 0, 0.16), inset 0 1px 0 rgba(255,255,255,0.58);
 }
+
+/* PHOTOZ undo toast compact marker: undoBar is a fixed compact glass toast, not a full-width panel. */

@@ -98,6 +98,12 @@ check("group pages use framed shell and X-only empty state", app.includes('class
 check("runtime filter paths use safe arrays", !app.includes("props.memories.filter") && !app.includes("activeGroup.items.filter") && !app.includes(" : archiveGroups;") && app.includes("duplicateGroups(safeArray(props.memories))") && app.includes("safeArray(props.memories).filter(function (memory)") && app.includes("safeArray(activeGroup && activeGroup.items).filter"));
 
 
+
+check("every major popup is closed by overlay manager", app.includes('if (except !== "fileInfo") setActiveMemory(null);') && app.includes('if (except !== "albumEditor") setPzAlbumEditorId(null);') && app.includes('if (except !== "detailEditor") setPzDetailEditorId(null);') && app.includes('if (except !== "videoPlayer") setPzVideoPlayerId(null);') && app.includes('if (except !== "undo") setUndoSnapshot(null);'));
+check("search filter dropdown is controlled by app overlay manager", !app.includes('const [searchFilterOpen, setSearchFilterOpen] = useState(false);') && app.includes('const searchFilterOpen = Boolean(props.advancedSearchOpen);') && app.includes('closeTransientOverlays("searchFilter")'));
+check("album editor is opened through app overlay manager", app.includes('onEditAlbum={function (group) { closeTransientOverlays("albumEditor"); setPzAlbumEditorId(group.id || group.sourceId); }}') && !app.includes('onEditAlbum={function (group) { setPzAlbumEditorId(group.id || group.sourceId); }}'));
+check("undo toast hides while another overlay is open", app.includes('settingsOpen || filterControlsOpen || importPanelOpen || uploadQueueOpen || statusOpen || duplicatesOpen || healthOpen || pzUploadRefilterOpen || albumSearchOpen || albumCreateOpen || bulkMoreOpen || advancedSearchOpen || activeMemory || pzAlbumEditorId || pzDetailEditorId || pzVideoPlayerId) ? null : undoSnapshot'));
+
 check("overlay manager prevents stacked UI", app.includes("function closeTransientOverlays(except)") && app.includes("function toggleOverlay(name, isOpen, setter)") && app.includes("hasTransientOverlayOpen") && app.includes('document.addEventListener("pointerdown", handlePointerDown, true)') && app.includes("Escape"));
 check("album search and create are mutually exclusive", app.includes("function setAlbumSearchExclusive(nextValue)") && app.includes("function setAlbumCreateExclusive(nextValue)") && app.includes('closeTransientOverlays("albumSearch")') && app.includes('closeTransientOverlays("albumCreate")'));
 check("overlay z-index system exists", css.includes("PHOTOZ overlay discipline pass") && css.includes("--pz-z-menu") && css.includes("--pz-z-modal") && css.includes("has-open-overlay"));
@@ -105,8 +111,8 @@ check("overlay z-index system exists", css.includes("PHOTOZ overlay discipline p
 check("upload does not open import panel as second upload popup", !app.includes('setImportPanelOpen(true);\n\n    const imported = batchFiles.map'));
 check("upload closes other overlays before queue", app.includes('closeTransientOverlays("queue");'));
 check("upload queue is the only upload panel opened", app.includes('setUploadQueueOpen(true);\n    setImportPanelOpen(false);'));
-check("upload toast does not stack over upload panels", app.includes('uploadNotice && !uploadQueueOpen && !importPanelOpen'));
-check("upload pending strip does not stack over upload panels", app.includes('uploadPendingItems.length && !uploadQueueOpen && !importPanelOpen'));
+check("upload toast does not stack over any overlay", app.includes('uploadNotice && !hasTransientOverlayOpen'));
+check("upload pending strip does not stack over any overlay", app.includes('uploadPendingItems.length && !hasTransientOverlayOpen'));
 check("centered glasses svg exists", app.includes("function CenteredGlassesIcon") && app.includes("centeredGlassesIcon") && css.includes("PHOTOZ centered album search glasses glyph"));
 check("no forced glasses offset", !css.includes("translateX(-.75px)") && !css.includes("lucide-glasses"));
 

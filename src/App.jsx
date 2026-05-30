@@ -1815,10 +1815,12 @@ function StatusPanel(props) {
 function UndoBar(props) {
   if (!props.snapshot) return null;
   return (
-    <div className="undoBar">
-      <span>{props.snapshot.label}</span>
-      <button type="button" onClick={props.undo}>UNDO</button>
-      <button type="button" onClick={props.clear}>DISMISS</button>
+    <div className="undoBar" role="status" aria-live="polite">
+      <span className="undoBarLabel">{props.snapshot.label}</span>
+      <div className="undoBarActions">
+        <button type="button" onClick={props.undo}>UNDO</button>
+        <button type="button" onClick={props.clear} aria-label="Dismiss undo notice">×</button>
+      </div>
     </div>
   );
 }
@@ -2114,7 +2116,7 @@ function AlbumsFilter(props) {
                 </Glass>
               ) : (
                 <GroupCard group={group} openGroup={props.openGroup} openMemory={props.openMemory} deleteMemory={props.deleteMemory} selectionMode={props.selectionMode} selectedIds={props.selectedIds} toggleSelected={props.toggleSelected} starredIds={props.starredIds} 
-                onEditAlbum={function (group) { setPzAlbumEditorId(group.id || group.sourceId); }}/>
+                onEditAlbum={function (group) { props.onEditAlbum && props.onEditAlbum(group); }}/>
               )}
             </div>
           );
@@ -2192,7 +2194,8 @@ function SearchFilter(props) {
   const items = allItems.filter(function (memory) {
     return matchesSearchQuery(memory, query, allAlbums);
   });
-  const [searchFilterOpen, setSearchFilterOpen] = useState(false);
+  const searchFilterOpen = Boolean(props.advancedSearchOpen);
+  const setSearchFilterOpen = props.setAdvancedSearchOpen || function () {};
   const activeFilterLabel = activeSearchFilter === "all" ? "BROWSE" : up(activeSearchFilter);
 
   return (
@@ -3129,7 +3132,17 @@ const [screen, setScreen] = useState("home");
     if (except !== "albumSearch") setAlbumSearchOpen(false);
     if (except !== "albumCreate") setAlbumCreateOpen(false);
     if (except !== "bulk") setBulkMoreOpen(false);
-    if (except !== "advancedSearch") setAdvancedSearchOpen(false);
+    if (except !== "searchFilter") setAdvancedSearchOpen(false);
+    if (except !== "fileInfo") setActiveMemory(null);
+    if (except !== "albumEditor") setPzAlbumEditorId(null);
+    if (except !== "detailEditor") setPzDetailEditorId(null);
+    if (except !== "videoPlayer") setPzVideoPlayerId(null);
+    if (except !== "undo") setUndoSnapshot(null);
+  }
+
+  function openExclusiveSurface(name, setter, value) {
+    closeTransientOverlays(name);
+    setter(value === undefined ? true : value);
   }
 
   function toggleOverlay(name, isOpen, setter) {
@@ -3156,7 +3169,8 @@ const [screen, setScreen] = useState("home");
   const hasTransientOverlayOpen = Boolean(
     settingsOpen || filterControlsOpen || importPanelOpen || uploadQueueOpen || statusOpen ||
     duplicatesOpen || healthOpen || pzUploadRefilterOpen || albumSearchOpen || albumCreateOpen ||
-    bulkMoreOpen || advancedSearchOpen
+    bulkMoreOpen || advancedSearchOpen || activeMemory || pzAlbumEditorId || pzDetailEditorId ||
+    pzVideoPlayerId || undoSnapshot
   );
   const [currentAlbumId, setCurrentAlbumId] = useState("");
 const [albumSort, setAlbumSort] = useState("recent");
@@ -3170,7 +3184,7 @@ const [albumSort, setAlbumSort] = useState("recent");
     function handlePointerDown(event) {
       const target = event.target;
       if (!target || !target.closest) return;
-      if (target.closest(".photozOverlaySurface, .floatingPanel, .settingsPopover, .filterPopover, .filterPanel, .albumControlsRow, .albumInlineActions, .floatingUtilityCluster, .bulkBar, .dockWrap, .searchFilterDropdown")) return;
+      if (target.closest(".photozOverlaySurface, .floatingPanel, .settingsPopover, .filterPopover, .filterPanel, .albumControlsRow, .albumInlineActions, .floatingUtilityCluster, .bulkBar, .dockWrap, .searchFilterDropdown, .modal, .modalCard, .modalBackdrop, .pzEditorSheet, .pzVideoCinemaPanel, .undoBar")) return;
       closeTransientOverlays();
     }
     function handleKeyDown(event) {
@@ -3237,7 +3251,7 @@ const [albumSort, setAlbumSort] = useState("recent");
   }
 
   function openMemoryDetail(memory) {
-    closeTransientOverlays();
+    closeTransientOverlays("fileInfo");
     setActiveMemory(memory);
   }
 
@@ -4045,8 +4059,6 @@ const [albumSort, setAlbumSort] = useState("recent");
     if (!memory) return;
     if (!confirmDelete("Permanently delete this file from PHOTOZ and R2? This cannot be undone.")) return;
 
-    rememberUndo("PERMANENT DELETE");
-
     const nextMemories = safeArray(memories).filter(function (item) {
       return item.id !== memory.id;
     });
@@ -4404,8 +4416,8 @@ async function handleUpload(eventOrFiles) {
   return unlocked ? (
     <div className={"app photozProUI page-" + activePage + (hasTransientOverlayOpen ? " has-open-overlay" : "")}>
       
-        {uploadNotice && !uploadQueueOpen && !importPanelOpen ? <div className="uploadNoticeToast">{uploadNotice}</div> : null}
-        {uploadPendingItems.length && !uploadQueueOpen && !importPanelOpen ? <div className="uploadPendingStrip">{uploadPendingItems.length} UPLOADING</div> : null}
+        {uploadNotice && !hasTransientOverlayOpen ? <div className="uploadNoticeToast">{uploadNotice}</div> : null}
+        {uploadPendingItems.length && !hasTransientOverlayOpen ? <div className="uploadPendingStrip">{uploadPendingItems.length} UPLOADING</div> : null}
 <Dock active={activePage} setActive={setActivePage} />
       <main>
         <AnimatePresence mode="wait">
@@ -4432,7 +4444,7 @@ async function handleUpload(eventOrFiles) {
                 setFilterQuality={setFilterQuality}
                 viewDensity={viewDensity}
                 setViewDensity={setViewDensity}/>
-                <UndoBar snapshot={undoSnapshot} undo={undoLastAction} clear={function () { setUndoSnapshot(null); }} />
+                <UndoBar snapshot={(settingsOpen || filterControlsOpen || importPanelOpen || uploadQueueOpen || statusOpen || duplicatesOpen || healthOpen || pzUploadRefilterOpen || albumSearchOpen || albumCreateOpen || bulkMoreOpen || advancedSearchOpen || activeMemory || pzAlbumEditorId || pzDetailEditorId || pzVideoPlayerId) ? null : undoSnapshot} undo={undoLastAction} clear={function () { setUndoSnapshot(null); }} />
                 <SettingsPanel onUpload={handleUpload} open={settingsOpen} close={function () { setSettingsOpen(false); }} toggleImportPanel={function () { closeTransientOverlays("import"); setImportPanelOpen(true); }} toggleUploadQueuePanel={function () { closeTransientOverlays("queue"); setUploadQueueOpen(true); }} toggleStatusPanel={function () { closeTransientOverlays("status"); setStatusOpen(true); }} toggleDuplicatePanel={function () { closeTransientOverlays("duplicates"); setDuplicatesOpen(true); }} toggleHealthPanel={function () { closeTransientOverlays("health"); setHealthOpen(true); }} exportVaultIndex={exportVaultIndex} exportManifestCsv={exportManifestCsv} importVaultIndex={importVaultIndex} 
                 toggleUploadRefilterPanel={function () { closeTransientOverlays("uploadRefilter"); setPzUploadRefilterOpen(true); }}/>
                 <ImportPanel open={importPanelOpen} close={function () { setImportPanelOpen(false); }} uploadBatchSize={uploadBatchSize} setUploadBatchSize={setUploadBatchSize} uploadConcurrency={uploadConcurrency} setUploadConcurrency={setUploadConcurrency} skipDuplicates={skipDuplicates} setSkipDuplicates={setSkipDuplicates} importSummary={importSummary} />
@@ -4441,12 +4453,12 @@ async function handleUpload(eventOrFiles) {
                 <DuplicatePanel open={duplicatesOpen} memories={uploadPendingItems.concat(safeArray(memories))} close={function () { setDuplicatesOpen(false); }} openMemory={openMemoryDetail} trashDuplicateOthers={trashDuplicateOthers} />
                 <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} repairIndex={repairIndex} />
                 <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { toggleOverlay("bulk", bulkMoreOpen, setBulkMoreOpen); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkRefilter={bulkMarkRefilter} bulkClearRefilter={bulkClearRefilter} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDelete={bulkDelete} clearSelection={clearSelection} />
-                {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} archiveFilter={archiveFilter} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
+                {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} archiveFilter={archiveFilter} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditAlbum={function (group) { closeTransientOverlays("albumEditor"); setPzAlbumEditorId(group.id || group.sourceId); }} /> : null}
                 {activePage === "mirror" ? <MirrorFilter mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={uploadPendingItems.concat(safeArray(memories))} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} /> : null}
-                {activePage === "search" ? <SearchFilter memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={setAdvancedSearchOpen} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { closeTransientOverlays(); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays(); setPzVideoPlayerId(memory.id); }} /> : null}
+                {activePage === "search" ? <SearchFilter memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} query={query} setQuery={setQuery} filter={searchFilter} setFilter={setSearchFilter} fromDate={searchFromDate} setFromDate={setSearchFromDate} toDate={searchToDate} setToDate={setSearchToDate} minRating={searchMinRating} setMinRating={setSearchMinRating} advancedSearchOpen={advancedSearchOpen} setAdvancedSearchOpen={function (nextValue) { const next = typeof nextValue === "function" ? nextValue(advancedSearchOpen) : nextValue; if (next) closeTransientOverlays("searchFilter"); setAdvancedSearchOpen(Boolean(next)); }} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays("videoPlayer"); setPzVideoPlayerId(memory.id); }} /> : null}
               </Glass>
             ) : null}
-            {screen === "group" && activeGroup ? <GroupFilter group={activeGroup} back={goHome} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { closeTransientOverlays(); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays(); setPzVideoPlayerId(memory.id); }} /> : null}
+            {screen === "group" && activeGroup ? <GroupFilter group={activeGroup} back={goHome} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onPlayVideo={function (memory) { closeTransientOverlays("videoPlayer"); setPzVideoPlayerId(memory.id); }} /> : null}
           </motion.div>
         </AnimatePresence>
       </main>
@@ -4475,7 +4487,7 @@ async function handleUpload(eventOrFiles) {
         open={Boolean(pzActiveVideoMemory)}
         memory={pzActiveVideoMemory}
         onClose={function () { setPzVideoPlayerId(null); }}
-        onEdit={function (memory) { setPzVideoPlayerId(null); setPzDetailEditorId(memory.id); }}
+        onEdit={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }}
         onDownload={pzDownloadMemory}
       />
       <PzUploadRefilterPanel
