@@ -2205,27 +2205,46 @@ function SettingsPanel(props) {
 function HealthPanel(props) {
   if (!props.open) return null;
 
-  function runRepairButton(label, handler) {
-    return function (event) {
-      if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-      if (typeof props.markRepairClick === "function") props.markRepairClick(label);
-      if (typeof handler === "function") {
-        handler();
-      } else if (typeof props.markRepairError === "function") {
-        props.markRepairError(label, "missing handler");
-      } else {
-        console.error("PHOTOZ repair action missing handler", label);
-      }
-    };
+  const repairClickLock = { current: false };
+
+  function fireRepairAction(label, handler, event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    if (repairClickLock.current) return;
+    repairClickLock.current = true;
+    window.setTimeout(function () { repairClickLock.current = false; }, 180);
+    if (typeof props.markRepairClick === "function") props.markRepairClick(label);
+    if (typeof handler === "function") {
+      window.setTimeout(function () { handler(); }, 0);
+    } else if (typeof props.markRepairError === "function") {
+      props.markRepairError(label, "missing handler");
+    } else {
+      console.error("PHOTOZ repair action missing handler", label);
+    }
+  }
+
+  function repairButton(label, action, handler) {
+    return (
+      <button
+        type="button"
+        data-repair-action={action}
+        aria-busy={busy ? "true" : "false"}
+        onPointerDown={function (event) { event.preventDefault(); event.stopPropagation(); }}
+        onPointerUp={function (event) { fireRepairAction(label, handler, event); }}
+        onClick={function (event) { fireRepairAction(label, handler, event); }}
+      >
+        {label}
+      </button>
+    );
   }
 
   const busy = props.repairStatus && props.repairStatus.state === "running";
 
-  return (
-    <div className={busy ? "healthPanel repairBusy" : "healthPanel"}>
+  return createPortal((
+    <div className="healthPanelBackdrop" onPointerDown={function (event) { event.stopPropagation(); }}>
+      <div className={busy ? "healthPanel repairBusy" : "healthPanel"} onPointerDown={function (event) { event.stopPropagation(); }} onClick={function (event) { event.stopPropagation(); }}>
       <div className="statusPanelTop">
         <strong>HEALTH</strong>
         <button type="button" onClick={props.close}>Close</button>
@@ -2247,17 +2266,18 @@ function HealthPanel(props) {
         </div>
       ) : null}
       <div className="repairButtonGrid" aria-label="Repair actions">
-        <button type="button" data-repair-action="check-archive" aria-busy={busy ? "true" : "false"} onPointerDown={function (event) { event.stopPropagation(); }} onClick={runRepairButton("CHECK ARCHIVE", props.runHealthCheck)}>CHECK ARCHIVE</button>
-        <button type="button" data-repair-action="check-app" aria-busy={busy ? "true" : "false"} onPointerDown={function (event) { event.stopPropagation(); }} onClick={runRepairButton("CHECK APP", props.runRouteCheck)}>CHECK APP</button>
-        <button type="button" data-repair-action="check-files" aria-busy={busy ? "true" : "false"} onPointerDown={function (event) { event.stopPropagation(); }} onClick={runRepairButton("CHECK FILES", props.runMissingCheck)}>CHECK FILES</button>
-        <button type="button" data-repair-action="audit-files" aria-busy={busy ? "true" : "false"} onPointerDown={function (event) { event.stopPropagation(); }} onClick={runRepairButton("AUDIT FILES", props.runFileAudit)}>AUDIT FILES</button>
-        <button type="button" data-repair-action="import-r2" aria-busy={busy ? "true" : "false"} onPointerDown={function (event) { event.stopPropagation(); }} onClick={runRepairButton("IMPORT R2 FOLDER", props.importR2AndReload)}>IMPORT R2 FOLDER</button>
-        <button type="button" data-repair-action="repair-files" aria-busy={busy ? "true" : "false"} onPointerDown={function (event) { event.stopPropagation(); }} onClick={runRepairButton("REPAIR FILE RECORDS", props.repairFilesAndReload)}>REPAIR FILE RECORDS</button>
-        <button type="button" data-repair-action="clear-missing" aria-busy={busy ? "true" : "false"} onPointerDown={function (event) { event.stopPropagation(); }} onClick={runRepairButton("CLEAR MISSING RECORDS", props.clearMissingAndReload)}>CLEAR MISSING RECORDS</button>
-        <button type="button" data-repair-action="repair-albums" aria-busy={busy ? "true" : "false"} onPointerDown={function (event) { event.stopPropagation(); }} onClick={runRepairButton("REPAIR ALBUM LINKS", props.repairIndex)}>REPAIR ALBUM LINKS</button>
+        {repairButton("CHECK ARCHIVE", "check-archive", props.runHealthCheck)}
+        {repairButton("CHECK APP", "check-app", props.runRouteCheck)}
+        {repairButton("CHECK FILES", "check-files", props.runMissingCheck)}
+        {repairButton("AUDIT FILES", "audit-files", props.runFileAudit)}
+        {repairButton("IMPORT R2 FOLDER", "import-r2", props.importR2AndReload)}
+        {repairButton("REPAIR FILE RECORDS", "repair-files", props.repairFilesAndReload)}
+        {repairButton("CLEAR MISSING RECORDS", "clear-missing", props.clearMissingAndReload)}
+        {repairButton("REPAIR ALBUM LINKS", "repair-albums", props.repairIndex)}
+      </div>
       </div>
     </div>
-  );
+  ), document.body);
 }
 
 function DuplicatePanel(props) {

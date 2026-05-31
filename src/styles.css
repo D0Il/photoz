@@ -19924,3 +19924,36 @@ body:has(.fileInfoModal) {
   top: 0;
   z-index: 2;
 }
+
+
+/* Repair panel must sit above every app layer and receive clicks directly. */
+.healthPanelBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 72px 18px 18px;
+  pointer-events: auto;
+  background: transparent;
+}
+.healthPanelBackdrop .healthPanel {
+  position: relative;
+  z-index: 2147483001;
+  pointer-events: auto;
+  width: min(420px, calc(100vw - 36px));
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.healthPanelBackdrop .repairButtonGrid,
+.healthPanelBackdrop .repairButtonGrid > button {
+  pointer-events: auto;
+  touch-action: manipulation;
+  user-select: none;
+}
+.healthPanelBackdrop .repairButtonGrid > button {
+  position: relative;
+  z-index: 2;
+}

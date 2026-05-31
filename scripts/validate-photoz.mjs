@@ -353,7 +353,7 @@ if (failures.length) {
 }
 
 
-check('repair buttons must be explicitly clickable', app.includes('data-repair-action="check-archive"'));
+check('repair buttons must be explicitly clickable', app.includes('function fireRepairAction') && app.includes('data-repair-action={action}') && app.includes('repairButton("CHECK ARCHIVE", "check-archive"'));
 check('repair buttons provide immediate visible feedback', app.includes('markRepairClick={markRepairClick}'));
 check('repair buttons do not silently disable all actions', !app.includes('disabled={props.repairStatus && props.repairStatus.state === "running"} onClick={props.runHealthCheck}'));
 
