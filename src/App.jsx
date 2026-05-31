@@ -791,8 +791,17 @@ function memoryHiddenFromAll(memory) {
   return Boolean(memory && (memory.hiddenFromAll || memory.hideFromAll || memory.excludeFromAll));
 }
 
+function memoryHasDisplayableFile(memory) {
+  if (!memory) return false;
+  if (memory.missing || memory.uploadStatus === "missing") return false;
+  const status = String(memory.uploadStatus || "").toLowerCase();
+  if (status === "queued" || status === "uploading" || status === "failed" || status === "local") return true;
+  if (isBlobUrl(memory.previewUrl) || isBlobUrl(memory.storageUrl) || isBlobUrl(memory.url)) return true;
+  return Boolean(storageKeyFromMemory(memory) || memory.storageUrl || memory.previewUrl || memory.url);
+}
+
 function memoryVisibleInSearch(memory, albums) {
-  return Boolean(memory) && !memory.trashed && !memoryHiddenFromAll(memory) && !memoryExcludedFromAll(memory, albums);
+  return Boolean(memory) && memoryHasDisplayableFile(memory) && !memory.trashed && !memoryHiddenFromAll(memory) && !memoryExcludedFromAll(memory, albums);
 }
 
 function visibleAllMemories(memories, albums) {
@@ -806,7 +815,7 @@ function directAlbumMemories(albums, memories, albumId) {
   if (!album) return [];
   const ids = albumMemoryIds(album);
   return newest(ids.map(function (id) {
-    return safeArray(memories).find(function (memory) { return memory.id === id && !memory.trashed; });
+    return safeArray(memories).find(function (memory) { return memory.id === id && !memory.trashed && memoryHasDisplayableFile(memory); });
   }).filter(Boolean));
 }
 
@@ -997,7 +1006,7 @@ function mirrorItems(memories) {
   memories = safeArray(memories);
 
   return newest(memories.filter(function (memory) {
-    return !memory.trashed && (Boolean(memory.inMirror) || Boolean(memory.isMe));
+    return memoryHasDisplayableFile(memory) && !memory.trashed && (Boolean(memory.inMirror) || Boolean(memory.isMe));
   }));
 }
 
@@ -1347,6 +1356,7 @@ function matchesReleaseFilter(memory, albums, filters) {
 
 function applyReleaseFilters(items, albums, filters) {
   return safeArray(items).map(normalizeMemoryRecord).filter(function (memory) {
+    if (!memoryHasDisplayableFile(memory)) return false;
     return matchesReleaseFilter(memory, albums, filters || {});
   });
 }
@@ -1652,6 +1662,12 @@ async function fetchFileAudit() {
 async function fetchFileRepair() {
   const res = await fetch("/api/repair-files", { method: "POST" });
   if (!res.ok) throw new Error("file_repair_failed");
+  return res.json();
+}
+
+async function fetchClearMissingRecords() {
+  const res = await fetch("/api/clear-missing-files", { method: "POST" });
+  if (!res.ok) throw new Error("clear_missing_files_failed");
   return res.json();
 }
 
@@ -2187,7 +2203,7 @@ function HealthPanel(props) {
       {props.health && props.health.repairReport ? <div className="statusClean">Last repair: {props.health.repairReport.orphanAlbumRefs} broken links / {props.health.repairReport.missingHomes} without album</div> : null}
       {props.health && props.health.routeCheck ? <div className="statusClean">App: ACCESS {String(props.health.routeCheck.access).toUpperCase()} / HEALTH {String(props.health.routeCheck.health).toUpperCase()}</div> : null}
       {props.missingReport ? <div className="statusClean">Files: {props.missingReport.missing} MISSING / {props.missingReport.checked} CHECKED</div> : null}
-      {props.fileAuditReport ? <div className="statusClean">File audit: {props.fileAuditReport.indexMemories} records / {props.fileAuditReport.mediaObjects || props.fileAuditReport.r2Objects} media / {props.fileAuditReport.sidecarObjects || 0} JSON / {props.fileAuditReport.missingRecords} missing / {props.fileAuditReport.recoveredOrphans} imported / {props.fileAuditReport.guaranteedDisplayable ? "DISPLAY READY" : "REPAIR NEEDED"}</div> : null}
+      {props.fileAuditReport ? <div className="statusClean">File audit: {props.fileAuditReport.indexMemories} records / {props.fileAuditReport.mediaObjects || props.fileAuditReport.r2Objects} media / {props.fileAuditReport.sidecarObjects || 0} JSON / {props.fileAuditReport.missingRecords} missing / {props.fileAuditReport.removedMissingRecords || 0} cleared / {props.fileAuditReport.recoveredOrphans} imported / {props.fileAuditReport.guaranteedDisplayable ? "DISPLAY READY" : "REPAIR NEEDED"}</div> : null}
       {props.healthError ? <div className="statusClean">HEALTH CHECK FAILED.</div> : null}
       <button type="button" onClick={props.runHealthCheck}>CHECK ARCHIVE</button>
       <button type="button" onClick={props.runRouteCheck}>CHECK APP</button>
@@ -2195,6 +2211,7 @@ function HealthPanel(props) {
       <button type="button" onClick={props.runFileAudit}>AUDIT FILES</button>
       <button type="button" onClick={props.importR2AndReload}>IMPORT R2 FOLDER</button>
       <button type="button" onClick={props.repairFilesAndReload}>REPAIR FILE RECORDS</button>
+      <button type="button" onClick={props.clearMissingAndReload}>CLEAR MISSING RECORDS</button>
       <button type="button" onClick={props.repairIndex}>REPAIR ALBUM LINKS</button>
     </div>
   );
@@ -4307,6 +4324,17 @@ const [screen, setScreen] = useState("home");
       .catch(function () { setHealthError(true); });
   }
 
+  function clearMissingAndReload() {
+    setHealthError(false);
+    fetchClearMissingRecords()
+      .then(function (result) {
+        setFileAuditReport(result);
+        setHealth(function (current) { return { ...(current || {}), fileAudit: result, clearMissing: result }; });
+        reloadIndex();
+      })
+      .catch(function () { setHealthError(true); });
+  }
+
   function importR2AndReload() {
     setHealthError(false);
     fetchR2Import()
@@ -5431,9 +5459,9 @@ async function handleUpload(eventOrFiles) {
           <motion.div key={key} className="screen" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16 }}>
             {screen === "home" ? (
               <Glass className={"shell grid-" + gridSize + (hasTransientOverlayOpen ? " has-panel-open" : "")}>
-                <ControlBar activePage={activePage} currentAlbumId={currentAlbumId} archive={archive} archiveFilter={archiveFilter} setArchiveFilter={setArchiveFilterFromNav} count={memories.length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} filterControlsOpen={filterControlsOpen} toggleFilterControls={function () { toggleOverlay("filter", filterControlsOpen, setFilterControlsOpen); }} settingsOpen={settingsOpen} toggleSettingsPanel={function () { toggleOverlay("settings", settingsOpen, setSettingsOpen); }} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} />
+                <ControlBar activePage={activePage} currentAlbumId={currentAlbumId} archive={archive} archiveFilter={archiveFilter} setArchiveFilter={setArchiveFilterFromNav} count={safeArray(memories).filter(memoryHasDisplayableFile).length} sync={sync} onUpload={handleUpload} selectionMode={selectionMode} toggleSelectionMode={toggleSelectionMode} filterControlsOpen={filterControlsOpen} toggleFilterControls={function () { toggleOverlay("filter", filterControlsOpen, setFilterControlsOpen); }} settingsOpen={settingsOpen} toggleSettingsPanel={function () { toggleOverlay("settings", settingsOpen, setSettingsOpen); }} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} />
                 <div className="floatingUtilityCluster">
-                  <span className="utilityFileCount" aria-label={safeArray(memories).length + " files"}>{safeArray(memories).length} FILES</span>
+                  <span className="utilityFileCount" aria-label={safeArray(memories).filter(memoryHasDisplayableFile).length + " files"}>{safeArray(memories).filter(memoryHasDisplayableFile).length} FILES</span>
                   <div className="floatingUtilityRail" aria-label="Quick actions">
                     <AmbientMusicControl />
                     <button type="button" aria-label="Filter" data-tooltip="Filter" className={filterControlsOpen ? "utilityRailButton iconUtilityButton active" : "utilityRailButton iconUtilityButton"} onClick={function () { toggleOverlay("filter", filterControlsOpen, setFilterControlsOpen); }}><SlidersHorizontal size={14} strokeWidth={2.1} /></button>
@@ -5459,7 +5487,7 @@ async function handleUpload(eventOrFiles) {
                 <UploadQueuePanel open={uploadQueueOpen} queue={uploadQueue} paused={uploadPaused} togglePause={function () { setUploadPaused(function (value) { return !value; }); }} retryFailed={retryFailedUploads} close={function () { setUploadQueueOpen(false); }} clearFinished={function () { setUploadQueue(function (items) { return items.filter(function (item) { return item.status === "queued" || item.status === "uploading"; }); }); }} />
                 <StatusPanel open={statusOpen} memories={uploadPendingItems.concat(safeArray(memories))} close={function () { setStatusOpen(false); }} retryUpload={retryUpload} clearLocalFailedStatus={clearLocalFailedStatus} purgeTrash={purgeTrash} />
                 <DuplicatePanel open={duplicatesOpen} memories={uploadPendingItems.concat(safeArray(memories))} close={function () { setDuplicatesOpen(false); }} openMemory={openMemoryDetail} trashDuplicateOthers={trashDuplicateOthers} />
-                <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} fileAuditReport={fileAuditReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} runFileAudit={runFileAudit} importR2AndReload={importR2AndReload} repairFilesAndReload={repairFilesAndReload} repairIndex={repairIndex} />
+                <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} fileAuditReport={fileAuditReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} runFileAudit={runFileAudit} importR2AndReload={importR2AndReload} repairFilesAndReload={repairFilesAndReload} clearMissingAndReload={clearMissingAndReload} repairIndex={repairIndex} />
                 <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} currentAlbumId={currentAlbumId} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { toggleOverlay("bulk", bulkMoreOpen, setBulkMoreOpen); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkRemoveFromCurrentAlbum={bulkRemoveFromCurrentAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkRefilter={bulkMarkRefilter} bulkClearRefilter={bulkClearRefilter} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDownload={bulkDownloadSelected} bulkDelete={bulkDelete} clearSelection={clearSelection} />
                 {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} archiveFilter={archiveFilter} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} setSelectionMode={setSelectionMode} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onEditAlbum={function (group) { closeTransientOverlays("albumEditor"); setPzAlbumEditorId(group.id || group.sourceId); }} sortMode={sortMode} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} /> : null}
                 {activePage === "mirror" ? <MirrorFilter mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} /> : null}

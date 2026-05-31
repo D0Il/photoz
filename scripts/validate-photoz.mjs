@@ -39,7 +39,7 @@ check("album search action css exists", css.includes("PHOTOZ album search collap
 
 
 check("exactly one utility file count JSX", matchCount(app, /className="utilityFileCount"/g) === 1);
-check("exactly one FILES status render", matchCount(app, /className="utilityFileCount"[^>]*>\{safeArray\(memories\)\.length\} FILES<\/span>/g) === 1);
+check("exactly one FILES status render", matchCount(app, /className="utilityFileCount"[^>]*>\{safeArray\(memories\)(?:\.filter\(memoryHasDisplayableFile\))?\.length\} FILES<\/span>/g) === 1);
 check("file count is outside utility bubble", utilityCluster.includes("className=\"floatingUtilityRail\"") && utilityCluster.includes("className=\"utilityFileCount\""));
 check("file count is left of music bubble", utilityCluster.indexOf("className=\"utilityFileCount\"") !== -1 && utilityCluster.indexOf("className=\"floatingUtilityRail\"") !== -1 && utilityCluster.indexOf("className=\"utilityFileCount\"") < utilityCluster.indexOf("className=\"floatingUtilityRail\""));
 check("file count is not inside floatingUtilityRail", !utilityRail.includes("utilityFileCount"));
@@ -334,6 +334,17 @@ check("PHOTOZ access gate reports missing PHOTOZ_ACCESS_CODE instead of denying 
 check("release density classes use strong PHOTOZ-scoped grid rules", css.includes(".photozProUI .photoGrid.densityCompact") && css.includes(".photozProUI .photoGrid.densityLarge") && css.includes("view-densityCompact"));
 check("album year month era groups are not tiny chips", css.includes("RELEASE GROUP VIEW FIX") && css.includes("timelineStack.filterFilter .systemRailItem") && css.includes("min-height: 118px"));
 check("large filter path is not a dead control", app.includes('quality === "large" && fileSizeBytes(memory) <= 0'));
+
+if (failures.length) {
+  console.error("PHOTOZ validation failed:");
+  for (const failure of failures) console.error("- " + failure);
+  process.exit(1);
+}
+
+
+check("App hides missing/non-displayable records from normal views", app.includes("memoryHasDisplayableFile"));
+check("App exposes clear missing records action", app.includes("fetchClearMissingRecords") && app.includes("CLEAR MISSING RECORDS"));
+check("Worker implements clear missing records endpoint", worker.includes("handleClearMissingFiles") && worker.includes("/api/clear-missing-files"));
 
 if (failures.length) {
   console.error("PHOTOZ validation failed:");

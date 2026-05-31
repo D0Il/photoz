@@ -631,6 +631,63 @@ function repairIndexAgainstObjects(index, objects, sidecarMap = new Map()) {
   };
 }
 
+
+function clearMissingRecordsFromIndex(index, objects) {
+  const source = normalizeIndex(index);
+  const kept = [];
+  const removed = [];
+
+  safeArray(source.memories).forEach((memory) => {
+    const match = bestObjectForMemory(memory, objects);
+    if (match) {
+      kept.push({
+        ...memory,
+        storageKey: match.key,
+        storageUrl: fileUrlForKey(match.key),
+        previewUrl: fileUrlForKey(match.key),
+        uploadStatus: "r2",
+        missing: false,
+        updatedAt: new Date().toISOString(),
+      });
+    } else {
+      removed.push(memory);
+    }
+  });
+
+  const keptIds = new Set(kept.map((memory) => String(memory.id)));
+  const albums = safeArray(source.albums).map((album) => ({
+    ...album,
+    memoryIds: safeArray(album.memoryIds).filter((id) => keptIds.has(String(id))),
+  }));
+
+  return {
+    index: normalizeIndex({ ...source, memories: kept, albums, updatedAt: new Date().toISOString() }),
+    report: {
+      checkedRecords: safeArray(source.memories).length,
+      indexMemoriesBefore: safeArray(source.memories).length,
+      indexMemories: kept.length,
+      mediaObjects: objects.length,
+      r2Objects: objects.length,
+      missingRecords: removed.length,
+      removedMissingRecords: removed.length,
+      removedIds: removed.map((memory) => memory.id),
+      guaranteedDisplayable: true,
+      clearedAt: new Date().toISOString(),
+    },
+  };
+}
+
+async function handleClearMissingFiles(env) {
+  const bucket = getMediaBucket(env);
+  if (!bucket) return jsonResponse({ ok: false, error: "PHOTOZ_BUCKET_NOT_CONFIGURED" }, { status: 500 });
+  const index = await readIndex(env);
+  const allObjects = await listAllObjects(bucket);
+  const mediaObjects = allObjects.filter(isLikelyMediaObject);
+  const result = clearMissingRecordsFromIndex(index, mediaObjects);
+  await writeIndex(env, result.index);
+  return jsonResponse({ ok: true, repaired: true, cleared: true, ...result.report });
+}
+
 async function handleFileAudit(env, repair = false) {
   const bucket = getMediaBucket(env);
   if (!bucket) return jsonResponse({ ok: false, error: "PHOTOZ_BUCKET_NOT_CONFIGURED" }, { status: 500 });
@@ -733,7 +790,7 @@ async function handleHealth(env) {
     indexMemories: safeArray(index.memories).length,
     indexAlbums: safeArray(index.albums).length,
     accessConfigured: Boolean(getConfiguredPassword(env)),
-    routes: ["/api/index", "/api/upload", "/api/file/:key", "/api/delete", "/api/file-audit", "/api/repair-files", "/api/import-r2", "/api/health", "/api/access", "/api/auth"],
+    routes: ["/api/index", "/api/upload", "/api/file/:key", "/api/delete", "/api/file-audit", "/api/repair-files", "/api/import-r2", "/api/clear-missing-files", "/api/health", "/api/access", "/api/auth"],
   });
 }
 
@@ -747,6 +804,7 @@ export default {
     if (url.pathname === "/api/file-audit") return handleFileAudit(env, false);
     if (url.pathname === "/api/repair-files" && (request.method === "POST" || request.method === "GET")) return handleFileAudit(env, true);
     if (url.pathname === "/api/import-r2" && (request.method === "POST" || request.method === "GET")) return handleR2Import(env);
+    if (url.pathname === "/api/clear-missing-files" && (request.method === "POST" || request.method === "GET")) return handleClearMissingFiles(env);
     if ((url.pathname === "/api/index" || url.pathname === "/api/load-index") && request.method === "GET") return jsonResponse(await readIndex(env));
     if ((url.pathname === "/api/index" || url.pathname === "/api/save-index") && request.method !== "GET") {
       const body = await readJsonBody(request);
