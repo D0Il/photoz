@@ -1677,6 +1677,23 @@ async function fetchR2Import() {
   return res.json();
 }
 
+function summarizeRepairResult(action, result) {
+  const data = result && typeof result === "object" ? result : {};
+  const parts = [];
+  if (Number.isFinite(Number(data.checkedRecords))) parts.push(`${Number(data.checkedRecords)} checked`);
+  if (Number.isFinite(Number(data.indexMemoriesBefore)) && Number.isFinite(Number(data.indexMemories))) parts.push(`${Number(data.indexMemoriesBefore)} → ${Number(data.indexMemories)} records`);
+  if (Number.isFinite(Number(data.importedR2Objects))) parts.push(`${Number(data.importedR2Objects)} imported`);
+  if (Number.isFinite(Number(data.recoveredOrphans))) parts.push(`${Number(data.recoveredOrphans)} recovered`);
+  if (Number.isFinite(Number(data.repairedRecords))) parts.push(`${Number(data.repairedRecords)} repaired`);
+  if (Number.isFinite(Number(data.missingRecords))) parts.push(`${Number(data.missingRecords)} missing`);
+  if (Number.isFinite(Number(data.removedMissingRecords))) parts.push(`${Number(data.removedMissingRecords)} cleared`);
+  if (Number.isFinite(Number(data.mediaObjects))) parts.push(`${Number(data.mediaObjects)} media objects`);
+  if (Number.isFinite(Number(data.sidecarObjects))) parts.push(`${Number(data.sidecarObjects)} JSON sidecars`);
+  if (!parts.length && data.ok) parts.push("complete");
+  if (!parts.length) parts.push("no changes reported");
+  return `${action}: ${parts.join(" / ")}`;
+}
+
 async function deleteOne(memory) {
   const key = storageKeyFromMemory(memory);
   if (!memory || !key) return true;
@@ -2204,15 +2221,20 @@ function HealthPanel(props) {
       {props.health && props.health.routeCheck ? <div className="statusClean">App: ACCESS {String(props.health.routeCheck.access).toUpperCase()} / HEALTH {String(props.health.routeCheck.health).toUpperCase()}</div> : null}
       {props.missingReport ? <div className="statusClean">Files: {props.missingReport.missing} MISSING / {props.missingReport.checked} CHECKED</div> : null}
       {props.fileAuditReport ? <div className="statusClean">File audit: {props.fileAuditReport.indexMemories} records / {props.fileAuditReport.mediaObjects || props.fileAuditReport.r2Objects} media / {props.fileAuditReport.sidecarObjects || 0} JSON / {props.fileAuditReport.missingRecords} missing / {props.fileAuditReport.removedMissingRecords || 0} cleared / {props.fileAuditReport.recoveredOrphans} imported / {props.fileAuditReport.guaranteedDisplayable ? "DISPLAY READY" : "REPAIR NEEDED"}</div> : null}
-      {props.healthError ? <div className="statusClean">HEALTH CHECK FAILED.</div> : null}
-      <button type="button" onClick={props.runHealthCheck}>CHECK ARCHIVE</button>
-      <button type="button" onClick={props.runRouteCheck}>CHECK APP</button>
-      <button type="button" onClick={props.runMissingCheck}>CHECK FILES</button>
-      <button type="button" onClick={props.runFileAudit}>AUDIT FILES</button>
-      <button type="button" onClick={props.importR2AndReload}>IMPORT R2 FOLDER</button>
-      <button type="button" onClick={props.repairFilesAndReload}>REPAIR FILE RECORDS</button>
-      <button type="button" onClick={props.clearMissingAndReload}>CLEAR MISSING RECORDS</button>
-      <button type="button" onClick={props.repairIndex}>REPAIR ALBUM LINKS</button>
+      {props.healthError ? <div className="statusClean repairStatusLine error">ACTION FAILED. CHECK CONNECTION OR WORKER LOGS.</div> : null}
+      {props.repairStatus && props.repairStatus.message ? (
+        <div className={props.repairStatus.state === "error" ? "statusClean repairStatusLine error" : "statusClean repairStatusLine"}>
+          {props.repairStatus.message}
+        </div>
+      ) : null}
+      <button type="button" disabled={props.repairStatus && props.repairStatus.state === "running"} onClick={props.runHealthCheck}>CHECK ARCHIVE</button>
+      <button type="button" disabled={props.repairStatus && props.repairStatus.state === "running"} onClick={props.runRouteCheck}>CHECK APP</button>
+      <button type="button" disabled={props.repairStatus && props.repairStatus.state === "running"} onClick={props.runMissingCheck}>CHECK FILES</button>
+      <button type="button" disabled={props.repairStatus && props.repairStatus.state === "running"} onClick={props.runFileAudit}>AUDIT FILES</button>
+      <button type="button" disabled={props.repairStatus && props.repairStatus.state === "running"} onClick={props.importR2AndReload}>IMPORT R2 FOLDER</button>
+      <button type="button" disabled={props.repairStatus && props.repairStatus.state === "running"} onClick={props.repairFilesAndReload}>REPAIR FILE RECORDS</button>
+      <button type="button" disabled={props.repairStatus && props.repairStatus.state === "running"} onClick={props.clearMissingAndReload}>CLEAR MISSING RECORDS</button>
+      <button type="button" disabled={props.repairStatus && props.repairStatus.state === "running"} onClick={props.repairIndex}>REPAIR ALBUM LINKS</button>
     </div>
   );
 }
@@ -3985,6 +4007,7 @@ const [screen, setScreen] = useState("home");
   const [healthError, setHealthError] = useState(false);
   const [missingReport, setMissingReport] = useState(null);
   const [fileAuditReport, setFileAuditReport] = useState(null);
+  const [repairStatus, setRepairStatus] = useState({ action: "", state: "idle", message: "" });
   const [gridSize, setGridSize] = useState("normal");
   const [albumQuery, setAlbumQuery] = useState("");
   const [albumSearchOpen, setAlbumSearchOpen] = useState(false);
@@ -4261,6 +4284,7 @@ const [screen, setScreen] = useState("home");
   }
 
   function repairIndex() {
+    setRepairStatus({ action: "REPAIR ALBUM LINKS", state: "running", message: "REPAIR ALBUM LINKS: removing dead album references…" });
     const memoryIds = {};
     safeArray(memories).forEach(function (memory) { memoryIds[memory.id] = true; });
 
@@ -4279,9 +4303,11 @@ const [screen, setScreen] = useState("home");
       return { ...(current || {}), repairedAt: new Date().toISOString(), repairReport: report };
     });
     persist(memories, coveredAlbums);
+    setRepairStatus({ action: "REPAIR ALBUM LINKS", state: "done", message: `REPAIR ALBUM LINKS: ${report.orphanAlbumRefs || 0} broken links / ${report.missingHomes || 0} without album` });
   }
 
   function runRouteCheck() {
+    setRepairStatus({ action: "CHECK APP", state: "running", message: "CHECK APP: checking routes…" });
     Promise.all([
       fetch("/api/access").then(function (res) { return res.ok; }).catch(function () { return false; }),
       fetch("/api/health").then(function (res) { return res.ok; }).catch(function () { return false; }),
@@ -4289,71 +4315,86 @@ const [screen, setScreen] = useState("home");
       setHealth(function (current) {
         return { ...(current || {}), routeCheck: { access: checks[0], health: checks[1], checkedAt: new Date().toISOString() } };
       });
+      setRepairStatus({ action: "CHECK APP", state: "done", message: `CHECK APP: ACCESS ${String(checks[0]).toUpperCase()} / HEALTH ${String(checks[1]).toUpperCase()}` });
     });
   }
 
   function runMissingCheck() {
+    setRepairStatus({ action: "CHECK FILES", state: "running", message: "CHECK FILES: checking visible records…" });
     checkMissingFiles(memories)
       .then(function (result) {
         setMissingReport(result);
+        setRepairStatus({ action: "CHECK FILES", state: "done", message: `CHECK FILES: ${result.missing} missing / ${result.checked} checked` });
       })
       .catch(function () {
         setMissingReport({ checked: 0, missing: 0 });
+        setRepairStatus({ action: "CHECK FILES", state: "error", message: "CHECK FILES: failed" });
       });
   }
 
 
   function runFileAudit() {
     setHealthError(false);
+    setRepairStatus({ action: "AUDIT FILES", state: "running", message: "AUDIT FILES: scanning R2 and app records…" });
     fetchFileAudit()
       .then(function (result) {
         setFileAuditReport(result);
         setHealth(function (current) { return { ...(current || {}), fileAudit: result }; });
+        setRepairStatus({ action: "AUDIT FILES", state: "done", message: summarizeRepairResult("AUDIT FILES", result) });
       })
-      .catch(function () { setHealthError(true); });
+      .catch(function () { setHealthError(true); setRepairStatus({ action: "AUDIT FILES", state: "error", message: "AUDIT FILES: failed" }); });
   }
 
   function repairFilesAndReload() {
     setHealthError(false);
+    setRepairStatus({ action: "REPAIR FILE RECORDS", state: "running", message: "REPAIR FILE RECORDS: matching records to R2 objects…" });
     fetchFileRepair()
       .then(function (result) {
         setFileAuditReport(result);
         setHealth(function (current) { return { ...(current || {}), fileAudit: result, fileRepair: result }; });
+        setRepairStatus({ action: "REPAIR FILE RECORDS", state: "done", message: summarizeRepairResult("REPAIR FILE RECORDS", result) });
         reloadIndex();
       })
-      .catch(function () { setHealthError(true); });
+      .catch(function () { setHealthError(true); setRepairStatus({ action: "REPAIR FILE RECORDS", state: "error", message: "REPAIR FILE RECORDS: failed" }); });
   }
 
   function clearMissingAndReload() {
     setHealthError(false);
+    setRepairStatus({ action: "CLEAR MISSING RECORDS", state: "running", message: "CLEAR MISSING RECORDS: checking R2 before removing empty records…" });
     fetchClearMissingRecords()
       .then(function (result) {
         setFileAuditReport(result);
         setHealth(function (current) { return { ...(current || {}), fileAudit: result, clearMissing: result }; });
+        setRepairStatus({ action: "CLEAR MISSING RECORDS", state: "done", message: summarizeRepairResult("CLEAR MISSING RECORDS", result) });
         reloadIndex();
       })
-      .catch(function () { setHealthError(true); });
+      .catch(function () { setHealthError(true); setRepairStatus({ action: "CLEAR MISSING RECORDS", state: "error", message: "CLEAR MISSING RECORDS: failed" }); });
   }
 
   function importR2AndReload() {
     setHealthError(false);
+    setRepairStatus({ action: "IMPORT R2 FOLDER", state: "running", message: "IMPORT R2 FOLDER: scanning R2 objects and creating PHOTOZ records…" });
     fetchR2Import()
       .then(function (result) {
         setFileAuditReport(result);
         setHealth(function (current) { return { ...(current || {}), fileAudit: result, r2Import: result }; });
+        setRepairStatus({ action: "IMPORT R2 FOLDER", state: "done", message: summarizeRepairResult("IMPORT R2 FOLDER", result) });
         reloadIndex();
       })
-      .catch(function () { setHealthError(true); });
+      .catch(function () { setHealthError(true); setRepairStatus({ action: "IMPORT R2 FOLDER", state: "error", message: "IMPORT R2 FOLDER: failed" }); });
   }
 
   function runHealthCheck() {
     setHealthError(false);
+    setRepairStatus({ action: "CHECK ARCHIVE", state: "running", message: "CHECK ARCHIVE: checking index and storage…" });
     fetchHealth()
       .then(function (result) {
         setHealth(result);
+        setRepairStatus({ action: "CHECK ARCHIVE", state: "done", message: `CHECK ARCHIVE: ${result && result.indexFound ? "INDEX FOUND" : "INDEX NEW"} / ${result && result.bucket ? "STORAGE READY" : "STORAGE CHECK"}` });
       })
       .catch(function () {
         setHealthError(true);
+        setRepairStatus({ action: "CHECK ARCHIVE", state: "error", message: "CHECK ARCHIVE: failed" });
       });
   }
 
@@ -5487,7 +5528,7 @@ async function handleUpload(eventOrFiles) {
                 <UploadQueuePanel open={uploadQueueOpen} queue={uploadQueue} paused={uploadPaused} togglePause={function () { setUploadPaused(function (value) { return !value; }); }} retryFailed={retryFailedUploads} close={function () { setUploadQueueOpen(false); }} clearFinished={function () { setUploadQueue(function (items) { return items.filter(function (item) { return item.status === "queued" || item.status === "uploading"; }); }); }} />
                 <StatusPanel open={statusOpen} memories={uploadPendingItems.concat(safeArray(memories))} close={function () { setStatusOpen(false); }} retryUpload={retryUpload} clearLocalFailedStatus={clearLocalFailedStatus} purgeTrash={purgeTrash} />
                 <DuplicatePanel open={duplicatesOpen} memories={uploadPendingItems.concat(safeArray(memories))} close={function () { setDuplicatesOpen(false); }} openMemory={openMemoryDetail} trashDuplicateOthers={trashDuplicateOthers} />
-                <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} fileAuditReport={fileAuditReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} runFileAudit={runFileAudit} importR2AndReload={importR2AndReload} repairFilesAndReload={repairFilesAndReload} clearMissingAndReload={clearMissingAndReload} repairIndex={repairIndex} />
+                <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} fileAuditReport={fileAuditReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} runFileAudit={runFileAudit} importR2AndReload={importR2AndReload} repairFilesAndReload={repairFilesAndReload} clearMissingAndReload={clearMissingAndReload} repairIndex={repairIndex} repairStatus={repairStatus} />
                 <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} currentAlbumId={currentAlbumId} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { toggleOverlay("bulk", bulkMoreOpen, setBulkMoreOpen); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkRemoveFromCurrentAlbum={bulkRemoveFromCurrentAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkRefilter={bulkMarkRefilter} bulkClearRefilter={bulkClearRefilter} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDownload={bulkDownloadSelected} bulkDelete={bulkDelete} clearSelection={clearSelection} />
                 {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} archiveFilter={archiveFilter} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} setSelectionMode={setSelectionMode} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onEditAlbum={function (group) { closeTransientOverlays("albumEditor"); setPzAlbumEditorId(group.id || group.sourceId); }} sortMode={sortMode} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} /> : null}
                 {activePage === "mirror" ? <MirrorFilter mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} /> : null}

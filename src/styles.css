@@ -19853,3 +19853,53 @@ body:has(.fileInfoModal) {
     letter-spacing: -.04em;
   }
 }
+
+/* PHOTOZ repair feedback + album scroll release fix */
+.repairStatusLine {
+  grid-column: 1 / -1;
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(20, 20, 24, 0.10);
+  background: rgba(255, 255, 255, 0.54);
+  color: rgba(12, 12, 14, 0.72);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1.35;
+  text-transform: uppercase;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.44), 0 10px 22px rgba(10,10,12,.06);
+}
+.repairStatusLine.error {
+  color: rgba(120, 20, 20, 0.82);
+  border-color: rgba(120, 20, 20, 0.16);
+  background: rgba(255, 245, 245, 0.70);
+}
+.healthPanel button:disabled {
+  opacity: .48;
+  cursor: progress;
+}
+
+.photozProUI .pageScroll,
+.photozProUI.page-albums .pageScroll,
+.photozProUI.page-search .pageScroll,
+.photozProUI.page-mirror .pageScroll {
+  min-height: 0;
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: max(140px, env(safe-area-inset-bottom));
+}
+
+.photozProUI .groupShell,
+.groupShell {
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 120px;
+}
+
+.photozProUI .albumPhotoGrid,
+.photozProUI .albumsPage .photoGrid,
+.photozProUI .groupShell .photoGrid {
+  overflow: visible;
+}
