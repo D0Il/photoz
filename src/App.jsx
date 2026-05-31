@@ -2205,8 +2205,27 @@ function SettingsPanel(props) {
 function HealthPanel(props) {
   if (!props.open) return null;
 
+  function runRepairButton(label, handler) {
+    return function (event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      if (typeof props.markRepairClick === "function") props.markRepairClick(label);
+      if (typeof handler === "function") {
+        handler();
+      } else if (typeof props.markRepairError === "function") {
+        props.markRepairError(label, "missing handler");
+      } else {
+        console.error("PHOTOZ repair action missing handler", label);
+      }
+    };
+  }
+
+  const busy = props.repairStatus && props.repairStatus.state === "running";
+
   return (
-    <div className="healthPanel">
+    <div className={busy ? "healthPanel repairBusy" : "healthPanel"}>
       <div className="statusPanelTop">
         <strong>HEALTH</strong>
         <button type="button" onClick={props.close}>Close</button>
@@ -2227,14 +2246,16 @@ function HealthPanel(props) {
           {props.repairStatus.message}
         </div>
       ) : null}
-      <button type="button" disabled={props.repairStatus && props.repairStatus.state === "running"} onClick={props.runHealthCheck}>CHECK ARCHIVE</button>
-      <button type="button" disabled={props.repairStatus && props.repairStatus.state === "running"} onClick={props.runRouteCheck}>CHECK APP</button>
-      <button type="button" disabled={props.repairStatus && props.repairStatus.state === "running"} onClick={props.runMissingCheck}>CHECK FILES</button>
-      <button type="button" disabled={props.repairStatus && props.repairStatus.state === "running"} onClick={props.runFileAudit}>AUDIT FILES</button>
-      <button type="button" disabled={props.repairStatus && props.repairStatus.state === "running"} onClick={props.importR2AndReload}>IMPORT R2 FOLDER</button>
-      <button type="button" disabled={props.repairStatus && props.repairStatus.state === "running"} onClick={props.repairFilesAndReload}>REPAIR FILE RECORDS</button>
-      <button type="button" disabled={props.repairStatus && props.repairStatus.state === "running"} onClick={props.clearMissingAndReload}>CLEAR MISSING RECORDS</button>
-      <button type="button" disabled={props.repairStatus && props.repairStatus.state === "running"} onClick={props.repairIndex}>REPAIR ALBUM LINKS</button>
+      <div className="repairButtonGrid" aria-label="Repair actions">
+        <button type="button" data-repair-action="check-archive" aria-busy={busy ? "true" : "false"} onPointerDown={function (event) { event.stopPropagation(); }} onClick={runRepairButton("CHECK ARCHIVE", props.runHealthCheck)}>CHECK ARCHIVE</button>
+        <button type="button" data-repair-action="check-app" aria-busy={busy ? "true" : "false"} onPointerDown={function (event) { event.stopPropagation(); }} onClick={runRepairButton("CHECK APP", props.runRouteCheck)}>CHECK APP</button>
+        <button type="button" data-repair-action="check-files" aria-busy={busy ? "true" : "false"} onPointerDown={function (event) { event.stopPropagation(); }} onClick={runRepairButton("CHECK FILES", props.runMissingCheck)}>CHECK FILES</button>
+        <button type="button" data-repair-action="audit-files" aria-busy={busy ? "true" : "false"} onPointerDown={function (event) { event.stopPropagation(); }} onClick={runRepairButton("AUDIT FILES", props.runFileAudit)}>AUDIT FILES</button>
+        <button type="button" data-repair-action="import-r2" aria-busy={busy ? "true" : "false"} onPointerDown={function (event) { event.stopPropagation(); }} onClick={runRepairButton("IMPORT R2 FOLDER", props.importR2AndReload)}>IMPORT R2 FOLDER</button>
+        <button type="button" data-repair-action="repair-files" aria-busy={busy ? "true" : "false"} onPointerDown={function (event) { event.stopPropagation(); }} onClick={runRepairButton("REPAIR FILE RECORDS", props.repairFilesAndReload)}>REPAIR FILE RECORDS</button>
+        <button type="button" data-repair-action="clear-missing" aria-busy={busy ? "true" : "false"} onPointerDown={function (event) { event.stopPropagation(); }} onClick={runRepairButton("CLEAR MISSING RECORDS", props.clearMissingAndReload)}>CLEAR MISSING RECORDS</button>
+        <button type="button" data-repair-action="repair-albums" aria-busy={busy ? "true" : "false"} onPointerDown={function (event) { event.stopPropagation(); }} onClick={runRepairButton("REPAIR ALBUM LINKS", props.repairIndex)}>REPAIR ALBUM LINKS</button>
+      </div>
     </div>
   );
 }
@@ -4398,6 +4419,16 @@ const [screen, setScreen] = useState("home");
       });
   }
 
+  function markRepairClick(action) {
+    setHealthError(false);
+    setRepairStatus({ action: action, state: "running", message: action + ": starting…" });
+  }
+
+  function markRepairError(action, message) {
+    setHealthError(true);
+    setRepairStatus({ action: action, state: "error", message: action + ": " + (message || "failed") });
+  }
+
   function exportSelectedJson() {
     const ids = selectedMemoryIds(selectedIds);
     const selected = safeArray(memories).filter(function (memory) { return ids.indexOf(memory.id) !== -1; });
@@ -5528,7 +5559,7 @@ async function handleUpload(eventOrFiles) {
                 <UploadQueuePanel open={uploadQueueOpen} queue={uploadQueue} paused={uploadPaused} togglePause={function () { setUploadPaused(function (value) { return !value; }); }} retryFailed={retryFailedUploads} close={function () { setUploadQueueOpen(false); }} clearFinished={function () { setUploadQueue(function (items) { return items.filter(function (item) { return item.status === "queued" || item.status === "uploading"; }); }); }} />
                 <StatusPanel open={statusOpen} memories={uploadPendingItems.concat(safeArray(memories))} close={function () { setStatusOpen(false); }} retryUpload={retryUpload} clearLocalFailedStatus={clearLocalFailedStatus} purgeTrash={purgeTrash} />
                 <DuplicatePanel open={duplicatesOpen} memories={uploadPendingItems.concat(safeArray(memories))} close={function () { setDuplicatesOpen(false); }} openMemory={openMemoryDetail} trashDuplicateOthers={trashDuplicateOthers} />
-                <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} fileAuditReport={fileAuditReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} runFileAudit={runFileAudit} importR2AndReload={importR2AndReload} repairFilesAndReload={repairFilesAndReload} clearMissingAndReload={clearMissingAndReload} repairIndex={repairIndex} repairStatus={repairStatus} />
+                <HealthPanel open={healthOpen} health={health} healthError={healthError} validation={validation} missingReport={missingReport} fileAuditReport={fileAuditReport} close={function () { setHealthOpen(false); }} runHealthCheck={runHealthCheck} runRouteCheck={runRouteCheck} runMissingCheck={runMissingCheck} runFileAudit={runFileAudit} importR2AndReload={importR2AndReload} repairFilesAndReload={repairFilesAndReload} clearMissingAndReload={clearMissingAndReload} repairIndex={repairIndex} repairStatus={repairStatus} markRepairClick={markRepairClick} markRepairError={markRepairError} />
                 <BulkBar selectionMode={selectionMode} selectedIds={selectedIds} albums={albums} currentAlbumId={currentAlbumId} bulkAlbum={bulkAlbum} setBulkAlbum={setBulkAlbum} bulkText={bulkText} setBulkText={setBulkText} bulkMoreOpen={bulkMoreOpen} toggleBulkMore={function () { toggleOverlay("bulk", bulkMoreOpen, setBulkMoreOpen); }} selectAll={selectAll} selectVisible={selectVisible} invertSelection={invertSelection} bulkAddToAlbum={bulkAddToAlbum} bulkMoveToAlbum={bulkMoveToAlbum} bulkRemoveFromCurrentAlbum={bulkRemoveFromCurrentAlbum} bulkStar={bulkStar} bulkUnstar={bulkUnstar} bulkMarkMe={bulkMarkMe} bulkUnmarkMe={bulkUnmarkMe} bulkApplyTags={bulkApplyTags} bulkClearTags={bulkClearTags} bulkSetEra={bulkSetEra} bulkSetCaption={bulkSetCaption} bulkSetLocation={bulkSetLocation} bulkSetEvent={bulkSetEvent} bulkClearTextFields={bulkClearTextFields} bulkSetRating={bulkSetRating} bulkClearRating={bulkClearRating} bulkSetLabel={bulkSetLabel} bulkClearLabel={bulkClearLabel} bulkMarkRefilter={bulkMarkRefilter} bulkClearRefilter={bulkClearRefilter} bulkMarkPrivate={bulkMarkPrivate} bulkClearPrivate={bulkClearPrivate} bulkMoveToMirror={bulkMoveToMirror} bulkRemoveFromMirror={bulkRemoveFromMirror} bulkArchive={bulkArchive} bulkUnarchive={bulkUnarchive} bulkRestore={bulkRestore} exportSelectedJson={exportSelectedJson} bulkDownload={bulkDownloadSelected} bulkDelete={bulkDelete} clearSelection={clearSelection} />
                 {activePage === "albums" ? <AlbumsFilter currentAlbumId={currentAlbumId} setCurrentAlbumId={setCurrentAlbumId} toggleAlbumExcludeFromAll={toggleAlbumExcludeFromAll} albumSearchOpen={albumSearchOpen} setAlbumSearchOpen={setAlbumSearchExclusive} albumCreateOpen={albumCreateOpen} setAlbumCreateOpen={setAlbumCreateExclusive} archiveFilter={archiveFilter} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} albumQuery={albumQuery} setAlbumQuery={setAlbumQuery} albumSort={albumSort} draft={draft} setDraft={setDraft} createAlbum={createAlbum} deleteAlbum={deleteAlbum} toggleAlbumPin={toggleAlbumPin} toggleAlbumLock={toggleAlbumLock} editingId={editingId} editDraft={editDraft} setEditDraft={setEditDraft} editDescriptionDraft={editDescriptionDraft} setEditDescriptionDraft={setEditDescriptionDraft} startEdit={startEdit} saveEdit={saveEdit} cancelEdit={cancelEdit} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} starredIds={starredIds} reportVisibleIds={setVisibleIds} setSelectionMode={setSelectionMode} onEditMemory={function (memory) { closeTransientOverlays("detailEditor"); setPzDetailEditorId(memory.id); }} onEditAlbum={function (group) { closeTransientOverlays("albumEditor"); setPzAlbumEditorId(group.id || group.sourceId); }} sortMode={sortMode} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} /> : null}
                 {activePage === "mirror" ? <MirrorFilter mirrorAllMode={mirrorAllMode} setMirrorAllMode={setMirrorAllMode} memories={uploadPendingItems.concat(safeArray(memories))} albums={albums} openGroup={openGroup} openMemory={openMemoryDetail} deleteMemory={deleteMemory} selectionMode={selectionMode} selectedIds={selectedIds} toggleSelected={toggleSelected} setSelectionMode={setSelectionMode} sortMode={sortMode} starredIds={starredIds} reportVisibleIds={setVisibleIds} filterType={filterType} filterSource={filterSource} filterQuality={filterQuality} viewDensity={viewDensity} /> : null}

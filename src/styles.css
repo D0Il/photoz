@@ -19903,3 +19903,24 @@ body:has(.fileInfoModal) {
 .photozProUI .groupShell .photoGrid {
   overflow: visible;
 }
+
+.repairButtonGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.healthPanel .repairButtonGrid > button {
+  justify-self: stretch;
+  min-height: 34px;
+  border-radius: 14px;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+.healthPanel.repairBusy .repairButtonGrid > button[aria-busy="true"] {
+  opacity: .88;
+}
+.repairStatusLine {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}

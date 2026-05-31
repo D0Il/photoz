@@ -352,4 +352,15 @@ if (failures.length) {
   process.exit(1);
 }
 
+
+check('repair buttons must be explicitly clickable', app.includes('data-repair-action="check-archive"'));
+check('repair buttons provide immediate visible feedback', app.includes('markRepairClick={markRepairClick}'));
+check('repair buttons do not silently disable all actions', !app.includes('disabled={props.repairStatus && props.repairStatus.state === "running"} onClick={props.runHealthCheck}'));
+
+if (failures.length) {
+  console.error("PHOTOZ validation failed:");
+  for (const failure of failures) console.error("- " + failure);
+  process.exit(1);
+}
+
 console.log("PHOTOZ validation passed.");
